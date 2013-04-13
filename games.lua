@@ -4,8 +4,8 @@ local function loadUsers()
 	local f = io.open("cashList.txt","r")
 	if not f then return end
 	for line in f:lines() do
-		local host,hcash = line:match("^(.-) (%d-)$")
-		gameUsers[host]= {cash=tonumber(hcash)}
+		local host,hcash,time = line:match("^(.-) (%d-) (%d-)$")
+		gameUsers[host]= {cash=tonumber(hcash),lastDoor=tonumber(time)}
 	end
 	f:close()
 end
@@ -17,7 +17,7 @@ end
 local function saveUsers()
 	local f = io.open("cashList.txt","w")
 	for k,v in pairs(gameUsers) do
-		f:write(k.." "..v.cash.."\n")
+		f:write(k.." "..v.cash.." "..v.lastDoor.."\n")
 	end
 	f:close()
 end

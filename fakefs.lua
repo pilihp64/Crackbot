@@ -1,4 +1,21 @@
 --A fake filesystem that is silly, for ./lua
+local function getArgs(msg)
+	if not msg then return {} end
+	local args = {}
+	local index=1
+	while index<=#msg do
+		local s2,e2,word2 = msg:find("\"([^\"]-)\"",index)
+		local s,e,word = msg:find("([^%s]+)",index)
+		if s2 and s2<=s then
+			word=word2
+			e=e2
+		end
+		table.insert(args,word)
+		index = (e or #msg)+1 or #msg+1
+	end
+	return args
+end
+
 local function newFolder()
 	local t={
 		["files"] = {},

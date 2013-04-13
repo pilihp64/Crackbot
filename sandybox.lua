@@ -28,7 +28,7 @@ if _VERSION == "Lua 5.2" then
 end
 local math={abs=math.abs,acos=math.acos,sin=math.sin,atan=math.atan,atan2=math.atan2,ceil=math.ceil,cos=math.cos,cosh=math.cosh,deg=math.deg,exp=math.exp,floor=math.floor,fmod=math.fmod,frexp=math.frexp,huge=math.huge,ldexp=math.ldexp,log=math.log,log10=math.log10,max=math.max,min=math.min,modf=math.modf,pi=math.pi,pow=math.pow,rad=math.rad,random=math.random,sin=math.sin,sinh=math.sinh,sqrt=math.sqrt,tan=math.tan,tanh=math.tanh}
 
-env = {pcall=pcall, math=math, coroutine=coroutine, string=string, table=mtable,os = os, assert=assert,error=error,ipairs=ipairs,next=next,pairs=pairs,pcall=pcall,select=select,tonumber=tonumber,tostring=tostring,_VERSION=_VERSION,xpcall=xpcall,print=print,fempty=fempty,fproxy=fproxy,fop=fop,getArgs=getArgs,io=io}
+env = {type=type,pcall=pcall, math=math, coroutine=coroutine, string=string, table=mtable,os = os, assert=assert,error=error,ipairs=ipairs,next=next,pairs=pairs,pcall=pcall,select=select,tonumber=tonumber,tostring=tostring,_VERSION=_VERSION,xpcall=xpcall,print=print,fempty=fempty,fproxy=fproxy,fop=fop,getArgs=getArgs,io=io}
 if _VERSION == "Lua 5.2" then
 	env.bit32 = mbit32
 	env.load = function(s,n,t,e) --safe load function

@@ -146,7 +146,7 @@ add_cmd(reload,"load",100,"Loads file(s), '/load <file1> [<file2>] [<files...>]"
 local function echo(usr,chan,msg)
 	return msg
 end
-add_cmd(echo,"echo",0,"Replies same text, '/echo text'",true)
+add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true)
 
 --LIST
 local function list(usr,chan,msg,args)

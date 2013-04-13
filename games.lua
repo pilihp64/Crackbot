@@ -68,7 +68,7 @@ function odoor(usr,door)
 	users[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
-		if tonumber(door)>15 and (tonumber(door)<=adjust+1 or tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
+		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
 	--some other weird functions to change money

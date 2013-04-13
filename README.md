@@ -1,4 +1,0 @@
-Crackbot
-========
-
-Lua bot...

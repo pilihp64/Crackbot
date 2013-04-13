@@ -357,6 +357,11 @@ local function myMoney(usr,chan,msg,args)
 	return myCash(usr)
 end
 add_cmd(myMoney,"cash",0,"Your current balance",true)
+--reload cashtext
+local function loadCash(usr,chan,msg,args)
+	return loadUsersCMD()
+end
+add_cmd(loadCash,"loadcash",101,"Reload saved money",true)
 --FLIP
 local function flipCoin(usr,chan,msg,args)
 	if not args[1] or not tonumber(args[1]) then

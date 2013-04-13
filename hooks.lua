@@ -101,8 +101,16 @@ end
 
 --timers .f .time
 local timers = {}
-function addTimer(f,time,chan)
-	table.insert(timers,{f=f,time=os.time()+time-1,chan=chan})
+function addTimer(f,time,chan,name)
+	name = name or ""--name for removing a timer
+	table.insert(timers,{f=f,time=os.time()+time-1,chan=chan,name=name})
+end
+function remTimer(name)
+	for k,v in pairs(timers) do
+		if v.name==name then
+			timers[k]=nil
+		end
+	end
 end
 function timerCheck()
 	for k,v in pairs(timers) do

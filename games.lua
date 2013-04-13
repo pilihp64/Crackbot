@@ -1,18 +1,22 @@
-local users = {}
-setmetatable(users,{__index=function(t,k) t[k]={cash=1000} return t[k] end})
+gameUsers = gameUsers or {}
+setmetatable(gameUsers,{__index=function(t,k) t[k]={cash=1000} return t[k] end})
 local function loadUsers()
 	local f = io.open("cashList.txt","r")
 	if not f then return end
 	for line in f:lines() do
 		local host,hcash = line:match("^(.-) (%d-)$")
-		users[host]= {cash=tonumber(hcash)}
+		gameUsers[host]= {cash=tonumber(hcash)}
 	end
 	f:close()
 end
 loadUsers()
+--make function hook to reload user cash
+function loadUsersCMD()
+	loadUsers()
+end
 local function saveUsers()
 	local f = io.open("cashList.txt","w")
-	for k,v in pairs(users) do
+	for k,v in pairs(gameUsers) do
 		f:write(k.." "..v.cash.."\n")
 	end
 	f:close()
@@ -20,15 +24,16 @@ end
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
 	saveUsers()
-	addTimer(timedSave,60,"cracker64")
+	addTimer(timedSave,60,"cracker64","gameSave")
 end
-addTimer(timedSave,60,"cracker64")
+remTimer("gameSave")
+addTimer(timedSave,60,"cracker64","gameSave")
 
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
-	users[usr.host].cash = users[usr.host].cash + amt
-	if users[usr.host].cash <= 0 then
-		users[usr.host].cash = 1000
+	gameUsers[usr.host].cash = gameUsers[usr.host].cash + amt
+	if gameUsers[usr.host].cash <= 0 then
+		gameUsers[usr.host].cash = 1000
 		return " You went bankrupt, money reset"
 	end
 	return ""
@@ -36,11 +41,11 @@ end
 
 --User cash
 function myCash(usr)
-	return usr.nick .. ": You have $"..users[usr.host].cash
+	return usr.nick .. ": You have $"..gameUsers[usr.host].cash
 end
 --50% chance to win double
 function coinToss(usr,bet)
-	local mycash = users[usr.host].cash
+	local mycash = gameUsers[usr.host].cash
 	if bet > mycash then
 		return usr.nick .. ": Not enough money!"
 	end
@@ -63,9 +68,9 @@ function odoor(usr,door)
 	local randMon = 50
 	local divideFactor = 2
 	if door:find("moo") then divideFactor=2.5 end
-	local adjust =  os.time()-(users[usr.host].lastDoor or os.time())
+	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or os.time())
 	randMon = randMon+adjust*5--get higher for waiting longer
-	users[usr.host].lastDoor = os.time()
+	gameUsers[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end

@@ -3,12 +3,24 @@ local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
 local activeFilters = {}
 local badWordFilts = nil
 setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
+--make print log everything to file as well
+_print = _print or print
+print = function(...)
+	_print(...)
+	local arg={...}
+	local str = table.concat(arg,"\t")
+	local frqq=io.open("log.txt","a")
+	frqq:write(os.date("[%x %X] ")..str.."\n")
+	frqq:flush()
+	frqq:close()
+end
 --Activates all filters and then badwords
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
 	for k,v in pairs(activeFilters[chan].t) do
 		text = v.f(text,v.args,true)
 	end
+	--don't censor query
 	if badWordFilts and chan:sub(1,1)=='#' then text = badWordFilts(text) end
 	return chan,text
 end

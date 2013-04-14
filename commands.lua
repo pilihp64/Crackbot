@@ -291,7 +291,8 @@ end
 
 --TIMER
 local function timer(usr,chan,msg,args)
-	if tonumber(args[1]) and args[2] then
+	local num = tonumber(args[1])
+	if num and num==num and num<36000 and args[2] then
 		local t={}
 		for i=2,#args do
 			table.insert(t,args[i])

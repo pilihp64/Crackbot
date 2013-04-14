@@ -12,7 +12,6 @@ local function loadUsers()
 end
 gameUsers = gameUsers or loadUsers()
 
-
 --make function hook to reload user cash
 local function loadUsersCMD()
 	gameUsers = loadUsers()
@@ -34,12 +33,15 @@ addTimer(timedSave,60,"cracker64","gameSave")
 
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
+	if amt ~= amt then
+		return " Invalid amount, no money changed"
+	end
 	gameUsers[usr.host].cash = gameUsers[usr.host].cash + amt
 	if gameUsers[usr.host].cash <= 0 then
 		gameUsers[usr.host].cash = 1000
 		return " You went bankrupt, money reset"
 	end
-	return ""
+	return " ($"..gameUsers[usr.host].cash.." now)"
 end
 
 --User cash
@@ -55,18 +57,18 @@ local function coinToss(usr,bet)
 	local res = math.random(2)
 	if res==1 then
 		--win
-		changeCash(usr,bet)
-		return usr.nick .. ": You win " .. bet .. " dollars!"
+		local str = changeCash(usr,bet)
+		return usr.nick .. ": You win $" .. bet .. "!"..str
 	else
 		--lose
 		local str = changeCash(usr,-bet)
-		return usr.nick .. ": You lost " .. bet .. " dollars!"..str
+		return usr.nick .. ": You lost $" .. bet .. "!"..str
 	end
 end
 
 --open a weird door
 local function odoor(usr,door)
-	door = door or ""
+	door = door[1] or "" --do something with more args later?
 	local isNumber=false
 	local randMon = 50
 	local divideFactor = 2
@@ -85,9 +87,9 @@ local function odoor(usr,door)
 	local randomnes = math.random(randMon)-math.floor(randMon/divideFactor)
 	local brupt = changeCash(usr,randomnes)
 	if randomnes<0 then
-		return usr.nick .. ": You lost " .. -randomnes .. " dollar(s)!"..brupt
+		return usr.nick .. ": You lost $" .. -randomnes .. "!"..brupt
 	end
-	return usr.nick .. ": You found " .. randomnes .. " dollar(s)!"
+	return usr.nick .. ": You found $" .. randomnes .. "!"..brupt
 end
 
 --GAME command hooks
@@ -113,7 +115,7 @@ end
 add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true)
 --DOOR
 local function odor(usr,chan,msg,args)
-	return odoor(usr,args[1])
+	return odoor(usr,args)
 end
 add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
 

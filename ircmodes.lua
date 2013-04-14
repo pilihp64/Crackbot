@@ -87,20 +87,7 @@ local function devoice(usr,chan,msg,args)
 	setMode(chan,"-v",args[2] or msg)
 end
 add_cmd(devoice,"devoice",10,"DeVoice a user, '/devoice [<chan>] <username>'",true)
---QUIET
-local function quiet(usr,chan,msg,args)
-	if not args[1] then error("No args") end
-	local host
-	if args[1]:sub(1,1)=='#' then
-		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
-		chan=args[1]
-	else
-		host = getBestHost(chan,args[1] or msg)
-	end
-	setMode(chan,"+q",host)
-end
-add_cmd(quiet,"quiet",10,"Quiet a user, '/quiet [<chan>] <host/username>'",true,{"stab"})
+
 --UNQUIET
 local function unquiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -115,6 +102,26 @@ local function unquiet(usr,chan,msg,args)
 	setMode(chan,"-q",host)
 end
 add_cmd(unquiet,"unquiet",10,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true,{"unstab"})
+--QUIET
+local function quiet(usr,chan,msg,args)
+	if not args[1] then error("No args") end
+	local unbanTimer
+	local host
+	if args[1]:sub(1,1)=='#' then
+		if not args[2] then error("Missing target") end
+		host = getBestHost(chan,args[2] or msg)
+		unbanTimer = tonumber(args[3])
+		chan=args[1]
+	else
+		host = getBestHost(chan,args[1] or msg)
+		unbanTimer = tonumber(args[2])
+	end
+	setMode(chan,"+q",host)
+	if unbanTimer then
+		addTimer(setMode[chan]["-q"][host],unbanTimer,chan)
+	end
+end
+add_cmd(quiet,"quiet",10,"Quiet a user, '/quiet [<chan>] <host/username> [<time>]'",true,{"stab"})
 
 --UNBAN
 local function unban(usr,chan,msg,args)
@@ -131,8 +138,9 @@ local function unban(usr,chan,msg,args)
 end
 add_cmd(unban,"unban",15,"Unban a user, '/unban [<chan>] <host/username>'",true)
 --BAN
-local function ban(usr,chan,msg,args,unbanTimer)
+local function ban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
+	local unbanTimer
 	--if not user.access:match("@") then error("Not Op") end
 	local host
 	if args[1]:sub(1,1)=='#' then
@@ -169,8 +177,7 @@ end
 add_cmd(kick,"kick",10,"Kick a user, '/kick [<chan>] <username> [<reason>]'",true)
 --KBAN
 local function kickban(usr,chan,msg,args)
-	--timed bans sometime?
-	ban(usr,chan,msg,args,unbanTimer)
+	ban(usr,chan,msg,args)
 	kick(usr,chan,msg,args)
 end
 add_cmd(kickban,"kban",15,"Kick and ban user, '/kban [<chan>] <username> [<time>] [<reason>]'",true)

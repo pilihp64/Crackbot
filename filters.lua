@@ -210,14 +210,20 @@ add_filt(scramble,"scramble",scrambSane,"Scrambles words, '/scramble <text>'")
 
 --Pattern filter
 local function patF(text,args)
-	if not args.skip then text = table.concat(args," ") end
+	if not args.skip then text = args.str end
 	return (text:gsub(args.pat,args.repl)):sub(1,500) or "" --prevent huge messages
 end
 local function patFSane(args,filt)
-	args.pat = table.remove(args,1)
-	args.repl = table.remove(args,1)
+	args.pat = args[1]
+	args.repl = args[2]
+	local t={}
+	for i=3,#args do
+		table.insert(t,args[i])
+	end
+	args.str = table.concat(t," ")
+
 	if not args.pat or not args.repl then
-		return false,"Bad parameters, '/pattern pat repl'"
+		return false,"Bad parameters, '/pattern <pat> <repl>'"
 	end
 	if filt then args.skip=true end
 	return true
@@ -281,7 +287,8 @@ end
 --FILTER main command, set filter for output
 local function filter(usr,chan,msg,args)
 	if msg=="current" then
-		return getFilts(chan)
+		ircSendRawQ("PRIVMSG "..chan.." :"..getFilts(chan))
+		return nil
 	elseif msg=="list" then
 		local t = {}
 		for k,v in pairs(filters) do

@@ -287,7 +287,7 @@ end
 --FILTER main command, set filter for output
 local function filter(usr,chan,msg,args)
 	if msg=="current" then
-		ircSendRawQ("PRIVMSG "..chan.." :"..getFilts(chan))
+		ircSendChatQ(chan,getFilts(chan),true)
 		return nil
 	elseif msg=="list" then
 		local t = {}

@@ -10,7 +10,7 @@ print = function(...)
 	local arg={...}
 	local str = table.concat(arg,"\t")
 	local frqq=io.open("log.txt","a")
-	frqq:write(os.date("[%x %X] ")..str.."\n")
+	frqq:write(os.date("[%x] [%X] ")..str.."\n")
 	frqq:flush()
 	frqq:close()
 end
@@ -69,11 +69,13 @@ function filtUnLock(chan)
 	activeFilters[chan].lock = false
 end
 --chat queue, needs to prevent excess flood eventually
-function ircSendChatQ(chan,text)
+function ircSendChatQ(chan,text,nofilter)
 	--possibly keep rest of text to send later
 	if not text then return end
 	text = text:sub(1,417)
-	chan,text = chatFilter(chan,text)
+	if not nofilter then
+		chan,text = chatFilter(chan,text)
+	end
 	table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
 end
 function ircSendRawQ(text)
@@ -85,11 +87,19 @@ function ircSendOne()
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
 		if line.raw then
-			irc:send(line.msg)
-			print(user.nick .. ": ".. line.msg)
+			local s,r = pcall(irc.send,irc,line.msg)
+			if not s then
+				print(r)
+			else
+				print(user.nick .. ": ".. line.msg)
+			end
 		else
-			irc:sendChat(line.channel,line.msg)
-			print("["..line.channel.."] "..user.nick..": "..line.msg)
+			local s,r = pcall(irc.sendChat,irc,line.channel,line.msg)
+			if not s then
+				print(r)
+			else
+				print("["..line.channel.."] "..user.nick..": "..line.msg)
+			end
 		end
 	end
 end

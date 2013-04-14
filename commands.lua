@@ -56,7 +56,7 @@ end
 add_cmd(ping,"ping",0,"pong",true)
 
 --DO
-local function dothis(usr,chan,msg)
+local function dothis(usr,chan,msg) --fix DO and ME with filters
 	if msg then return "\001ACTION does "..msg.."\001" end
 end
 add_cmd(dothis,"do",0,"Performs an action, '/do <text>'",true)

@@ -1,23 +1,26 @@
-gameUsers = gameUsers or {}
-setmetatable(gameUsers,{__index=function(t,k) t[k]={cash=1000} return t[k] end})
 local function loadUsers()
 	local f = io.open("cashList.txt","r")
 	if not f then return end
+	local t={}
 	for line in f:lines() do
 		local host,hcash,time = line:match("^(.-) (%d-) (%d-)$")
-		gameUsers[host]= {cash=tonumber(hcash),lastDoor=tonumber(time)}
+		t[host]= {cash=tonumber(hcash),lastDoor=tonumber(time)}
 	end
 	f:close()
+	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time()} return t[k] end})
+	return t
 end
-loadUsers()
+gameUsers = gameUsers or loadUsers()
+
+
 --make function hook to reload user cash
-function loadUsersCMD()
-	loadUsers()
+local function loadUsersCMD()
+	gameUsers = loadUsers()
 end
 local function saveUsers()
 	local f = io.open("cashList.txt","w")
 	for k,v in pairs(gameUsers) do
-		f:write(k.." "..v.cash.." "..v.lastDoor.."\n")
+		f:write(k.." "..v.cash.." "..(v.lastDoor or os.time()).."\n")
 	end
 	f:close()
 end
@@ -40,11 +43,11 @@ local function changeCash(usr,amt)
 end
 
 --User cash
-function myCash(usr)
+local function myCash(usr)
 	return usr.nick .. ": You have $"..gameUsers[usr.host].cash
 end
 --50% chance to win double
-function coinToss(usr,bet)
+local function coinToss(usr,bet)
 	local mycash = gameUsers[usr.host].cash
 	if bet > mycash then
 		return usr.nick .. ": Not enough money!"
@@ -62,7 +65,7 @@ function coinToss(usr,bet)
 end
 
 --open a weird door
-function odoor(usr,door)
+local function odoor(usr,door)
 	door = door or ""
 	local isNumber=false
 	local randMon = 50
@@ -76,6 +79,7 @@ function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
+	--if (string.lower(usr.nick)):find("mitch") then divideFactor=1 end
 	--some other weird functions to change money
 	
 	local randomnes = math.random(randMon)-math.floor(randMon/divideFactor)
@@ -85,3 +89,31 @@ function odoor(usr,door)
 	end
 	return usr.nick .. ": You found " .. randomnes .. " dollar(s)!"
 end
+
+--GAME command hooks
+--CASH
+local function myMoney(usr,chan,msg,args)
+	return myCash(usr)
+end
+add_cmd(myMoney,"cash",0,"Your current balance",true)
+--reload cashtext
+local function loadCash(usr,chan,msg,args)
+	return loadUsersCMD()
+end
+add_cmd(loadCash,"loadcash",101,"Reload saved money",true)
+--FLIP
+local function flipCoin(usr,chan,msg,args)
+	if not args[1] or not tonumber(args[1]) then
+		return usr.nick .. ": You need to place a bet! '/flip <bet>'"
+	end
+	local bet = math.floor(tonumber(args[1]))
+	if bet < 1 then return usr.nick .. ": Bet too low" end
+	return coinToss(usr,bet)
+end
+add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true)
+--DOOR
+local function odor(usr,chan,msg,args)
+	return odoor(usr,args[1])
+end
+add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
+

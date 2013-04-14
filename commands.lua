@@ -1,6 +1,5 @@
-dofile("sandybox.lua")
-dofile("filters.lua")
-dofile("games.lua")
+--List of files to load
+local modList = {"sandybox.lua","filters.lua","games.lua"}
 math.randomseed(os.time())
 commands = {}
 local stepcount=0
@@ -23,58 +22,11 @@ function add_cmd(f, name, lvl, help, shown, aliases)
 		end
 	end
 end
-pcall(filtCmds) --add all the filter commands
-
---FILTER, set filter for output
-local function filter(usr,chan,msg,args)
-	if msg=="current" then
-		return getFilts(chan)
-	elseif msg=="list" then
-		local t = {}
-		for k,v in pairs(filters) do
-			table.insert(t,k)
-		end
-		return "Filters: "..table.concat(t,", ")
-	elseif msg=="lock" then
-		local perm = permFullHost(usr.fullhost)
-		if perm > 20 then
-			filtLock(chan)
-			return "Locked "..chan
-		else
-			return "No permissions to lock"
-		end
-	elseif msg=="unlock" then
-		local perm = permFullHost(usr.fullhost)
-		if perm > 20 then
-			filtUnLock(chan)
-			return "Unlocked "..chan
-		else
-			return "No permission to unlock"
-		end
-	elseif not msg then
-		if clearFilter(chan) then
-			return "Cleared Filts"
-		end
-		return chan.." is locked"
-	end
-	local name=table.remove(args,1)
-	args.name=name
-	if filters[name] then
-		local s,err = filters[name].sanity(args,true) --allow filter to sanity check args before adding
-		if s then
-			if addFilter(chan,filters[name].f,name,args) then
-				return "Filter added: "..name
-			else
-				return chan.." is locked"
-			end
-		else
-			return usr.nick .. ": ".. err
-		end
-	else
-		return "No filter named "..name
-	end
+--Load mods here so it can use add_cmd
+for k,v in pairs(modList) do
+	local s,r = pcall(dofile,v)
+	if not s then print(r) end
 end
-add_cmd(filter,"filter",0,"Set a filter, '/filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true)
 
 --Helper to return hostmask for a name
 local function getBestHost(chan,msg,long)
@@ -351,32 +303,6 @@ local function timer(usr,chan,msg,args)
 end
 add_cmd(timer,"timer",0,"Time until a print is done, '/timer <time(seconds)> <text>'",true)
 
---GAMES, move these into game file later
---CASH
-local function myMoney(usr,chan,msg,args)
-	return myCash(usr)
-end
-add_cmd(myMoney,"cash",0,"Your current balance",true)
---reload cashtext
-local function loadCash(usr,chan,msg,args)
-	return loadUsersCMD()
-end
-add_cmd(loadCash,"loadcash",101,"Reload saved money",true)
---FLIP
-local function flipCoin(usr,chan,msg,args)
-	if not args[1] or not tonumber(args[1]) then
-		return usr.nick .. ": You need to place a bet! '/flip <bet>'"
-	end
-	local bet = math.floor(tonumber(args[1]))
-	if bet < 1 then return usr.nick .. ": Bet too low" end
-	return coinToss(usr,bet)
-end
-add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true)
---DOOR
-local function odor(usr,chan,msg,args)
-	return odoor(usr,args[1])
-end
-add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
 
 --BADWORDS
 local function badWord(usr,chan,msg,args)
@@ -493,7 +419,7 @@ local function quiet(usr,chan,msg,args)
 	end
 	setMode(chan,"+q",host)
 end
-add_cmd(quiet,"quiet",10,"Quiet a user, '/quiet [<chan>] <host/username>'",true)
+add_cmd(quiet,"quiet",10,"Quiet a user, '/quiet [<chan>] <host/username>'",true,{"stab"})
 --UNQUIET
 local function unquiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -507,7 +433,7 @@ local function unquiet(usr,chan,msg,args)
 	end
 	setMode(chan,"-q",host)
 end
-add_cmd(unquiet,"unquiet",10,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true)
+add_cmd(unquiet,"unquiet",10,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true,{"unstab"})
 
 --UNBAN
 local function unban(usr,chan,msg,args)

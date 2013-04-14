@@ -331,8 +331,59 @@ function callFilt(f,sanf,filt)
 		end
 	       end
 end
-function filtCmds()
-	for k,v in pairs(filters) do
-		add_cmd(callFilt(v.f,v.sanity),k,0,v.helptext,false)
+
+--FILTER main command, set filter for output
+local function filter(usr,chan,msg,args)
+	if msg=="current" then
+		return getFilts(chan)
+	elseif msg=="list" then
+		local t = {}
+		for k,v in pairs(filters) do
+			table.insert(t,k)
+		end
+		return "Filters: "..table.concat(t,", ")
+	elseif msg=="lock" then
+		local perm = permFullHost(usr.fullhost)
+		if perm > 20 then
+			filtLock(chan)
+			return "Locked "..chan
+		else
+			return "No permissions to lock"
+		end
+	elseif msg=="unlock" then
+		local perm = permFullHost(usr.fullhost)
+		if perm > 20 then
+			filtUnLock(chan)
+			return "Unlocked "..chan
+		else
+			return "No permission to unlock"
+		end
+	elseif not msg then
+		if clearFilter(chan) then
+			return "Cleared Filts"
+		end
+		return chan.." is locked"
 	end
+	local name=table.remove(args,1)
+	args.name=name
+	if filters[name] then
+		local s,err = filters[name].sanity(args,true) --allow filter to sanity check args before adding
+		if s then
+			if addFilter(chan,filters[name].f,name,args) then
+				return "Filter added: "..name
+			else
+				return chan.." is locked"
+			end
+		else
+			return usr.nick .. ": ".. err
+		end
+	else
+		return "No filter named "..name
+	end
+end
+add_cmd(filter,"filter",0,"Set a filter, '/filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true)
+
+--add sub commands to call filters directly
+for k,v in pairs(filters) do
+	add_cmd(callFilt(v.f,v.sanity),k,0,v.helptext,false)
 end

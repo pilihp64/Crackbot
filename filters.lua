@@ -224,60 +224,6 @@ local function patFSane(args,filt)
 end
 add_filt(patF,"pattern",patFSane,"Performs a gsub on text, '/pattern <patt> <repl> <text>'")
 
-
-local badlist= {"nigger","yolo","^;","^%%"}
---BADWORD filter, hopefully always active, uses my terrible color table to re-add
-local function badWords(text)
-	local t = tableColor(text)
-	local nocol = colorstrip(text)
-	local amt = 0
-	for k,word in pairs(badlist) do
-		local nonocol,newamt = (nocol):gsub(word,function(s) return ("*")*#s end)
-		nocol,amt = nonocol, amt+newamt
-	end
-	local tempstring = ""
-	if #t>0 then
-		local index=0
-		for char in nocol:gmatch(".") do
-			local code=""
-			for i,v in ipairs(t) do
-				if (v.start)<=index+1 then
-					code=v.col
-					v.start = 99999
-					break
-				end
-			end
-			index = index+1
-			tempstring = tempstring .. code .. char
-		end
-	elseif amt>0 then
-		tempstring = nocol
-	else
-		tempstring = text
-	end
-	return tempstring
-end
-function addBadWord(text)
-	for k,v in pairs(badlist) do
-		if v==text then
-			return "Bad word already exists"
-		end
-	end
-	table.insert(badlist,text)
-	return "Added bad word"
-end
-function remBadWord(text)
-	for k,v in pairs(badlist) do
-		if v==text then 
-			table.remove(badlist,k)
-			return "Bad word removed"
-		end
-	end
-	return "Bad word not found"
-end
-setBadWordFilter(badWords)
-
-
 --BRAINFUCK filter
 function toBF(str)
 	return str
@@ -318,7 +264,7 @@ function toLower(text,args)
 end
 add_filt(toLower,"nocaps",nil,"turns text to lowercase, '/nocaps <text>'")
 
---UTILITY
+--function to let filters sanity check some args for direct calls
 function callFilt(f,sanf,filt)
 	return function(usr,chan,msg,args)
 		local args = args
@@ -329,7 +275,7 @@ function callFilt(f,sanf,filt)
 		else
 			ircSendChatQ(chan,usr.nick .. ": ".. err)
 		end
-	       end
+	end
 end
 
 --FILTER main command, set filter for output
@@ -387,3 +333,68 @@ add_cmd(filter,"filter",0,"Set a filter, '/filter <filtName>/list/current [<argu
 for k,v in pairs(filters) do
 	add_cmd(callFilt(v.f,v.sanity),k,0,v.helptext,false)
 end
+
+--BADWORD filter, hopefully always active, uses my terrible color table to re-add
+--possibly save this list to file
+local badlist= {"nigger","yolo","^;","^%%"}
+local function badWords(text)
+	local t = tableColor(text)
+	local nocol = colorstrip(text)
+	local amt = 0
+	for k,word in pairs(badlist) do
+		local nonocol,newamt = (nocol):gsub(word,function(s) return ("*")*#s end)
+		nocol,amt = nonocol, amt+newamt
+	end
+	local tempstring = ""
+	if #t>0 then
+		local index=0
+		for char in nocol:gmatch(".") do
+			local code=""
+			for i,v in ipairs(t) do
+				if (v.start)<=index+1 then
+					code=v.col
+					v.start = 99999
+					break
+				end
+			end
+			index = index+1
+			tempstring = tempstring .. code .. char
+		end
+	elseif amt>0 then
+		tempstring = nocol
+	else
+		tempstring = text
+	end
+	return tempstring
+end
+local function addBadWord(text)
+	for k,v in pairs(badlist) do
+		if v==text then
+			return "Bad word already exists"
+		end
+	end
+	table.insert(badlist,text)
+	return "Added bad word"
+end
+local function remBadWord(text)
+	for k,v in pairs(badlist) do
+		if v==text then 
+			table.remove(badlist,k)
+			return "Bad word removed"
+		end
+	end
+	return "Bad word not found"
+end
+setBadWordFilter(badWords)
+
+--command hook for badword
+local function badWord(usr,chan,msg,args)
+	if not args[2] then return "Usage: badword add/rem <word>" end
+	if args[1] == "add" then
+		return usr.nick .. ": " .. addBadWord(args[2])
+	elseif args[1] == "rem" then
+		return usr.nick .. ": " .. remBadWord(args[2])
+	end
+	return "Usage: badword add/rem <word>"
+end
+add_cmd(badWord,"badword",20,"Set or remove bad words, '/badword add/rem <word>'",true)

@@ -79,7 +79,7 @@ local function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
-	--if (string.lower(usr.nick)):find("mitch") then divideFactor=1 end
+	if (string.lower(usr.nick)):find("mitch|") then divideFactor=1 end
 	--some other weird functions to change money
 	
 	local randomnes = math.random(randMon)-math.floor(randMon/divideFactor)

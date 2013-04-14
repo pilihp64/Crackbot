@@ -100,7 +100,7 @@ function setSuffix(fix)
 end
 
 --timers .f .time
-local timers = {}
+timers = timers or {}
 function addTimer(f,time,chan,name)
 	name = name or ""--name for removing a timer
 	table.insert(timers,{f=f,time=os.time()+time-1,chan=chan,name=name})

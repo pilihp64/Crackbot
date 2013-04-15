@@ -48,6 +48,15 @@ end
 local function myCash(usr)
 	return usr.nick .. ": You have $"..gameUsers[usr.host].cash
 end
+--give money
+local function give(fromHost,toHost,amt)
+	if gameUsers[fromHost].cash-amt <= 100000 then
+		return "You can only give if you have over 100k left"
+	end
+	gameUsers[fromHost].cash = gameUsers[fromHost].cash-amt
+	gameUsers[toHost].cash = gameUsers[toHost].cash+amt
+	return "Gave money"
+end
 --50% chance to win double
 local function coinToss(usr,bet)
 	local mycash = gameUsers[usr.host].cash
@@ -81,7 +90,7 @@ local function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
-	if (string.lower(usr.nick)):find("mitch") then divideFactor=1 end
+	if (string.lower(usr.nick)):find("m17ch") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
 	--some other weird functions to change money
 	
@@ -89,6 +98,8 @@ local function odoor(usr,door)
 	local brupt = changeCash(usr,randomnes)
 	if randomnes<0 then
 		return usr.nick .. ": You lost $" .. -randomnes .. "!"..brupt
+	elseif randomness==0 then
+		return usr.nick .. ": The door is broken, try again"
 	end
 	return usr.nick .. ": You found $" .. randomnes .. "!"..brupt
 end
@@ -99,6 +110,37 @@ local function myMoney(usr,chan,msg,args)
 	return myCash(usr)
 end
 add_cmd(myMoney,"cash",0,"Your current balance",true)
+--GIVE
+local function giveMon(usr,chan,msg,args)
+	if not args[2] then return "Usage: '/give <username> <amount>'" end
+	local toHost
+	local amt = tonumber(args[2])
+	if chan:sub(1,1)~='#' then
+		if args[1]:sub(1,1)=='#' then
+			if args[2]==usr.nick then return "You can't give to yourself..." end
+			toHost = getBestHost(args[1],args[2])
+			if toHost~=args[2] then toHost=toHost:sub(5)
+			else return "Invalid user, or not online"
+			end
+			amt = tonumber(args[3])
+		else
+			return "Channel required in query, '/give <chan> <username> <amount>'"
+		end
+	else
+		toHost = getBestHost(chan,args[1])
+		if args[1]==usr.nick then return "You can't give to yourself..." end
+		if toHost~=args[1] then toHost=toHost:sub(5)
+		else return "Invalid user, or not online"
+		end
+	end
+
+	if amt and amt>0 and amt==amt then
+		return usr.nick..": "..give(usr.host,toHost,amt)
+	else
+		return usr.nick..": Bad amount!"
+	end
+end
+add_cmd(giveMon,"give",0,"Give money to a user, '/give <username> <amount>', need over 100k to give.",true)
 --reload cashtext
 local function loadCash(usr,chan,msg,args)
 	return loadUsersCMD()

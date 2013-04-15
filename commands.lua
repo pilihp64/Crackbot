@@ -30,7 +30,11 @@ function getBestHost(chan,msg,long)
 	if msg:match("@") then host=true end
 	if not host then
 		for nick,v in pairs(irc.channels[chan].users) do
-			if (string.lower(nick))==(string.lower(msg)) then if not long then besthost= "*!*@"..v.host else besthost= "!"..v.username.."@"..v.host end end
+			if (string.lower(nick))==(string.lower(msg)) then
+				if not long then besthost= "*!*@"..v.host
+				else besthost= "!"..v.username.."@"..v.host
+				end
+			end
 		end
 	end
 	return besthost or msg

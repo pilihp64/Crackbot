@@ -121,7 +121,7 @@ function setSuffix(fix)
 	end
 end
 
---timers .f .time
+--timers, might be useful to save these for long bans
 timers = timers or {}
 function addTimer(f,time,chan,name)
 	name = name or ""--name for removing a timer
@@ -171,30 +171,28 @@ function getArgsOld(msg)
 end
 
 local function realchat(usr,channel,msg)
-	if prefix~= '%./' then 
+	if prefix~= '%./' then
 		panic,_ = msg:find("^%./fix")
 		if panic then prefix='%./' end
 	end
-	local _,_,pre,cmd = msg:find("^("..prefix..")([^%s]+)")
-	local rest
-	if cmd then rest = msg:sub(#cmd+#pre+2)
-	else --no cmd found for prefix, try suffix
+	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]+)%s?(.*)$")
+	if not cmd then --no cmd found for prefix, try suffix
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
 	if rest=="" then rest=nil end
 	if commands[cmd] then
-		local perm = permFullHost(usr.fullhost)
-		if perm >= commands[cmd].level then
-			local args = getArgs(rest)
-			if channel==user.nick then channel=usr.nick end
-			local s,r = pcall(commands[cmd].f,usr,channel,rest,args)
+		--command exists
+		if permFullHost(usr.fullhost) >= commands[cmd].level then
+			--we have permission
+			if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+			local s,r = pcall(commands[cmd].f,usr,channel,rest,getArgs(rest))
 			if not s and r then
 				ircSendChatQ(channel,r)
 			else
 				if r then ircSendChatQ(channel,r) end
 			end
 		else
-			ircSendChatQ(channel,"No permission for "..cmd)
+			ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
 		end
 	else
 		--Last said
@@ -241,6 +239,8 @@ local function kickCheck(chan,kicked,usr,reason)
 	if kicked==user.nick then
 		print("Kicked from "..chan)
 		ircSendRawQ("JOIN "..chan)
+	else
+		print(kicked.." was Kicked from "..chan)
 	end
 end
 pcall(irc.unhook,irc,"OnKick","kickCheck")
@@ -251,6 +251,8 @@ local function partCheck(usr,chan,reason)
 	if usr.nick==user.nick then
 		print("Parted from "..chan)
 		ircSendRawQ("JOIN "..chan)
+	else
+		print(usr.nick.." Parted from "..chan)
 	end
 end
 pcall(irc.unhook,irc,"OnPart","partCheck")

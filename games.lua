@@ -3,11 +3,11 @@ local function loadUsers()
 	if not f then return end
 	local t={}
 	for line in f:lines() do
-		local host,hcash,time = line:match("^(.-) (%d-) (%d-)$")
-		t[host]= {cash=tonumber(hcash),lastDoor=tonumber(time)}
+		local host,hcash,time,wStreak,lStreak = line:match("^(.-)\t(%d-)\t(%d-)\t(%d-)\t(%d-)$")
+		t[host]= {cash=tonumber(hcash),lastDoor=tonumber(time),maxWinStreak=tonumber(wStreak),maxLoseStreak=tonumber(lStreak),winStreak=0,loseStreak=0}
 	end
 	f:close()
-	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time()} return t[k] end})
+	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time(), winStreak=0, loseStreak=0, maxWinStreak=1, maxLoseStreak=1, lastGameWon=nil} return t[k] end})
 	return t
 end
 gameUsers = gameUsers or loadUsers()
@@ -19,7 +19,7 @@ end
 local function saveUsers()
 	local f = io.open("cashList.txt","w")
 	for k,v in pairs(gameUsers) do
-		f:write(k.." "..v.cash.." "..(v.lastDoor or os.time()).."\n")
+		f:write(k.."\t"..v.cash.."\t"..(v.lastDoor or os.time()).."\t"..v.maxWinStreak.."\t"..v.maxLoseStreak.."\n")
 	end
 	f:close()
 end
@@ -30,6 +30,30 @@ local function timedSave()
 end
 remTimer("gameSave")
 addTimer(timedSave,60,"cracker64","gameSave")
+
+--adjust win/lose streak
+local function streak(usr,win)
+	local gusr = gameUsers[usr.host]
+	if win then
+		if gusr.lastGameWon then
+			gusr.winStreak = gusr.winStreak+1
+			if gusr.winStreak>gusr.maxWinStreak then gusr.maxWinStreak=gusr.winStreak end
+		else
+			gusr.winStreak = 1
+		end
+		gusr.loseStreak = 0
+		gusr.lastGameWon = true
+	else
+		if gusr.lastGameWon==false then
+			gusr.loseStreak = gusr.loseStreak+1
+			if gusr.loseStreak>gusr.maxLoseStreak then gusr.maxLoseStreak=gusr.loseStreak end
+		else
+			gusr.loseStreak = 1
+		end
+		gusr.winStreak = 0
+		gusr.lastGameWon = false
+	end
+end
 
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
@@ -67,10 +91,12 @@ local function coinToss(usr,bet)
 	if res==1 then
 		--win
 		local str = changeCash(usr,bet)
+		streak(usr,true)
 		return usr.nick .. ": You win $" .. bet .. "!"..str
 	else
 		--lose
 		local str = changeCash(usr,-bet)
+		streak(usr,false)
 		return usr.nick .. ": You lost $" .. bet .. "!"..str
 	end
 end
@@ -97,16 +123,23 @@ local function odoor(usr,door)
 	local randomnes = math.random(randMon)-math.floor(randMon/divideFactor)
 	local brupt = changeCash(usr,randomnes)
 	if randomnes<0 then
+		streak(usr,false)
 		return usr.nick .. ": You lost $" .. -randomnes .. "!"..brupt
 	elseif randomnes==0 then
 		return usr.nick .. ": The door is broken, try again"
 	end
+	streak(usr,true)
 	return usr.nick .. ": You found $" .. randomnes .. "!"..brupt
 end
 
 --GAME command hooks
 --CASH
 local function myMoney(usr,chan,msg,args)
+	if args then
+		if args[1]=="stats" then
+			return usr.nick..": LongestWinStreak: "..gameUsers[usr.host].maxWinStreak.." LongestLoseStreak: "..gameUsers[usr.host].maxLoseStreak
+		end
+	end
 	return myCash(usr)
 end
 add_cmd(myMoney,"cash",0,"Your current balance",true)
@@ -117,7 +150,7 @@ local function giveMon(usr,chan,msg,args)
 	local amt = tonumber(args[2])
 	if chan:sub(1,1)~='#' then
 		if args[1]:sub(1,1)=='#' then
-			if args[2]==usr.nick then return "You can't give to yourself..." end
+			if string.lower(args[2])==string.lower(usr.nick) then return "You can't give to yourself..." end
 			toHost = getBestHost(args[1],args[2])
 			if toHost~=args[2] then toHost=toHost:sub(5)
 			else return "Invalid user, or not online"
@@ -128,7 +161,7 @@ local function giveMon(usr,chan,msg,args)
 		end
 	else
 		toHost = getBestHost(chan,args[1])
-		if args[1]==usr.nick then return "You can't give to yourself..." end
+		if string.lower(args[1])==string.lower(usr.nick) then return "You can't give to yourself..." end
 		if toHost~=args[1] then toHost=toHost:sub(5)
 		else return "Invalid user, or not online"
 		end

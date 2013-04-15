@@ -54,7 +54,7 @@ Downloads:insert("merp.txt",newFile("moooo","merp.txt"))
 
 fs["/"]:insert("bin",newFolder())
 fs["/"]:insert("dev",newFolder())
-fs["/"]:insert("ect",newFolder())
+fs["/"]:insert("etc",newFolder())
 fs["/"]:insert("home",newFolder())
 fs["/"]:insert("lib",newFolder())
 fs["/"]:insert("media",newFolder())

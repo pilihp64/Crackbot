@@ -90,7 +90,7 @@ local function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
-	if (string.lower(usr.nick)):find("m17ch") then divideFactor=1 end
+	if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
 	--some other weird functions to change money
 	
@@ -98,7 +98,7 @@ local function odoor(usr,door)
 	local brupt = changeCash(usr,randomnes)
 	if randomnes<0 then
 		return usr.nick .. ": You lost $" .. -randomnes .. "!"..brupt
-	elseif randomness==0 then
+	elseif randomnes==0 then
 		return usr.nick .. ": The door is broken, try again"
 	end
 	return usr.nick .. ": You found $" .. randomnes .. "!"..brupt

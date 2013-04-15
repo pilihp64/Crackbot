@@ -228,7 +228,7 @@ exec(("]]..sdump..[[").decode("hex"),execdict,safe_list);exit()' 2>&1]])
 	local kill = io.popen("pgrep -f 'python -c'"):read("*a")
 	if kill~="" then os.execute("pkill -f 'python -c'") end
 	local r = rf:read("*a")
-	if r=="" and kill and kill~="" then print(kill) r=usr.nick..": Killed" end
+	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
 	if r then return r:gsub("[\r\n\t]"," ") end
 end
 add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)

@@ -198,7 +198,7 @@ local function realchat(usr,channel,msg)
 		--Last said
 		if channel:sub(1,1)=='#' then irc.channels[channel].users[usr.nick].lastSaid = msg end
 	end
-	print("["..tostring(channel).."] ".. tostring(usr.nick) .. ": "..tostring(msg))
+	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 local function chat(usr,channel,msg)
 	local s,r = pcall(realchat,usr,channel,msg)

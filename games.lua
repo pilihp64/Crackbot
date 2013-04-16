@@ -5,6 +5,20 @@ local function loadUsers()
 end
 gameUsers = gameUsers or loadUsers()
 
+local storeInventory={
+["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
+["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
+["lamp"]=	{name="lamp",	cost=1000,info="A very expensive lamp, great lighting.",amount=1,instock=true},
+["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
+["nothing"]={name="nothing",cost=10000,info="Nothing, why would you buy this.",amount=1,instock=true},
+["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
+["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
+["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
+["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
+["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
+["potato"]=	{name="potato",	cost=2000000,info="Just a potato.",amount=1,instock=true},
+}
+
 --make function hook to reload user cash
 local function loadUsersCMD()
 	gameUsers = loadUsers()
@@ -55,6 +69,39 @@ local function changeCash(usr,amt)
 		return " You went bankrupt, money reset"
 	end
 	return " ($"..gameUsers[usr.host].cash.." now)"
+end
+
+--add item to inventory, creating if not exists
+local function addInv(usr,item)
+	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
+	local inv = gameUsers[usr.host].inventory
+	if inv[item.name] then
+		inv[item.name].amount = inv[item.name].amount+1
+	else
+		inv[item.name]= item
+	end
+end
+local function remInv(usr,name)
+	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
+	local inv = gameUsers[usr.host].inventory
+	if inv[name] then
+		inv[name].amount = inv[name].amount-1
+		if inv[name].amount<=0 then inv[name]=nil end
+	end
+end
+
+--Find closest item value
+local function findClosestItem(amt)
+	local closestitem=nil
+	local closestdiff=9999999999
+	for k,v in pairs(storeInventory) do
+		local temp = math.abs(v.cost-amt)
+		if temp<closestdiff then
+			closestdiff=temp
+			closestitem=v
+		end
+	end
+	return closestitem
 end
 
 --User cash
@@ -108,17 +155,34 @@ local function odoor(usr,door)
 	if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
 	--some other weird functions to change money
+
+	--randomly find items
+	local fitem = math.random(10)
+	if fitem==1 then fitem=true else fitem=false end
 	
-	local randomnes = math.random(randMon)-math.floor(randMon/divideFactor)
-	local brupt = changeCash(usr,randomnes)
-	if randomnes<0 then
+	local minimum = math.floor(randMon/divideFactor)
+	local randomnes = math.random(randMon)-minimum
+	local rstring=""
+	if fitem and randomnes>0 then
+		--find an item of approximate value
+		local item = findClosestItem(randomnes)
+		rstring = usr.nick..": You found a "..item.name.."! Added to inventory, see the store to sell"
+		addInv(usr,item)
+	else
+		fitem=false
+		rstring = changeCash(usr,randomnes)
+	end
+	if fitem then
+		streak(usr,true)
+		return rstring
+	elseif randomnes<0 then
 		streak(usr,false)
-		return usr.nick .. ": You lost $" .. -randomnes .. "!"..brupt
+		return usr.nick .. ": You lost $" .. -randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
 	elseif randomnes==0 then
 		return usr.nick .. ": The door is broken, try again"
 	end
 	streak(usr,true)
-	return usr.nick .. ": You found $" .. randomnes .. "!"..brupt
+	return usr.nick .. ": You found $" .. randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
 end
 
 --GAME command hooks
@@ -184,11 +248,6 @@ local function odor(usr,chan,msg,args)
 end
 add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
 
-local storeInventory={
-["derp"]={name="derp",cost=50000,info="One derp, to derp"},
-["powder"]={name="powder",cost=5,info="It's some kind of powder..."},
-["potato"]={name="potato",cost=2000000,info="Just a potato"},
-["vroom"]={name="vroom",cost=500000,info="Vroom vroom"}}
 --STORE, to buy somethings?
 local function store(usr,chan,msg,args)
 	if not msg  or args[1]=="help" then
@@ -197,7 +256,7 @@ local function store(usr,chan,msg,args)
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
-			table.insert(t,v.name.."($"..v.cost..")")
+			if v.instock then table.insert(t,v.name.."($"..v.cost..")") end
 		end
 		return usr.nick..": "..table.concat(t," ")
 	end
@@ -213,12 +272,12 @@ local function store(usr,chan,msg,args)
 		if not args[2] then return usr.nick..": Need an item! 'buy <item>'" end
 		local item = args[2]
 		for k,v in pairs(storeInventory) do
-			if k==item then
+			if k==item and v.instock then
 				if gameUsers[usr.host].cash-v.cost>=100000 then
 					changeCash(usr,-v.cost)
 					--Old data doesn't have inventory table for now
 					if not gameUsers[usr.host].inventory then gameUsers[usr.host].inventory={} end
-					table.insert(gameUsers[usr.host].inventory,v)
+					addInv(usr,v)
 					return usr.nick..": You bought "..k
 				else
 					return usr.nick..": Must have over 100k left to buy"
@@ -231,16 +290,16 @@ local function store(usr,chan,msg,args)
 		if not args[2] then
 			local t={}
 			for k,v in pairs(gameUsers[usr.host].inventory) do
-				table.insert(t,v.name)
+				table.insert(t,v.name.."("..v.amount..")")
 			end
 			return usr.nick..": You have, "..table.concat(t,", ")
 		end
 		local item = args[2]
-		for k,v in pairs(gameUsers[usr.host].inventory) do
+		for k,v in pairs(gameUsers[usr.host].inventory or {}) do
 			if v.name==item then
 				changeCash(usr,v.cost)
-				gameUsers[usr.host].inventory[k]=nil
-				return usr.nick..": Sold "..v.name
+				remInv(usr,k)
+				return usr.nick..": Sold "..v.name.." for $"..v.cost
 			end
 		end
 		return usr.nick..": Item not found"

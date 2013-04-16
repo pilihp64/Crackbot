@@ -1,13 +1,6 @@
 local function loadUsers()
-	local f = io.open("cashList.txt","r")
-	if not f then return end
-	local t={}
-	for line in f:lines() do
-		local host,hcash,time,wStreak,lStreak = line:match("^(.-)\t(%d-)\t(%d-)\t(%d-)\t(%d-)$")
-		t[host]= {cash=tonumber(hcash),lastDoor=tonumber(time),maxWinStreak=tonumber(wStreak),maxLoseStreak=tonumber(lStreak),winStreak=0,loseStreak=0}
-	end
-	f:close()
-	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time(), winStreak=0, loseStreak=0, maxWinStreak=1, maxLoseStreak=1, lastGameWon=nil} return t[k] end})
+	local t= table.load("userData.txt")
+	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time(), winStreak=0, loseStreak=0, maxWinStreak=1, maxLoseStreak=1, lastGameWon=nil, inventory={}} return t[k] end})
 	return t
 end
 gameUsers = gameUsers or loadUsers()
@@ -17,11 +10,7 @@ local function loadUsersCMD()
 	gameUsers = loadUsers()
 end
 local function saveUsers()
-	local f = io.open("cashList.txt","w")
-	for k,v in pairs(gameUsers) do
-		f:write(k.."\t"..v.cash.."\t"..(v.lastDoor or os.time()).."\t"..v.maxWinStreak.."\t"..v.maxLoseStreak.."\n")
-	end
-	f:close()
+	table.save(gameUsers,"userData.txt")
 end
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -137,12 +126,12 @@ end
 local function myMoney(usr,chan,msg,args)
 	if args then
 		if args[1]=="stats" then
-			return usr.nick..": LongestWinStreak: "..gameUsers[usr.host].maxWinStreak.." LongestLoseStreak: "..gameUsers[usr.host].maxLoseStreak
+			return usr.nick..": WinStreak: "..gameUsers[usr.host].maxWinStreak.." LoseStreak: "..gameUsers[usr.host].maxLoseStreak
 		end
 	end
 	return myCash(usr)
 end
-add_cmd(myMoney,"cash",0,"Your current balance",true)
+add_cmd(myMoney,"cash",0,"Your current balance, '/cash [stats]', Sending stats will show some saved stats.",true)
 --GIVE
 local function giveMon(usr,chan,msg,args)
 	if not args[2] then return "Usage: '/give <username> <amount>'" end
@@ -194,4 +183,68 @@ local function odor(usr,chan,msg,args)
 	return odoor(usr,args)
 end
 add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
+
+local storeInventory={
+["derp"]={name="derp",cost=50000,info="One derp, to derp"},
+["powder"]={name="powder",cost=5,info="It's some kind of powder..."},
+["potato"]={name="potato",cost=2000000,info="Just a potato"},
+["vroom"]={name="vroom",cost=500000,info="Vroom vroom"}}
+--STORE, to buy somethings?
+local function store(usr,chan,msg,args)
+	if not msg  or args[1]=="help" then
+		return usr.nick..": Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item>' or '/store sell [<item>]' will list your items."
+	end
+	if args[1]=="list" then
+		local t={}
+		for k,v in pairs(storeInventory) do
+			table.insert(t,v.name.."($"..v.cost..")")
+		end
+		return usr.nick..": "..table.concat(t," ")
+	end
+	if args[1]=="info" then
+		if not args[2] then return usr.nick..": Need an item! 'info <item>'" end
+		local item = args[2]
+		for k,v in pairs(storeInventory) do
+			if k==item then return usr.nick..": Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+		end
+		return usr.nick..": Item not found"
+	end
+	if args[1]=="buy" then
+		if not args[2] then return usr.nick..": Need an item! 'buy <item>'" end
+		local item = args[2]
+		for k,v in pairs(storeInventory) do
+			if k==item then
+				if gameUsers[usr.host].cash-v.cost>=100000 then
+					changeCash(usr,-v.cost)
+					--Old data doesn't have inventory table for now
+					if not gameUsers[usr.host].inventory then gameUsers[usr.host].inventory={} end
+					table.insert(gameUsers[usr.host].inventory,v)
+					return usr.nick..": You bought "..k
+				else
+					return usr.nick..": Must have over 100k left to buy"
+				end
+			end
+		end
+		return usr.nick..": Item not found"
+	end
+	if args[1]=="sell" then
+		if not args[2] then
+			local t={}
+			for k,v in pairs(gameUsers[usr.host].inventory) do
+				table.insert(t,v.name)
+			end
+			return usr.nick..": You have, "..table.concat(t,", ")
+		end
+		local item = args[2]
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			if v.name==item then
+				changeCash(usr,v.cost)
+				gameUsers[usr.host].inventory[k]=nil
+				return usr.nick..": Sold "..v.name
+			end
+		end
+		return usr.nick..": Item not found"
+	end
+end
+add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
 

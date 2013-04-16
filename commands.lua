@@ -1,4 +1,5 @@
 --List of files to load
+dofile("tableSave.lua")
 local modList = {"sandybox.lua","filters.lua","games.lua","ircmodes.lua"}
 math.randomseed(os.time())
 commands = {}

@@ -8,15 +8,21 @@ gameUsers = gameUsers or loadUsers()
 local storeInventory={
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
+["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
+["iPad"]=	{name="iPad",	cost=499,info="A new iPad.",amount=1,instock=true},
 ["lamp"]=	{name="lamp",	cost=1000,info="A very expensive lamp, great lighting.",amount=1,instock=true},
 ["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
-["nothing"]={name="nothing",cost=10000,info="Nothing, why would you buy this.",amount=1,instock=true},
+["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
 ["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
 ["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
 ["potato"]=	{name="potato",	cost=2000000,info="Just a potato.",amount=1,instock=true},
+["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=false},
+["diamond"]={name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
+["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
+["cracker"]={name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
 }
 
 --make function hook to reload user cash
@@ -78,7 +84,7 @@ local function addInv(usr,item)
 	if inv[item.name] then
 		inv[item.name].amount = inv[item.name].amount+1
 	else
-		inv[item.name]= item
+		inv[item.name]= {name=item.name,cost=item.cost,info=item.info,amount=item.amount,instock=item.instock}
 	end
 end
 local function remInv(usr,name)
@@ -93,7 +99,7 @@ end
 --Find closest item value
 local function findClosestItem(amt)
 	local closestitem=nil
-	local closestdiff=9999999999
+	local closestdiff=1/0
 	for k,v in pairs(storeInventory) do
 		local temp = math.abs(v.cost-amt)
 		if temp<closestdiff then
@@ -256,7 +262,7 @@ local function store(usr,chan,msg,args)
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
-			if v.instock then table.insert(t,v.name.."($"..v.cost..")") end
+			if v.instock then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
 		end
 		return usr.nick..": "..table.concat(t," ")
 	end
@@ -273,14 +279,14 @@ local function store(usr,chan,msg,args)
 		local item = args[2]
 		for k,v in pairs(storeInventory) do
 			if k==item and v.instock then
-				if gameUsers[usr.host].cash-v.cost>=100000 then
+				if gameUsers[usr.host].cash-v.cost>=0 then
 					changeCash(usr,-v.cost)
 					--Old data doesn't have inventory table for now
 					if not gameUsers[usr.host].inventory then gameUsers[usr.host].inventory={} end
 					addInv(usr,v)
 					return usr.nick..": You bought "..k
 				else
-					return usr.nick..": Must have over 100k left to buy"
+					return usr.nick..": Not enough money!"
 				end
 			end
 		end
@@ -302,7 +308,7 @@ local function store(usr,chan,msg,args)
 				return usr.nick..": Sold "..v.name.." for $"..v.cost
 			end
 		end
-		return usr.nick..": Item not found"
+		return usr.nick..": You don't have that!"
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)

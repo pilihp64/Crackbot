@@ -212,7 +212,7 @@ local function realchat(usr,channel,msg)
 		end
 	else
 		--Last said
-		if channel:sub(1,1)=='#' then irc.channels[channel].users[usr.nick].lastSaid = msg end
+		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))

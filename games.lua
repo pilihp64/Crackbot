@@ -313,14 +313,15 @@ end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
 
 local questions={}
-table.insert(questions,function() --Count a letter in string
+table.insert(questions,{
+q= function() --Count a letter in string, with some other simple math
 	local chars = {}
 	local extraNumber = math.random(10)
 	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end
 	local rstring=""
 	local countChar,answer
 	local timeout=20
-	local multiplier=0.9
+	local multiplier=0.8
 	local i,maxi = 1,math.random(3,8)
 	while i<maxi do
 		--pick 3-8 chars (2-7 filler, 1 to count) make sure all different
@@ -349,6 +350,7 @@ table.insert(questions,function() --Count a letter in string
 		if randMod<=15 then --subtract
 			intro="What is "..extraNumber.." minus the number of"
 			answer = extraNumber-answer
+			multiplier=0.9
 		elseif randMod<=22 then --Multiply
 			extraNumber = extraNumber%200
 			intro="What is "..extraNumber.." times the number of"
@@ -369,10 +371,24 @@ table.insert(questions,function() --Count a letter in string
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
+			multiplier=0.9
 		end
 	end
 	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
-end)
+end,
+isPossible= function(s) --this question only accepts number answers
+	if tonumber(s) then return true end
+	return false
+end})
+--[[
+table.insert(questions,{
+q= function() --A filler question, just testing
+	return "Say moo, this is a test question","moo",15,1
+end,
+isPossible= function(s) --this question takes any string
+	if not s:find("%./") then return true end
+	return false
+end})--]]
 local activeQuiz= {}
 local activeQuizTime=0
 --QUIZ, generate a question, someone bets, anyone can answer
@@ -395,7 +411,7 @@ local function quiz(usr,chan,msg,args)
 	changeCash(usr,-bet)
 	--pick out of questions
 	local wq = math.random(#questions)
-	local rstring,answer,timer,prizeMulti = questions[wq]()
+	local rstring,answer,timer,prizeMulti = questions[wq].q()
 	activeQuiz[chan],activeQuizTime = true,os.time()
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
@@ -420,7 +436,7 @@ local function quiz(usr,chan,msg,args)
 				return true
 			else
 				--you only get one chance to answer correctly
-				if tonumber(nmsg) then alreadyAnswered[nusr.host]=true end
+				if questions[wq].isPossible(nmsg) then alreadyAnswered[nusr.host]=true end
 			end
 		end
 		return false

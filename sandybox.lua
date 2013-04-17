@@ -20,7 +20,7 @@ local string={byte=string.byte,char=string.char,find=string.find,format=string.f
 local mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort}
 --Make the rest of the os/io functions use fakefs
 local os = fakeOS()
-local io= fakeIO()
+local io = fakeIO()
 local mbit32 = nil
 if _VERSION == "Lua 5.2" then
 	mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort,unpack=table.unpack,pack=table.pack}	

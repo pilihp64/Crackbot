@@ -141,7 +141,7 @@ add_cmd(chmod,"chmod",2,"Changes a hostmask level, '/chmod <name/host> <level>'"
 
 --hostmask
 local function getHost(usr,chan,msg,args)
-	if not msg then return end
+	if not msg then return usr.nick..": "..usr.host end
 	local host = getBestHost(chan,args[1])
 	if host==args[1] then return usr.nick..": Invalid user or not online." end
 	return usr.nick .. ": "..host:sub(5)

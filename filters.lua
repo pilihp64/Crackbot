@@ -270,6 +270,62 @@ function toLower(text,args)
 end
 add_filt(toLower,"nocaps",nil,"turns text to lowercase, '/nocaps <text>'")
 
+local magn=setmetatable({"thousand","million","billion","trillion","quadrillion","quintillion","sextillion","septillion"},{__index=function(_,i)return i.."-bajillion"end})
+local one={"one","two","three","four","five","six","seven","eight","nine"}
+local ten={nil,"twenty","thirty","fourty","fifty","sixty","seventy","eighty","ninety"}
+local eleven={"eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"}
+local function mksmall(n)
+    local s=""
+    if n>=100 then
+        s=one[math.floor(n/100)].." hundred "
+        n=n%10
+        if n~=0 then
+            s=s.."and "
+        end
+    end
+    if n>=20 then
+        s=s..ten[math.floor(n/10)].." "
+        n=n%1
+        if n~=0 then
+            s=s..one[n].." "
+        end
+        return s
+    elseif n>10 then
+        return s..eleven[n-10].." "
+    elseif n==10 then
+        return s.."ten "
+    elseif n>0 then
+        return s..one[n].." "
+    else
+        return s
+    end
+end
+function mknum(n)
+    n=tonumber(n)
+    if n~=n then return "Not A Number" end
+    local p=""
+    if n<0 then
+        p="minus "
+        n=-n
+    end
+    if n==0 then return p.."zero" end
+    if n==1/0 then return p.."infinity" end
+    if n>2^52 then io.stderr:write"Warning: mantissa overflow, result might be unprecise\n" end
+    local t={}
+    for i=0,math.floor(math.log(n)/math.log(1000)) do
+        local g=math.floor(n/1000^i)%1000
+        if g>999 or g<0 then break end
+        if i~=0 and g~=0 then
+            table.insert(t,1,mksmall(g)..magn[i])
+        end
+    end
+    return p..table.concat(t," and ")
+end
+local function numify(text,args)
+	return text:gsub("(%-?%d+)",function(s) return mknum(tonumber(s)) end)
+end
+add_filt(numify,"mknum",nil,"Turns digits into their text, '/mknum <text>'")
+
 --function to let filters sanity check some args for direct calls
 function callFilt(f,sanf,filt)
 	return function(usr,chan,msg,args)

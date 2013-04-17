@@ -316,7 +316,7 @@ local questions={}
 table.insert(questions,function() --Count a letter in string
 	local chars = {}
 	local extraNumber = math.random(10)
-	if extraNumber<=7 then extraNumber=math.random(200) else extraNumber=nil end
+	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end
 	local rstring=""
 	local countChar,answer
 	local timeout=20
@@ -345,14 +345,27 @@ table.insert(questions,function() --Count a letter in string
 	end
 	local intro="Count the number of"
 	if extraNumber then
-		local randMod = math.random(35)
-		if randMod<=10 then --subtract
+		local randMod = math.random(40)
+		if randMod<=15 then --subtract
 			intro="What is "..extraNumber.." minus the number of"
 			answer = extraNumber-answer
-		elseif randMod<=18 then --Multiply
+		elseif randMod<=22 then --Multiply
+			extraNumber = extraNumber%200
 			intro="What is "..extraNumber.." times the number of"
 			answer = extraNumber*answer
 			timeout,multiplier = 35,1.3
+		elseif randMod==23 then --addition AND multiply
+			extraNumber = extraNumber
+			local extraNum2 = math.random(200)
+			intro="What is "..extraNumber.." plus "..extraNum2.." times the number of"
+			answer = extraNumber + (extraNum2*answer)
+			timeout,multiplier = 45,1.6
+		elseif randMod==24 then --subtraction AND multiply
+			extraNumber = extraNumber
+			local extraNum2 = math.random(200)
+			intro="What is "..extraNumber.." minus "..extraNum2.." times the number of"
+			answer = extraNumber - (extraNum2*answer)
+			timeout,multiplier = 45,1.6
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
@@ -364,6 +377,10 @@ local activeQuiz= {}
 local activeQuizTime=0
 --QUIZ, generate a question, someone bets, anyone can answer
 local function quiz(usr,chan,msg,args)
+	--timeout based on winnings
+	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
+		return usr.nick..": You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
+	end
 	if not msg or not tonumber(args[1]) then return usr.nick..": Start a question for the channel, '/quiz <bet>'" end
 	--make activeQuiz per channel
 	if activeQuiz[chan] then return usr.nick..": There is already an active quiz here!" end
@@ -384,18 +401,20 @@ local function quiz(usr,chan,msg,args)
 	--insert answer function into a chat listen hook
 	addListener(chan,function(nusr,nchan,nmsg)
 		--blacklist of people
-		if nusr.host=="Powder/Developer/jacob1" then return end
+		--if nusr.host=="Powder/Developer/jacob1" then return end
+		if nusr.host=="gprs-inet-65-130.elisa.ee" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime-1
 				if answeredIn <= 0 then answeredIn=1 end
-				local earned = math.floor(bet*(prizeMulti+(1/answeredIn)))
+				local earned = math.floor(bet*(prizeMulti+(math.sqrt(1.1+1/answeredIn)-1)*3))
 				local cstr = changeCash(nusr,earned)
 				if nusr.nick==usr.nick then
 					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..(earned-bet)..cstr)
 				else
 					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
 				end
+				gameUsers[nusr.host].nextQuiz = math.max((gameUsers[nusr.host].nextQuiz or os.time()),os.time()+math.floor(43*(math.log(earned-bet)^1.1)-360) )
 				remTimer("quiz")
 				activeQuiz[chan]=false
 				return true

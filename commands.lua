@@ -139,6 +139,15 @@ local function chmod(usr,chan,msg,args)
 end
 add_cmd(chmod,"chmod",2,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
+--hostmask
+local function getHost(usr,chan,msg,args)
+	if not msg then return end
+	local host = getBestHost(chan,args[1])
+	if host==args[1] then return usr.nick..": Invalid user or not online." end
+	return usr.nick .. ": "..host:sub(5)
+end
+add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
+
 --LUA sandbox
 local function lua(usr,chan,msg,args,luan)
 	if not msg then return false,"No message" end

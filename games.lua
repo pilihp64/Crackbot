@@ -10,7 +10,7 @@ local storeInventory={
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
 ["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
 ["iPad"]=	{name="iPad",	cost=499,info="A new iPad.",amount=1,instock=true},
-["lamp"]=	{name="lamp",	cost=1000,info="A very expensive lamp, great lighting.",amount=1,instock=true},
+["lamp"]=	{name="lamp",	cost=1001,info="A very expensive lamp, great lighting.",amount=1,instock=true},
 ["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
 ["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
@@ -319,6 +319,8 @@ table.insert(questions,function() --Count a letter in string
 	if extraNumber==1 then extraNumber=math.random(200) else extraNumber=nil end
 	local rstring=""
 	local countChar,answer
+	local timeout=20
+	local multiplier=1
 	while i<maxi do
 		--pick 3-8 chars (5 filler, 1 to count) make sure all different
 		local rchar = string.char(math.random(93)+33)
@@ -342,42 +344,46 @@ table.insert(questions,function() --Count a letter in string
 	end
 	local intro="Count the number of"
 	if extraNumber then
-		local isSub = math.random(3)==1
-		if isSub then
+		local randMod = math.random(35)
+		if randMod<=10 then --subtract
 			intro="What is "..extraNumber.." minus the number of"
 			answer = extraNumber-answer
-		else
+		elseif randMod<=14 then --Multiply
+			intro="What is "..extraNumber.." times the number of"
+			answer = extraNumber*answer
+			timeout,multiplier = 35,2
+		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
 		end
 	end
-	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer)
+	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
 end)
-local activeQuiz=false
+local activeQuiz= {}
 local activeQuizTime=0
 --QUIZ, generate a question, someone bets, anyone can answer
 local function quiz(usr,chan,msg,args)
 	if not msg or not tonumber(args[1]) then return usr.nick..": Start a question for the channel, '/quiz <bet>'" end
-	if chan:sub(1,1)~='#' then return usr.nick..": Must be in channel for quiz" end
 	--make activeQuiz per channel
-	if activeQuiz then return usr.nick..": There is already an active quiz!" end
+	if activeQuiz[chan] then return usr.nick..": There is already an active quiz here!" end
 	local bet=tonumber(args[1])
+	if chan:sub(1,1)~='#' then if bet>10000 then return usr.nick..": Quiz in query has 10k max bid" end end
 	local gusr = gameUsers[usr.host]
-	if bet~=bet or bet<5000 then
-		return usr.nick..": Must bet at least 5000!"
+	if bet~=bet or bet<1000 then
+		return usr.nick..": Must bet at least 1000!"
 	elseif gusr.cash-bet<0 then
 		return usr.nick..": You don't have that much!"
 	end
 	changeCash(usr,-bet)
 	--pick out of questions
 	local wq = math.random(#questions)
-	local rstring,answer = questions[wq]()
-	print(answer)
-	activeQuiz,activeQuizTime = true,os.time()
+	local rstring,answer,timer,prizeMulti = questions[wq]()
+	if prizeMulti then bet = math.floor(bet*prizeMulti) end
+	activeQuiz[chan],activeQuizTime = true,os.time()
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
 	addListener(chan,function(nusr,nchan,nmsg)
-		if nchan==chan then
+		if nchan==chan and nusr.host~="Powder/Developer/jacob1" then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime-2
 				if answeredIn <= 0 then answeredIn=1 end
@@ -385,7 +391,7 @@ local function quiz(usr,chan,msg,args)
 				local cstr = changeCash(nusr,earned)
 				ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
 				remTimer("quiz")
-				activeQuiz=false
+				activeQuiz[chan]=false
 				return true
 			else
 				--you only get one chance to answer correctly
@@ -395,7 +401,7 @@ local function quiz(usr,chan,msg,args)
 		return false
 	end)
 	--insert a timer to remove quiz after a while
-	addTimer(function() chatListeners[chan]=nil activeQuiz=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,15,chan,"quiz")
+	addTimer(function() chatListeners[chan]=nil activeQuiz[chan]=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,chan,"quiz")
 
 	return rstring
 end

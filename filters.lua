@@ -173,7 +173,7 @@ function reverse2(text)
 	return s
 end
 add_filt(reverse2,"reverse",nil,"Reverses text, '/reverse <text>'")
-add_filt(reverse,"oldreverse",nil,"Reverses text, '/reverse <text>'")
+--add_filt(reverse,"oldreverse",nil,"Reverses text, '/reverse <text>'")
 
 --SCRAMBLE, scrambles letters inside each word
 local function scramble(text,args)

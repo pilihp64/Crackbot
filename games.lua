@@ -158,12 +158,13 @@ local function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
 		isNumber=true
 	end
-	if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
+	--blacklist of people
+	--if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
 	--some other weird functions to change money
 
 	--randomly find items
-	local fitem = math.random(10)
+	local fitem = math.random(9)
 	if fitem==1 then fitem=true else fitem=false end
 	
 	local minimum = math.floor(randMon/divideFactor)
@@ -314,15 +315,15 @@ add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
 local questions={}
 table.insert(questions,function() --Count a letter in string
 	local chars = {}
-	local i,maxi = 1,math.random(3,8)
-	local extraNumber = math.random(3)
-	if extraNumber==1 then extraNumber=math.random(200) else extraNumber=nil end
+	local extraNumber = math.random(10)
+	if extraNumber<=7 then extraNumber=math.random(200) else extraNumber=nil end
 	local rstring=""
 	local countChar,answer
 	local timeout=20
 	local multiplier=1
+	local i,maxi = 1,math.random(3,8)
 	while i<maxi do
-		--pick 3-8 chars (5 filler, 1 to count) make sure all different
+		--pick 3-8 chars (2-7 filler, 1 to count) make sure all different
 		local rchar = string.char(math.random(93)+33)
 		if not chars[rchar] then
 			chars[rchar]=rchar
@@ -348,10 +349,10 @@ table.insert(questions,function() --Count a letter in string
 		if randMod<=10 then --subtract
 			intro="What is "..extraNumber.." minus the number of"
 			answer = extraNumber-answer
-		elseif randMod<=14 then --Multiply
+		elseif randMod<=18 then --Multiply
 			intro="What is "..extraNumber.." times the number of"
 			answer = extraNumber*answer
-			timeout,multiplier = 35,2
+			timeout,multiplier = 35,1.5
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
@@ -383,7 +384,9 @@ local function quiz(usr,chan,msg,args)
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
 	addListener(chan,function(nusr,nchan,nmsg)
-		if nchan==chan and nusr.host~="Powder/Developer/jacob1" then
+		--blacklist of people
+		if nusr.host=="Powder/Developer/jacob1" then return end
+		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime-2
 				if answeredIn <= 0 then answeredIn=1 end

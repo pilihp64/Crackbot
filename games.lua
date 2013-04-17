@@ -281,8 +281,6 @@ local function store(usr,chan,msg,args)
 			if k==item and v.instock then
 				if gameUsers[usr.host].cash-v.cost>=0 then
 					changeCash(usr,-v.cost)
-					--Old data doesn't have inventory table for now
-					if not gameUsers[usr.host].inventory then gameUsers[usr.host].inventory={} end
 					addInv(usr,v)
 					return usr.nick..": You bought "..k
 				else
@@ -312,4 +310,94 @@ local function store(usr,chan,msg,args)
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
+
+local questions={}
+table.insert(questions,function() --Count a letter in string
+	local chars = {}
+	local i,maxi = 1,math.random(3,8)
+	local extraNumber = math.random(3)
+	if extraNumber==1 then extraNumber=math.random(200) else extraNumber=nil end
+	local rstring=""
+	local countChar,answer
+	while i<maxi do
+		--pick 3-8 chars (5 filler, 1 to count) make sure all different
+		local rchar = string.char(math.random(93)+33)
+		if not chars[rchar] then
+			chars[rchar]=rchar
+			local amount=(math.random(16)-1)
+			rstring = rstring.. string.rep(rchar,amount)
+			i = i+1
+			countChar,answer = rchar,amount
+		end
+	end
+	local t={}
+	for char in rstring:gmatch(".") do
+		table.insert(t,char)
+	end
+	local n=#t
+	while n >= 2 do
+		local k = math.random(n)
+		t[n], t[k] = t[k], t[n]
+		n = n - 1
+	end
+	local intro="Count the number of"
+	if extraNumber then
+		local isSub = math.random(3)==1
+		if isSub then
+			intro="What is "..extraNumber.." minus the number of"
+			answer = extraNumber-answer
+		else
+			intro="What is "..extraNumber.." plus the number of"
+			answer = answer+extraNumber
+		end
+	end
+	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer)
+end)
+local activeQuiz=false
+local activeQuizTime=0
+--QUIZ, generate a question, someone bets, anyone can answer
+local function quiz(usr,chan,msg,args)
+	if not msg or not tonumber(args[1]) then return usr.nick..": Start a question for the channel, '/quiz <bet>'" end
+	if chan:sub(1,1)~='#' then return usr.nick..": Must be in channel for quiz" end
+	--make activeQuiz per channel
+	if activeQuiz then return usr.nick..": There is already an active quiz!" end
+	local bet=tonumber(args[1])
+	local gusr = gameUsers[usr.host]
+	if bet~=bet or bet<5000 then
+		return usr.nick..": Must bet at least 5000!"
+	elseif gusr.cash-bet<0 then
+		return usr.nick..": You don't have that much!"
+	end
+	changeCash(usr,-bet)
+	--pick out of questions
+	local wq = math.random(#questions)
+	local rstring,answer = questions[wq]()
+	print(answer)
+	activeQuiz,activeQuizTime = true,os.time()
+	local alreadyAnswered={}
+	--insert answer function into a chat listen hook
+	addListener(chan,function(nusr,nchan,nmsg)
+		if nchan==chan then
+			if nmsg==answer and not alreadyAnswered[nusr.host] then
+				local answeredIn= os.time()-activeQuizTime-2
+				if answeredIn <= 0 then answeredIn=1 end
+				local earned = math.floor(bet*(1+(1/answeredIn)))
+				local cstr = changeCash(nusr,earned)
+				ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
+				remTimer("quiz")
+				activeQuiz=false
+				return true
+			else
+				--you only get one chance to answer correctly
+				if tonumber(nmsg) then alreadyAnswered[nusr.host]=true end
+			end
+		end
+		return false
+	end)
+	--insert a timer to remove quiz after a while
+	addTimer(function() chatListeners[chan]=nil activeQuiz=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,15,chan,"quiz")
+
+	return rstring
+end
+add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to answer correctly wins a bit more, only your first message is checked.",true)
 

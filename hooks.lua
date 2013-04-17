@@ -144,6 +144,22 @@ function timerCheck()
 	end
 end
 
+--chat listeners, can read for specific messages, returning true means delete listener
+chatListeners = {}
+function addListener(name,f)
+	if type(f)=="function" then
+		chatListeners[name]=f
+	end
+end
+local function listen(usr,chan,msg)
+	for k,v in pairs(chatListeners) do
+		local s,r = pcall(v,usr,chan,msg)
+		if s then
+			if r==true then chatListeners[k]=nil end
+		end
+	end
+end
+
 --capture args into table that supports "test test" args
 function getArgs(msg)
 	if not msg then return {} end
@@ -180,11 +196,11 @@ local function realchat(usr,channel,msg)
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
 	if rest=="" then rest=nil end
+	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	if commands[cmd] then
 		--command exists
 		if permFullHost(usr.fullhost) >= commands[cmd].level then
 			--we have permission
-			if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 			local s,r = pcall(commands[cmd].f,usr,channel,rest,getArgs(rest))
 			if not s and r then
 				ircSendChatQ(channel,r)
@@ -198,6 +214,7 @@ local function realchat(usr,channel,msg)
 		--Last said
 		if channel:sub(1,1)=='#' then irc.channels[channel].users[usr.nick].lastSaid = msg end
 	end
+	listen(usr,channel,msg)
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 local function chat(usr,channel,msg)

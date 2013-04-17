@@ -207,7 +207,7 @@ add_cmd(myMoney,"cash",0,"Your current balance, '/cash [stats]', Sending stats w
 local function giveMon(usr,chan,msg,args)
 	if not args[2] then return "Usage: '/give <username> <amount>'" end
 	local toHost
-	local amt = tonumber(args[2])
+	local amt = math.floor(tonumber(args[2]) or 0)
 	if chan:sub(1,1)~='#' then
 		if args[1]:sub(1,1)=='#' then
 			if string.lower(args[2])==string.lower(usr.nick) then return "You can't give to yourself..." end
@@ -215,7 +215,7 @@ local function giveMon(usr,chan,msg,args)
 			if toHost~=args[2] then toHost=toHost:sub(5)
 			else return "Invalid user, or not online"
 			end
-			amt = tonumber(args[3])
+			amt = math.floor(tonumber(args[3]) or 0)
 		else
 			return "Channel required in query, '/give <chan> <username> <amount>'"
 		end
@@ -320,7 +320,7 @@ table.insert(questions,function() --Count a letter in string
 	local rstring=""
 	local countChar,answer
 	local timeout=20
-	local multiplier=1
+	local multiplier=0.9
 	local i,maxi = 1,math.random(3,8)
 	while i<maxi do
 		--pick 3-8 chars (2-7 filler, 1 to count) make sure all different
@@ -352,7 +352,7 @@ table.insert(questions,function() --Count a letter in string
 		elseif randMod<=18 then --Multiply
 			intro="What is "..extraNumber.." times the number of"
 			answer = extraNumber*answer
-			timeout,multiplier = 35,1.5
+			timeout,multiplier = 35,1.3
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
@@ -379,7 +379,6 @@ local function quiz(usr,chan,msg,args)
 	--pick out of questions
 	local wq = math.random(#questions)
 	local rstring,answer,timer,prizeMulti = questions[wq]()
-	if prizeMulti then bet = math.floor(bet*prizeMulti) end
 	activeQuiz[chan],activeQuizTime = true,os.time()
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
@@ -388,11 +387,15 @@ local function quiz(usr,chan,msg,args)
 		if nusr.host=="Powder/Developer/jacob1" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
-				local answeredIn= os.time()-activeQuizTime-2
+				local answeredIn= os.time()-activeQuizTime-1
 				if answeredIn <= 0 then answeredIn=1 end
-				local earned = math.floor(bet*(1+(1/answeredIn)))
+				local earned = math.floor(bet*(prizeMulti+(1/answeredIn)))
 				local cstr = changeCash(nusr,earned)
-				ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
+				if nusr.nick==usr.nick then
+					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..(earned-bet)..cstr)
+				else
+					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
+				end
 				remTimer("quiz")
 				activeQuiz[chan]=false
 				return true

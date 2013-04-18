@@ -390,7 +390,7 @@ isPossible= function(s) --this question takes any string
 	return false
 end})--]]
 local activeQuiz= {}
-local activeQuizTime=0
+local activeQuizTime={}
 --QUIZ, generate a question, someone bets, anyone can answer
 local function quiz(usr,chan,msg,args)
 	--timeout based on winnings
@@ -398,8 +398,8 @@ local function quiz(usr,chan,msg,args)
 		return usr.nick..": You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
 	if not msg or not tonumber(args[1]) then return usr.nick..": Start a question for the channel, '/quiz <bet>'" end
-	--make activeQuiz per channel
-	if activeQuiz[chan] then return usr.nick..": There is already an active quiz here!" end
+	local qName = chan.."quiz"
+	if activeQuiz[qName] then return usr.nick..": There is already an active quiz here!" end
 	local bet=tonumber(args[1])
 	if chan:sub(1,1)~='#' then if bet>10000 then return usr.nick..": Quiz in query has 10k max bid" end end
 	local gusr = gameUsers[usr.host]
@@ -408,20 +408,21 @@ local function quiz(usr,chan,msg,args)
 	elseif gusr.cash-bet<0 then
 		return usr.nick..": You don't have that much!"
 	end
+
 	changeCash(usr,-bet)
 	--pick out of questions
 	local wq = math.random(#questions)
 	local rstring,answer,timer,prizeMulti = questions[wq].q()
-	activeQuiz[chan],activeQuizTime = true,os.time()
+	activeQuiz[qName],activeQuizTime[qName] = true,os.time()
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
-	addListener(chan,function(nusr,nchan,nmsg)
+	addListener(qName,function(nusr,nchan,nmsg)
 		--blacklist of people
 		--if nusr.host=="Powder/Developer/jacob1" then return end
 		if nusr.host=="gprs-inet-65-130.elisa.ee" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
-				local answeredIn= os.time()-activeQuizTime-1
+				local answeredIn= os.time()-activeQuizTime[qName]-1
 				if answeredIn <= 0 then answeredIn=1 end
 				local earned = math.floor(bet*(prizeMulti+(math.sqrt(1.1+1/answeredIn)-1)*3))
 				local cstr = changeCash(nusr,earned)
@@ -431,8 +432,8 @@ local function quiz(usr,chan,msg,args)
 					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..earned..cstr)
 				end
 				gameUsers[nusr.host].nextQuiz = math.max((gameUsers[nusr.host].nextQuiz or os.time()),os.time()+math.floor(43*(math.log(earned-bet)^1.1)-360) )
-				remTimer("quiz")
-				activeQuiz[chan]=false
+				remTimer(qName)
+				activeQuiz[qName]=false
 				return true
 			else
 				--you only get one chance to answer correctly
@@ -442,9 +443,38 @@ local function quiz(usr,chan,msg,args)
 		return false
 	end)
 	--insert a timer to remove quiz after a while
-	addTimer(function() chatListeners[chan]=nil activeQuiz[chan]=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,chan,"quiz")
+	addTimer(function() chatListeners[qName]=nil activeQuiz[qName]=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,chan,qName)
 
 	return rstring
 end
 add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to answer correctly wins a bit more, only your first message is checked.",true)
 
+--ASK a question, similar to quiz, but from a user in query
+local function ask(usr,chan,msg,args)
+	if chan:sub(1,1)=='#' then return usr.nick..": Can only start question in query." end
+	if not msg or not args[3] then return usr.nick..": Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
+	local toChan = args[1]
+	local qName = toChan.."ask"
+	if activeQuiz[qName] then return usr.nick..": There is already an active question there!" end
+	local rstring,answer,timer = "Question from "..usr.nick..": "..args[2],args[3],30
+	local answers= {}
+	for i=3,#args do
+		answers[args[i]]=true
+	end
+	activeQuiz[qName] = true
+	--insert answer function into a chat listen hook
+	addListener(qName,function(nusr,nchan,nmsg)
+		if nchan==toChan and answers[nmsg] then
+			ircSendChatQ(toChan,nusr.nick..": "..nmsg.." is correct, congratulations!")
+			remTimer(qName)
+			activeQuiz[qName]=false
+			return true
+		end
+		return false
+	end)
+	--insert a timer to remove question after a while
+	addTimer(function() chatListeners[qName]=nil activeQuiz[qName]=false ircSendChatQ(toChan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,toChan,qName)
+	ircSendChatQ(toChan,rstring)
+	return nil
+end
+add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer.",true)

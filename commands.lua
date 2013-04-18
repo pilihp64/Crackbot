@@ -227,11 +227,11 @@ local function python(usr,chan,msg,args)
 import math;
 import cmath;
 import random;
-execdict = {"__builtins__": None,"math": math,"cmath": cmath,"random": random};
 print("]]..usr.nick..[[:");
 safe_list = {};
 ]]..good_func_string..[[
-exec(("]]..sdump..[[").decode("hex"),execdict,safe_list);exit()' 2>&1]])
+execdict = {"__builtins__": safe_list,"math": math,"cmath": cmath,"random": random};
+exec(("]]..sdump..[[").decode("hex"),execdict);exit()' 2>&1]])
 
 	socket.sleep(1)
 

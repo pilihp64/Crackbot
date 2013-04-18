@@ -215,6 +215,10 @@ local function realchat(usr,channel,msg)
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
+	if channel=='#neotenic' and usr.host:find("github.com$") then
+		--relay to ##powder-bots because i'm lazy
+		ircSendChatQ("##powder-bots",msg)
+	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 local function chat(usr,channel,msg)

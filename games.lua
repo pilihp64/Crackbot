@@ -312,14 +312,15 @@ local function store(usr,chan,msg,args)
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
 
-local charLookAlike={["0"]="O",["1"]="I",["6"]="G",["7"]="Z",["8"]="0",
-["b"]="d",["c"]="o",["d"]="b",["f"]="l",["h"]="n",["i"]="j",["j"]="i",
+local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S",["6"]="G",["7"]="Z",["8"]="3",["9"]="6",
+["b"]="d",["c"]="s",["d"]="b",["e"]="c",["f"]="t",["g"]="q",["h"]="n",["i"]="j",["j"]="i",
 ["k"]="h",["l"]="1",["m"]="n",["n"]="m",["o"]="c",["p"]="q",["q"]="p",
-["r"]="n",["s"]="S",["u"]="v",["v"]="w",["w"]="vv",["x"]="X",["z"]="Z",
-["C"]="O",["D"]="0",["E"]="F",["F"]="E",["G"]="6",["I"]="l",["O"]="0",
-["P"]="R",["R"]="P",["S"]="s",["U"]="V",["V"]="U",["W"]="VV",["X"]="x",["Z"]="z",
-["\""]="'",["'"]="\"",["("]="{",["{"]="(",["}"]=")",[")"]="}",["/"]="\\",
-["\\"]="/",["^"]="/\\",["`"]="'",["="]="-",["-"]="=",["~"]="-",["$"]="S",
+["r"]="n",["s"]="c",["t"]="f",["u"]="v",["v"]="w",["w"]="vv",["x"]="X",["z"]="Z",
+["A"]="&",["B"]="8",["C"]="O",["D"]="0",["E"]="F",["F"]="E",["G"]="6",["H"]="4",["I"]="l",
+["J"]="U",["K"]="H",["L"]="J",["M"]="N",["N"]="M",["O"]="0",["P"]="R",["R"]="P",
+["S"]="5",["T"]="F",["U"]="V",["V"]="U",["W"]="VV",["X"]="x",["Y"]="V",["Z"]="2",
+["!"]="1",["@"]="&",["#"]="H",["$"]="S",["^"]="/\\",["&"]="8",["("]="{",[")"]="}",["-"]="=",["="]="-",
+["{"]="(",["}"]=")",["\""]="'",["'"]="\"",["/"]="\\",["\\"]="/",["`"]="'",["~"]="-",
 }
 local questions={}
 table.insert(questions,{
@@ -329,20 +330,25 @@ q= function() --Count a letter in string, with some other simple math
 	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end
 	local rstring=""
 	local countChar,answer
-	local timeout=20
-	local multiplier=0.8
+	local timeout=25
+	local multiplier=0.75
 	local i,maxi = 1,math.random(2,7)
 
-	--pick countChar first, possibly add look-alike
+	--pick countChar first
 	countChar,answer = string.char(math.random(93)+33),(math.random(16)-1)
 	rstring = rstring.. string.rep(countChar,answer)
 	chars[countChar]=true
+	local pickedR=false
 	while i<maxi do
 		--pick 2-7 chars (2-7 filler) make sure all different
-		local ohGod = math.random(10)==1
 		local rchar
-		if ohGod then rchar= charLookAlike[countChar] or string.char(math.random(93)+33)
-		else rchar = string.char(math.random(93)+33) end
+		--possibly add look-alike
+		if not pickedR and math.random(10)==1 then
+			rchar= charLookAlike[countChar] or string.char(math.random(93)+33)
+			pickedR=true
+		else
+			rchar = string.char(math.random(93)+33)
+		end
 
 		if not chars[rchar] then
 			chars[rchar]=true
@@ -368,28 +374,28 @@ q= function() --Count a letter in string, with some other simple math
 		if randMod<=15 then --subtract
 			intro="What is "..extraNumber.." minus the number of"
 			answer = extraNumber-answer
-			multiplier=0.9
+			multiplier=0.85
 		elseif randMod<=22 then --Multiply
 			extraNumber = extraNumber%200
 			intro="What is "..extraNumber.." times the number of"
 			answer = extraNumber*answer
-			timeout,multiplier = 35,1.3
+			timeout,multiplier = 40,1.1
 		elseif randMod==23 then --addition AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)
 			intro="What is "..extraNumber.." plus "..extraNum2.." times the number of"
 			answer = extraNumber + (extraNum2*answer)
-			timeout,multiplier = 45,1.6
+			timeout,multiplier = 50,1.3
 		elseif randMod==24 then --subtraction AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)
 			intro="What is "..extraNumber.." minus "..extraNum2.." times the number of"
 			answer = extraNumber - (extraNum2*answer)
-			timeout,multiplier = 45,1.6
+			timeout,multiplier = 50,1.3
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber
-			multiplier=0.9
+			multiplier=0.85
 		end
 	end
 	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier

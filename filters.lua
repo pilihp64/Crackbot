@@ -278,14 +278,14 @@ local function mksmall(n)
     local s=""
     if n>=100 then
         s=one[math.floor(n/100)].." hundred "
-        n=n%10
+        n=n%100
         if n~=0 then
             s=s.."and "
         end
     end
     if n>=20 then
         s=s..ten[math.floor(n/10)].." "
-        n=n%1
+        n=n%10
         if n~=0 then
             s=s..one[n].." "
         end
@@ -315,8 +315,12 @@ function mknum(n)
     for i=0,math.floor(math.log(n)/math.log(1000)) do
         local g=math.floor(n/1000^i)%1000
         if g>999 or g<0 then break end
-        if i~=0 and g~=0 then
-            table.insert(t,1,mksmall(g)..magn[i])
+        if g~=0 then
+            if i==0 then
+                table.insert(t,1,mksmall(g):sub(1,-2))
+            else
+                table.insert(t,1,mksmall(g)..magn[i])
+            end
         end
     end
     return p..table.concat(t," and ")

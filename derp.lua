@@ -41,6 +41,10 @@ function fop(op)
 		return function(a)return not a end
 	elseif op=="_" then
 		return function(a)return -a end
+	elseif op==":" then
+		return function(a,b)return a[b][a] end
+	elseif op=="." then
+		return function(a,b)return a[b] end
 	end
 end
 debug.setmetatable(fempty,{__index=_index,__sub=_sub(),__mod=_mod(),__concat=_concat()})

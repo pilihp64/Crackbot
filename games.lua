@@ -312,6 +312,15 @@ local function store(usr,chan,msg,args)
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
 
+local charLookAlike={["0"]="O",["1"]="I",["6"]="G",["7"]="Z",["8"]="0",
+["b"]="d",["c"]="o",["d"]="b",["f"]="l",["h"]="n",["i"]="j",["j"]="i",
+["k"]="h",["l"]="1",["m"]="n",["n"]="m",["o"]="c",["p"]="q",["q"]="p",
+["r"]="n",["s"]="S",["u"]="v",["v"]="w",["w"]="vv",["x"]="X",["z"]="Z",
+["C"]="O",["D"]="0",["E"]="F",["F"]="E",["G"]="6",["I"]="l",["O"]="0",
+["P"]="R",["R"]="P",["S"]="s",["U"]="V",["V"]="U",["W"]="VV",["X"]="x",["Z"]="z",
+["\""]="'",["'"]="\"",["("]="{",["{"]="(",["}"]=")",[")"]="}",["/"]="\\",
+["\\"]="/",["^"]="/\\",["`"]="'",["="]="-",["-"]="=",["~"]="-",["$"]="S",
+}
 local questions={}
 table.insert(questions,{
 q= function() --Count a letter in string, with some other simple math
@@ -322,18 +331,27 @@ q= function() --Count a letter in string, with some other simple math
 	local countChar,answer
 	local timeout=20
 	local multiplier=0.8
-	local i,maxi = 1,math.random(3,8)
+	local i,maxi = 1,math.random(2,7)
+
+	--pick countChar first, possibly add look-alike
+	countChar,answer = string.char(math.random(93)+33),(math.random(16)-1)
+	rstring = rstring.. string.rep(countChar,answer)
+	chars[countChar]=true
 	while i<maxi do
-		--pick 3-8 chars (2-7 filler, 1 to count) make sure all different
-		local rchar = string.char(math.random(93)+33)
+		--pick 2-7 chars (2-7 filler) make sure all different
+		local ohGod = math.random(10)==1
+		local rchar
+		if ohGod then rchar= charLookAlike[countChar] or string.char(math.random(93)+33)
+		else rchar = string.char(math.random(93)+33) end
+
 		if not chars[rchar] then
-			chars[rchar]=rchar
+			chars[rchar]=true
 			local amount=(math.random(16)-1)
 			rstring = rstring.. string.rep(rchar,amount)
 			i = i+1
-			countChar,answer = rchar,amount
 		end
 	end
+
 	local t={}
 	for char in rstring:gmatch(".") do
 		table.insert(t,char)

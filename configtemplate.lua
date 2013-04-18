@@ -12,3 +12,24 @@ function permFullHost(host)
 	end
 	return 0
 end
+
+--This has server specific data
+local config={
+	--Network to connect to, change to whatever network you use
+	network = {
+		server = "irc.freenode.net",
+		port = 6667,
+	},
+	--User info, set these to whatever you need
+	user = {
+		nick = "Crackbot",
+		username = "Meow",
+		realname = "moo",
+	},
+	--Channels to join on start
+	autojoin = {
+		--"##foo",
+	},
+}
+
+return config

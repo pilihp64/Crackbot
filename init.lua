@@ -2,7 +2,9 @@ if IRC_RUNNING then error("Already running") end
 IRC_RUNNING=true
 dofile("derp.lua")
 dofile("irc/init.lua")
-dofile("config.lua")
+local s,r = pcall(dofile,"config.lua")
+if not s then print("Config not found, copying template") os.execute("cp configtemplate.lua config.lua") r=dofile("config.lua") end
+config = r
 
 local sleep=require "socket".sleep
 local socket = require"socket"
@@ -12,31 +14,31 @@ console:settimeout(5)
 --start my console line-in
 os.execute("xfce4-terminal -x lua consolein.lua")
 shutdown = false
-user = {
-	nick = "Crackbot",
-	username = "Meow",
-	realname = "moo",
-}
+user = config.user
 irc=irc.new(user)
 
-irc:connect("irc.freenode.net",6667)
+--support multiple networks sometime
+irc:connect(config.network.server,config.network.port)
+print("Connected")
 
 local connected=false
+--connect to console thread
 function conConnect()
-	console:connect("localhost",1337) --connect to console thread
+	console:connect("localhost",1337)
 	console:settimeout(0)
 	console:setoption("keepalive",true)
 	connected=true
 end
 conConnect()
-print("connected")
+
 
 dofile("hooks.lua")
 dofile("commands.lua")
 
-irc:join("##powder-bots")
-irc:join("#neotenic")
-print("Joined")
+if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
+for k,v in pairs(config.autojoin) do
+	irc:join(v)
+end
 
 local function consoleThink()
 	if not connected then return end

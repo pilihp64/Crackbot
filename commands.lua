@@ -122,7 +122,7 @@ local function list(usr,chan,msg,args)
 end
 add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/list [<level>]'",true,{"ls"})
 
---CHMOD
+--CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
 	if not msg then return end
 	local perm = permFullHost(usr.fullhost)
@@ -231,7 +231,7 @@ print("]]..usr.nick..[[:");
 safe_list = {};
 ]]..good_func_string..[[
 execdict = {"__builtins__": safe_list,"math": math,"cmath": cmath,"random": random};
-exec(("]]..sdump..[[").decode("hex"),execdict);exit()' 2>&1]])
+exec("def foo(): "+("]]..sdump..[[").decode("hex")+";\nresp=foo();\nif resp!=None: print(resp);",execdict);exit()' 2>&1]])
 
 	socket.sleep(1)
 
@@ -328,3 +328,97 @@ local function rbug(usr,chan,msg,args)
 	return usr.nick..": Reported bug"
 end
 add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)
+
+--Contains data needed to create command
+aliasList = aliasList or table.load("AliasList.txt") or {}
+--Return a helper function to insert new args correctly
+local function mkAliasFunc(t,aArgs)
+	return function(nusr,nchan,nmsg,nargs)
+			--Put new args after alias args
+			local sendArgs = {}
+			for i=1,#aArgs do table.insert(sendArgs,aArgs[i]) end
+			for i=1,#nargs do table.insert(sendArgs,nargs[i]) end
+			local sendMsg = t.aMsg
+			if nmsg and nmsg~="" then
+				if t.aMsg~="" then sendMsg=sendMsg.." "..nmsg
+				else sendMsg=nmsg
+				end
+			end
+			if not commands[t.cmd] then error("Alias destination for "..v.name.." doesn't exist!") end
+			return commands[t.cmd].f(nusr,nchan,sendMsg,sendArgs)
+		end
+end
+--Insert alias commands on reload
+for k,v in pairs(aliasList) do
+	local aArgs = getArgs(v.aMsg)
+	if not commands[v.name] and commands[v.cmd] then
+		add_cmd( mkAliasFunc(v,aArgs) ,v.name,commands[v.cmd].level,"Alias for "..v.cmd.." "..v.aMsg,false)
+	else
+		--destination doesn't exist, or name already exists, hide alias
+		aliasList[k]=nil
+	end
+end
+--ALIAS, add an alias for a command
+local function alias(usr,chan,msg,args)
+	if not msg or not args[1] then return usr.nick..": '/alias add/rem/list <name> <cmd> [<args>]'" end
+	if args[1]=="add" then
+		if not args[2] then return usr.nick..": '/alias add <name> <cmd> [<args>]'" end
+		if not args[3] then return usr.nick..": No cmd specified! '/alias add <name> <cmd> [<args>]'" end
+		local name,cmd,aArgs = args[2],args[3],{}
+		if not commands[cmd] then return usr.nick..": "..cmd.." doesn't exist!" end
+		if commands[name] then return usr.nick..": "..name.." already exists!!" end
+		for i=4,#args do table.insert(aArgs,args[i]) end
+		local aMsg = table.concat(aArgs," ")
+		local alis = {name=name,cmd=cmd,aMsg=aMsg}
+		add_cmd( mkAliasFunc(alis,aArgs) ,name,commands[cmd].level,"Alias for "..cmd.." "..aMsg,false)
+
+		table.insert(aliasList,alis)
+		table.save(aliasList,"AliasList.txt")
+		return usr.nick..": Added alias"
+	elseif args[1]=="rem" then
+		if not args[2] then return usr.nick..": '/alias rem <name>'" end
+		local name = args[2]
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				if v.lock then return usr.nick..": Alias is locked!" end
+				aliasList[k]=nil
+				commands[name]=nil
+				table.save(aliasList,"AliasList.txt")
+				return usr.nick..": Removed alias"
+			end
+		end
+		return usr.nick..": Alias not found"
+	elseif args[1]=="list" then
+		local t={}
+		for k,v in pairs(aliasList) do
+			table.insert(t,v.name)
+		end
+		return usr.nick..": Aliases: "..table.concat(t,", ")
+	elseif args[1]=="lock" then
+		--Lock an alias so other users can't remove it
+		if not args[2] then return usr.nick..": '/alias lock <name>'" end
+		if permFullHost(usr.fullhost) < 50 then return usr.nick..": No permission to lock!" end
+		local name = args[2]
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				v.lock = "" --bool doesn't save right now
+				table.save(aliasList,"AliasList.txt")
+				return usr.nick..": Locked alias"
+			end
+		end
+		return usr.nick..": Alias not found"
+	elseif args[1]=="unlock" then
+		if not args[2] then return usr.nick..": '/alias unlock <name>'" end
+		if permFullHost(usr.fullhost) < 50 then return usr.nick..": No permission to unlock!" end
+		local name = args[2]
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				v.lock = nil
+				table.save(aliasList,"AliasList.txt")
+				return usr.nick..": Unlocked alias"
+			end
+		end
+		return usr.nick..": Alias not found"
+	end
+end
+add_cmd(alias,"alias",0,"Add another name to execute a command, '/alias add/rem/list <newName> <cmd> [<args>]'.",true)

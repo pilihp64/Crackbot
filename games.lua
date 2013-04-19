@@ -382,13 +382,13 @@ q= function() --Count a letter in string, with some other simple math
 			timeout,multiplier = 40,1.1
 		elseif randMod==23 then --addition AND multiply
 			extraNumber = extraNumber
-			local extraNum2 = math.random(200)
+			local extraNum2 = math.random(200)-1
 			intro="What is "..extraNumber.." plus "..extraNum2.." times the number of"
 			answer = extraNumber + (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod==24 then --subtraction AND multiply
 			extraNumber = extraNumber
-			local extraNum2 = math.random(200)
+			local extraNum2 = math.random(200)-1
 			intro="What is "..extraNumber.." minus "..extraNum2.." times the number of"
 			answer = extraNumber - (extraNum2*answer)
 			timeout,multiplier = 50,1.3

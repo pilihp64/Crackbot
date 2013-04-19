@@ -104,7 +104,7 @@ add_cmd(reload,"load",100,"Loads file(s), '/load <file1> [<file2>] [<files...>]"
 
 --ECHO
 local function echo(usr,chan,msg)
-	return msg
+	return msg,true
 end
 add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true)
 
@@ -137,16 +137,16 @@ local function chmod(usr,chan,msg,args)
 		return "You can't change this user"
 	end
 	permissions[host] = tonumber(level)
-	return usr.nick .. ": perm['"..host.."'] = "..level
+	return "perm['"..host.."'] = "..level
 end
 add_cmd(chmod,"chmod",2,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 --hostmask
 local function getHost(usr,chan,msg,args)
-	if not msg then return usr.nick..": "..usr.host end
+	if not msg then return usr.host end
 	local host = getBestHost(chan,args[1])
-	if host==args[1] then return usr.nick..": Invalid user or not online." end
-	return usr.nick .. ": "..host:sub(5)
+	if host==args[1] then return "Invalid user or not online." end
+	return host:sub(5)
 end
 add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
 
@@ -160,13 +160,13 @@ local function lua2(usr,chan,msg,args)
 		stepcount=0
 		if s then
 			local str = tostring(r) 
-			return usr.nick.. ": " .. str:gsub("[\r\n]"," ")
+			return str:gsub("[\r\n]"," ")
 		else
-			return usr.nick.. ": ERROR: " .. r
+			return "ERROR: " .. r
 		end
 		return
 	end
-	return usr.nick.. ": ERROR: " .. err
+	return "ERROR: " .. err
 end
 add_cmd(lua2,"..",101,"Runs full lua code, '/lua <code>'",false)
 
@@ -205,7 +205,7 @@ local function timer(usr,chan,msg,args)
 		local pstring = table.concat(t," ")
 		addTimer(ircSendChatQ[chan][pstring],tonumber(args[1]),chan)
 	else
-		return usr.nick..": Bad timer"
+		return "Bad timer"
 	end
 end
 add_cmd(timer,"timer",0,"Time until a print is done, '/timer <time(seconds)> <text>'",true)
@@ -216,6 +216,6 @@ local function rbug(usr,chan,msg,args)
 	local f = io.open("bug.txt","a")
 	f:write("["..os.date().."] ".. usr.host..": "..msg.."\n")
 	f:close()
-	return usr.nick..": Reported bug"
+	return "Reported bug"
 end
 add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)

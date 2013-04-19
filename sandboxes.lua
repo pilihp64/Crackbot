@@ -15,7 +15,8 @@ local function lua(usr,chan,msg,args,luan)
 	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then return usr.nick .. ": "..r:gsub("[\r\n\t]"," ") end
+	if r then r = r:gsub("[\r\n\t]"," ") end
+	return r
 end
 local function lua52(usr,chan,msg,args)
 	return lua(usr,chan,msg,args,"lua5.2")
@@ -69,7 +70,8 @@ exec("def foo(): "+("]]..sdump..[[").decode("hex")+";\nresp=foo();\nif resp!=Non
 	if kill~="" then os.execute("pkill -f 'python -c'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
-	if r then return r:gsub("[\r\n\t]"," ") end
+	if r then r = r:gsub("[\r\n\t]"," ") end
+	return r,true
 end
 add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
 
@@ -104,7 +106,7 @@ local function BF(usr,chan,msg)
 	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then return r:gsub("[\r\n\t]"," ") end
+	if r then return r:gsub("[\r\n\t]"," "),true end
 end
 add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})
 

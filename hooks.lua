@@ -201,11 +201,14 @@ local function realchat(usr,channel,msg)
 		--command exists
 		if permFullHost(usr.fullhost) >= commands[cmd].level then
 			--we have permission
-			local s,r = pcall(commands[cmd].f,usr,channel,rest,getArgs(rest))
+			local s,r,noNickPrefix = pcall(commands[cmd].f,usr,channel,rest,getArgs(rest))
 			if not s and r then
 				ircSendChatQ(channel,r)
 			else
-				if r then ircSendChatQ(channel,r) end
+				if r then
+					if not noNickPrefix then r=usr.nick..": "..r end
+					ircSendChatQ(channel,r)
+				end
 			end
 		else
 			ircSendChatQ(channel,usr.nick..": No permission for "..cmd)

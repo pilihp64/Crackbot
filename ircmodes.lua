@@ -12,18 +12,18 @@ local function setMode(chan,mode,tar)
 end
 --MODE
 local function mode(usr,chan,msg,args)
-	if not msg then return usr.nick..": '/mode [<chan>] <mode> [...]', if no chan given, will use current" end
+	if not msg then return "Usage: '/mode [<chan>] <mode> [...]', if no chan given, will use current" end
 	local tochan = ""
 	local tomode = ""
 	local rest = ""
 	if args[1]:sub(1,1)=="#" then
-		if not args[2] then return usr.nick..": Need a mode" end
+		if not args[2] then return "Need a mode" end
 		tochan=args[1]
 		tomode=args[2]
 		rest=args[3] or ""
 	else
 		tomode=args[1]
-		if chan:sub(1,1)~='#' then return usr.nick..": Need to specify channel in query" end
+		if chan:sub(1,1)~='#' then return "Need to specify channel in query" end
 		tochan=chan
 		rest=args[2] or ""
 	end
@@ -206,7 +206,7 @@ end
 add_cmd(join,"join",101,"Make bot join a channel, '/join <chan>'",true)
 --PART a channel
 local function part(usr,chan,msg,args)
-	if not args[1] then return usr.nick..": Need a message" end
+	if not args[1] then return "Need a message" end
 	if args[1]:sub(1,1)~='#' then
 		error("Not a channel")
 	else

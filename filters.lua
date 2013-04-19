@@ -388,7 +388,7 @@ local function filter(usr,chan,msg,args)
 				return chan.." is locked"
 			end
 		else
-			return usr.nick .. ": ".. err
+			return err
 		end
 	else
 		return "No filter named "..name
@@ -458,9 +458,9 @@ setBadWordFilter(badWords)
 local function badWord(usr,chan,msg,args)
 	if not args[2] then return "Usage: badword add/rem <word>" end
 	if args[1] == "add" then
-		return usr.nick .. ": " .. addBadWord(args[2])
+		return addBadWord(args[2])
 	elseif args[1] == "rem" then
-		return usr.nick .. ": " .. remBadWord(args[2])
+		return remBadWord(args[2])
 	end
 	return "Usage: badword add/rem <word>"
 end

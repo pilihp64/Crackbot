@@ -112,7 +112,7 @@ end
 
 --User cash
 local function myCash(usr)
-	return usr.nick .. ": You have $"..gameUsers[usr.host].cash
+	return "You have $"..gameUsers[usr.host].cash
 end
 --give money
 local function give(fromHost,toHost,amt)
@@ -127,19 +127,19 @@ end
 local function coinToss(usr,bet)
 	local mycash = gameUsers[usr.host].cash
 	if bet > mycash then
-		return usr.nick .. ": Not enough money!"
+		return "Not enough money!"
 	end
 	local res = math.random(2)
 	if res==1 then
 		--win
 		local str = changeCash(usr,bet)
 		streak(usr,true)
-		return usr.nick .. ": You win $" .. bet .. "!"..str
+		return "You win $" .. bet .. "!"..str
 	else
 		--lose
 		local str = changeCash(usr,-bet)
 		streak(usr,false)
-		return usr.nick .. ": You lost $" .. bet .. "!"..str
+		return "You lost $" .. bet .. "!"..str
 	end
 end
 
@@ -173,7 +173,7 @@ local function odoor(usr,door)
 	if fitem and randomnes>0 then
 		--find an item of approximate value
 		local item = findClosestItem(randomnes)
-		rstring = usr.nick..": You found a "..item.name.."! Added to inventory, see the store to sell"
+		rstring = "You found a "..item.name.."! Added to inventory, see the store to sell"
 		addInv(usr,item)
 	else
 		fitem=false
@@ -184,12 +184,12 @@ local function odoor(usr,door)
 		return rstring
 	elseif randomnes<0 then
 		streak(usr,false)
-		return usr.nick .. ": You lost $" .. -randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
+		return "You lost $" .. -randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
 	elseif randomnes==0 then
-		return usr.nick .. ": The door is broken, try again"
+		return "The door is broken, try again"
 	end
 	streak(usr,true)
-	return usr.nick .. ": You found $" .. randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
+	return "You found $" .. randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
 end
 
 --GAME command hooks
@@ -197,7 +197,7 @@ end
 local function myMoney(usr,chan,msg,args)
 	if args then
 		if args[1]=="stats" then
-			return usr.nick..": WinStreak: "..gameUsers[usr.host].maxWinStreak.." LoseStreak: "..gameUsers[usr.host].maxLoseStreak
+			return "WinStreak: "..gameUsers[usr.host].maxWinStreak.." LoseStreak: "..gameUsers[usr.host].maxLoseStreak
 		end
 	end
 	return myCash(usr)
@@ -228,9 +228,9 @@ local function giveMon(usr,chan,msg,args)
 	end
 
 	if amt and amt>0 and amt==amt then
-		return usr.nick..": "..give(usr.host,toHost,amt)
+		return give(usr.host,toHost,amt)
 	else
-		return usr.nick..": Bad amount!"
+		return "Bad amount!"
 	end
 end
 add_cmd(giveMon,"give",0,"Give money to a user, '/give <username> <amount>', need over 100k to give.",true)
@@ -242,10 +242,10 @@ add_cmd(loadCash,"loadcash",101,"Reload saved money",true)
 --FLIP
 local function flipCoin(usr,chan,msg,args)
 	if not args[1] or not tonumber(args[1]) then
-		return usr.nick .. ": You need to place a bet! '/flip <bet>'"
+		return "You need to place a bet! '/flip <bet>'"
 	end
 	local bet = math.floor(tonumber(args[1]))
-	if bet < 1 then return usr.nick .. ": Bet too low" end
+	if bet < 1 then return "Bet too low" end
 	return coinToss(usr,bet)
 end
 add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true)
@@ -258,38 +258,38 @@ add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happe
 --STORE, to buy somethings?
 local function store(usr,chan,msg,args)
 	if not msg  or args[1]=="help" then
-		return usr.nick..": Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item>' or '/store sell [<item>]' will list your items."
+		return "Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item>' or '/store sell [<item>]' will list your items."
 	end
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
 			if v.instock then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
 		end
-		return usr.nick..": "..table.concat(t," ")
+		return table.concat(t," ")
 	end
 	if args[1]=="info" then
-		if not args[2] then return usr.nick..": Need an item! 'info <item>'" end
+		if not args[2] then return "Need an item! 'info <item>'" end
 		local item = args[2]
 		for k,v in pairs(storeInventory) do
-			if k==item then return usr.nick..": Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
 		end
-		return usr.nick..": Item not found"
+		return "Item not found"
 	end
 	if args[1]=="buy" then
-		if not args[2] then return usr.nick..": Need an item! 'buy <item>'" end
+		if not args[2] then return "Need an item! 'buy <item>'" end
 		local item = args[2]
 		for k,v in pairs(storeInventory) do
 			if k==item and v.instock then
 				if gameUsers[usr.host].cash-v.cost>=0 then
 					changeCash(usr,-v.cost)
 					addInv(usr,v)
-					return usr.nick..": You bought "..k
+					return "You bought "..k
 				else
-					return usr.nick..": Not enough money!"
+					return "Not enough money!"
 				end
 			end
 		end
-		return usr.nick..": Item not found"
+		return "Item not found"
 	end
 	if args[1]=="sell" then
 		if not args[2] then
@@ -297,17 +297,17 @@ local function store(usr,chan,msg,args)
 			for k,v in pairs(gameUsers[usr.host].inventory) do
 				table.insert(t,v.name.."("..v.amount..")")
 			end
-			return usr.nick..": You have, "..table.concat(t,", ")
+			return "You have, "..table.concat(t,", ")
 		end
 		local item = args[2]
 		for k,v in pairs(gameUsers[usr.host].inventory or {}) do
 			if v.name==item then
 				changeCash(usr,v.cost)
 				remInv(usr,k)
-				return usr.nick..": Sold "..v.name.." for $"..v.cost
+				return "Sold "..v.name.." for $"..v.cost
 			end
 		end
-		return usr.nick..": You don't have that!"
+		return "You don't have that!"
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
@@ -419,18 +419,18 @@ local activeQuizTime={}
 local function quiz(usr,chan,msg,args)
 	--timeout based on winnings
 	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
-		return usr.nick..": You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
+		return "You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
-	if not msg or not tonumber(args[1]) then return usr.nick..": Start a question for the channel, '/quiz <bet>'" end
+	if not msg or not tonumber(args[1]) then return "Start a question for the channel, '/quiz <bet>'" end
 	local qName = chan.."quiz"
-	if activeQuiz[qName] then return usr.nick..": There is already an active quiz here!" end
+	if activeQuiz[qName] then return "There is already an active quiz here!" end
 	local bet=tonumber(args[1])
-	if chan:sub(1,1)~='#' then if bet>10000 then return usr.nick..": Quiz in query has 10k max bid" end end
+	if chan:sub(1,1)~='#' then if bet>10000 then return "Quiz in query has 10k max bid" end end
 	local gusr = gameUsers[usr.host]
 	if bet~=bet or bet<1000 then
-		return usr.nick..": Must bet at least 1000!"
+		return "Must bet at least 1000!"
 	elseif gusr.cash-bet<0 then
-		return usr.nick..": You don't have that much!"
+		return "You don't have that much!"
 	end
 
 	changeCash(usr,-bet)
@@ -475,11 +475,11 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to 
 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
-	if chan:sub(1,1)=='#' then return usr.nick..": Can only start question in query." end
-	if not msg or not args[3] then return usr.nick..": Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
+	if chan:sub(1,1)=='#' then return "Can only start question in query." end
+	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
 	local qName = toChan.."ask"
-	if activeQuiz[qName] then return usr.nick..": There is already an active question there!" end
+	if activeQuiz[qName] then return "There is already an active question there!" end
 	local rstring,answer,timer = "Question from "..usr.nick..": "..args[2],args[3],30
 	local answers= {}
 	for i=3,#args do

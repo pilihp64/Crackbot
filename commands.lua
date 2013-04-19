@@ -332,9 +332,11 @@ add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)
 --Contains data needed to create command
 aliasList = aliasList or table.load("AliasList.txt") or {}
 --Return a helper function to insert new args correctly
+local aliasDepth = 0
 local function mkAliasFunc(t,aArgs)
 	return function(nusr,nchan,nmsg,nargs)
 			--Put new args after alias args
+			if aliasDepth>10 then aliasDepth=0 error("Alias depth limit reached!") end
 			local sendArgs = {}
 			for i=1,#aArgs do table.insert(sendArgs,aArgs[i]) end
 			for i=1,#nargs do table.insert(sendArgs,nargs[i]) end
@@ -344,17 +346,20 @@ local function mkAliasFunc(t,aArgs)
 				else sendMsg=nmsg
 				end
 			end
-			if not commands[t.cmd] then error("Alias destination for "..v.name.." doesn't exist!") end
-			return commands[t.cmd].f(nusr,nchan,sendMsg,sendArgs)
+			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
+			aliasDepth = aliasDepth+1
+			local ret = {commands[t.cmd].f(nusr,nchan,sendMsg,sendArgs)}
+			aliasDepth = 0
+			return unpack(ret)
 		end
 end
 --Insert alias commands on reload
 for k,v in pairs(aliasList) do
 	local aArgs = getArgs(v.aMsg)
-	if not commands[v.name] and commands[v.cmd] then
-		add_cmd( mkAliasFunc(v,aArgs) ,v.name,commands[v.cmd].level,"Alias for "..v.cmd.." "..v.aMsg,false)
+	if not commands[v.name] then
+		add_cmd( mkAliasFunc(v,aArgs) ,v.name,v.level,"Alias for "..v.cmd.." "..v.aMsg,false)
 	else
-		--destination doesn't exist, or name already exists, hide alias
+		--name already exists, hide alias
 		aliasList[k]=nil
 	end
 end
@@ -366,16 +371,17 @@ local function alias(usr,chan,msg,args)
 		if not args[3] then return usr.nick..": No cmd specified! '/alias add <name> <cmd> [<args>]'" end
 		local name,cmd,aArgs = args[2],args[3],{}
 		if not commands[cmd] then return usr.nick..": "..cmd.." doesn't exist!" end
-		if commands[name] then return usr.nick..": "..name.." already exists!!" end
+		if commands[name] then return usr.nick..": "..name.." already exists!" end
+		if permFullHost(usr.fullhost) < commands[cmd].level then return usr.nick..": You can't alias that!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
-		local alis = {name=name,cmd=cmd,aMsg=aMsg}
-		add_cmd( mkAliasFunc(alis,aArgs) ,name,commands[cmd].level,"Alias for "..cmd.." "..aMsg,false)
+		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level}
+		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
 
 		table.insert(aliasList,alis)
 		table.save(aliasList,"AliasList.txt")
 		return usr.nick..": Added alias"
-	elseif args[1]=="rem" then
+	elseif args[1]=="rem" or args[1]=="remove" then
 		if not args[2] then return usr.nick..": '/alias rem <name>'" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do

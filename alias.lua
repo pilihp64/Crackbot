@@ -42,6 +42,7 @@ local function alias(usr,chan,msg,args)
 		if not commands[cmd] then return usr.nick..": "..cmd.." doesn't exist!" end
 		if commands[name] then return usr.nick..": "..name.." already exists!" end
 		if permFullHost(usr.fullhost) < commands[cmd].level then return usr.nick..": You can't alias that!" end
+		if name:find("%*[%c]?%d?%d?,?%d?%d?$") then return usr.nick..": Bad alias name!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
 		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level}
@@ -66,7 +67,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="list" then
 		local t={}
 		for k,v in pairs(aliasList) do
-			table.insert(t,v.name)
+			table.insert(t,v.name.."\15"..(v.lock or ""))
 		end
 		return usr.nick..": Aliases: "..table.concat(t,", ")
 	elseif args[1]=="lock" then
@@ -76,7 +77,7 @@ local function alias(usr,chan,msg,args)
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then
-				v.lock = "" --bool doesn't save right now
+				v.lock = "*" --bool doesn't save right now
 				table.save(aliasList,"AliasList.txt")
 				return usr.nick..": Locked alias"
 			end

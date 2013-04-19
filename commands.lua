@@ -47,6 +47,8 @@ for k,v in pairs(modList) do
 	if not s then print(r) end
 end
 
+--CORE FUNCTIONS HERE
+
 --QUIT
 local function suicide(usr,chan,msg)
 	ircSendRawQ("QUIT :moo")
@@ -148,7 +150,7 @@ local function getHost(usr,chan,msg,args)
 end
 add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
 
---LUA full acess
+--LUA full access
 local function lua2(usr,chan,msg,args)
 	local e,err = loadstring(msg)
 	if e then

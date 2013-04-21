@@ -64,12 +64,12 @@ add_cmd(ping,"ping",0,"pong",true)
 
 --DO
 local function dothis(usr,chan,msg) --fix DO and ME with filters
-	if msg then return "\001ACTION does "..msg.."\001" end
+	if msg then return "\001ACTION does "..msg.."\001",true end
 end
 add_cmd(dothis,"do",0,"Performs an action, '/do <text>'",true)
 --ME
 local function methis(usr,chan,msg)
-	if msg then return "\001ACTION "..msg.."\001" end
+	if msg then return "\001ACTION "..msg.."\001",true end
 end
 add_cmd(methis,"me",0,"Performs an action, '/me <text>'",true)
 

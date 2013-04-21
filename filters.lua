@@ -337,9 +337,9 @@ function callFilt(f,sanf,filt)
 		if not msg then return end
 		local s,err = sanf(args,filt) --allow filter to sanity check args before running
 		if s then
-			ircSendChatQ(chan,usr.nick .. ": "..f(msg,args))
+			return f(msg,args)
 		else
-			ircSendChatQ(chan,usr.nick .. ": ".. err)
+			return err
 		end
 	end
 end

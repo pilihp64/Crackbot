@@ -17,13 +17,13 @@ end
 dofile("fakefs.lua")
 local coroutine={create=coroutine.create,resume=coroutine.resume,running=coroutine.running,status=coroutine.status,wrap=coroutine.wrap,yield=coroutine.yield}
 local string={byte=string.byte,char=string.char,find=string.find,format=string.format,gmatch=string.gmatch,gsub=string.gsub,len=string.len,lower=string.lower,match=string.match,rep=string.rep,reverse=string.reverse,sub=string.sub,upper=string.upper}
-local mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort}
+local mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort,concat=table.concat}
 --Make the rest of the os/io functions use fakefs
 local os = fakeOS()
 local io = fakeIO()
 local mbit32 = nil
 if _VERSION == "Lua 5.2" then
-	mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort,unpack=table.unpack,pack=table.pack}	
+	mtable={insert=table.insert,maxn=table.maxn,remove=table.remove,sort=table.sort,unpack=table.unpack,pack=table.pack,concat=table.concat}	
 	mbit32={band=bit32.band,bnot=bit32.bnot,bor=bit32.bor,btest=bit32.btest,bxor=bit32.bxor,extract=bit32.extract,replace=bit32.replace,lrotate=bit32.lrotate,lshift=bit32.lshift,rrotate=bit32.rrotate,rshift=bit32.rshift}
 end
 local math={abs=math.abs,acos=math.acos,sin=math.sin,atan=math.atan,atan2=math.atan2,ceil=math.ceil,cos=math.cos,cosh=math.cosh,deg=math.deg,exp=math.exp,floor=math.floor,fmod=math.fmod,frexp=math.frexp,huge=math.huge,ldexp=math.ldexp,log=math.log,log10=math.log10,max=math.max,min=math.min,modf=math.modf,pi=math.pi,pow=math.pow,rad=math.rad,random=math.random,sin=math.sin,sinh=math.sinh,sqrt=math.sqrt,tan=math.tan,tanh=math.tanh}

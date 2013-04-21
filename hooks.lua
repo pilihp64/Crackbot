@@ -186,32 +186,60 @@ function getArgsOld(msg)
     return args
 end
 
+local function makeCMD(cmd,usr,channel,msg)
+	if commands[cmd] then
+		--command exists
+		if permFullHost(usr.fullhost) >= commands[cmd].level then
+			--we have permission
+			if msg then
+				--check for `` nested commands, ./echo `echo test` , could nest further with a better pattern
+				msg = msg:gsub("(%b``)",function(nest)
+						local _,_,ncmd,nrest = nest:find("`([^%s]*)%s?(.*)`$")
+						if ncmd then
+							local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
+							if vf then
+								return vf() or ""
+							end
+						end
+						return ""
+				end )
+			end
+			if msg=="" then msg=nil end
+			return commands[cmd].f[usr][channel][msg][getArgs(msg)]
+		else
+			ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
+		end
+	else
+		--ircSendChatQ(channel,usr.nick..": "..cmd.." doesn't exist!")
+	end
+end
+
 local function realchat(usr,channel,msg)
 	if prefix~= '%./' then
 		panic,_ = msg:find("^%./fix")
 		if panic then prefix='%./' end
 	end
-	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]+)%s?(.*)$")
-	if not cmd then --no cmd found for prefix, try suffix
+
+	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
+	if not cmd then
+		--no cmd found for prefix, try suffix
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
-	if rest=="" then rest=nil end
+
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
-	if commands[cmd] then
-		--command exists
-		if permFullHost(usr.fullhost) >= commands[cmd].level then
-			--we have permission
-			local s,r,noNickPrefix = pcall(commands[cmd].f,usr,channel,rest,getArgs(rest))
-			if not s and r then
-				ircSendChatQ(channel,r)
-			else
-				if r then
-					if not noNickPrefix then r=usr.nick..": "..r end
-					ircSendChatQ(channel,r)
-				end
-			end
+	local func
+	if cmd then func=makeCMD(cmd,usr,channel,rest) end
+
+	if func then
+		--we can execute the command
+		local s,r,noNickPrefix = pcall(func)
+		if not s and r then
+			ircSendChatQ(channel,r)
 		else
-			ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
+			if r then
+				if not noNickPrefix then r=usr.nick..": "..r end
+				ircSendChatQ(channel,r)
+			end
 		end
 	else
 		--Last said

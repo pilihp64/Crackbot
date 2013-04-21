@@ -207,7 +207,7 @@ local function makeCMD(cmd,usr,channel,msg)
 			if msg=="" then msg=nil end
 			return commands[cmd].f[usr][channel][msg][getArgs(msg)]
 		else
-			ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
+			--ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
 		end
 	else
 		--ircSendChatQ(channel,usr.nick..": "..cmd.." doesn't exist!")

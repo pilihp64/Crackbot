@@ -3,6 +3,7 @@ dofile("tableSave.lua")
 local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
+local allCommands = {}
 local stepcount=0
 local cmdcount = 0
 local function infhook()
@@ -16,10 +17,12 @@ local function infhook()
 	end
 end
 function add_cmd(f, name, lvl, help, shown, aliases)
-	commands[name]={["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,["show"]=shown}
+	allCommands[name]={["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,["show"]=shown}
+	commands[name]=allCommands[name]
 	if aliases then
 		for k,v in pairs(aliases) do
-			commands[v] = {["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,false}
+			allCommands[v] = {["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,false}
+			commands[v]=allCommands[v]
 		end
 	end
 end
@@ -48,6 +51,50 @@ for k,v in pairs(modList) do
 end
 
 --CORE FUNCTIONS HERE
+
+--DISABLE a command for the bot
+local function disable(usr,chan,msg,args)
+	if not msg then return "Usage: '/disable <cmd> [<cmd2> ...]'" end
+	if args[1]=="all" then
+		for k,v in pairs(commands) do
+			if k~="enable" then commands[k]=nil end
+		end
+		return "Disabled all"
+	else
+		local t={}
+		for i=1,#args do
+			local dcmd = args[i]
+			if dcmd~="enable" and commands[dcmd] then
+				commands[dcmd]=nil
+				table.insert(t,dcmd)
+			end
+		end
+		return "Disabled "..table.concat(t," ")
+	end
+end
+add_cmd(disable,"disable",100,"Disable a command for the bot, '/disable <cmd> [<cmd2> ...]'",true)
+
+--ENABLE a command previously disabled
+local function enable(usr,chan,msg,args)
+	if not msg then return "Usage: '/enable <cmd> [<cmd2> ...]'" end
+	if args[1]=="all" then
+		for k,v in pairs(allCommands) do
+			if not commands[k] then commands[k]=v end
+		end
+		return "Enabled all"
+	else
+		local t={}
+		for i=1,#args do
+			local ecmd = args[i]
+			if not commands[ecmd] and allCommands[ecmd] then
+				commands[ecmd]=allCommands[ecmd]
+				table.insert(t,ecmd)
+			end
+		end
+		return "Enabled "..table.concat(t," ")
+	end
+end
+add_cmd(enable,"enable",100,"Enables a command previously disabled, '/enable <cmd> [<cmd2> ...]'",true)
 
 --QUIT
 local function suicide(usr,chan,msg)

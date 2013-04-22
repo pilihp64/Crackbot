@@ -21,9 +21,13 @@ local storeInventory={
 ["potato"]=	{name="potato",	cost=2000000,info="Just a potato.",amount=1,instock=true},
 ["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=false},
 ["diamond"]={name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
+["cow"]=	{name="cow",	cost=24000000,info="Can generate moo's.",amount=1,instock=true},
 ["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
+["cube"]=	{name="cube",	cost=76000000,info="A rubik's cube made of ice.",amount=1,instock=true},
 ["cracker"]={name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
+["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
 ["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
+["billion"]={name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
 }
 
 --make function hook to reload user cash
@@ -264,7 +268,7 @@ local function store(usr,chan,msg,args)
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
-			if v.instock then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
+			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
 		end
 		return table.concat(t," ")
 	end
@@ -393,6 +397,11 @@ q= function() --Count a letter in string, with some other simple math
 			intro="What is "..extraNumber.." minus "..extraNum2.." times the number of"
 			answer = extraNumber - (extraNum2*answer)
 			timeout,multiplier = 50,1.3
+		elseif randMod<=26 then --Repeat string
+			extraNumber = extraNumber%1000
+			intro="Repeat the string \" "..extraNumber.." \" by the amount of"
+			answer = (tostring(extraNumber)):rep(answer)
+			timeout,multiplier = 40,1.2
 		else --add
 			intro="What is "..extraNumber.." plus the number of"
 			answer = answer+extraNumber

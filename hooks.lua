@@ -187,6 +187,16 @@ function getArgsOld(msg)
 end
 
 local nestify
+local nestBegin = "<<"
+local nestEnd = ">>"
+function setNest(nb,ne)
+	if #nb and #ne and nb~=ne then
+		nestBegin = nb
+		nestEnd = ne
+	else
+		return "Bad nest"
+	end
+end
 
 local function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
@@ -220,14 +230,14 @@ end
 nestify=function(str,start,level,usr,channel)
 	if level>10 then error("Max nest level reached!") end
 	local tstring=""
-	local st,en = str:find("{`",start)
-	local st2,en2 = str:find("`}",start)
+	local st,en = str:find(nestBegin,start)
+	local st2,en2 = str:find(nestEnd,start)
 	while st or st2 do
 		if st2 then
 			if (not st and level>0) or (st and st>st2) then
 				--closing bracket, end of level, execute the level
 				--Entire level gets replaced with cmd return
-				tstring = tryCommand(usr,channel,tstring..str:sub(start,en2-2))
+				tstring = tryCommand(usr,channel,tstring..str:sub(start,st2-1))
 				start = en2+1
 				break
 			elseif st then
@@ -242,8 +252,8 @@ nestify=function(str,start,level,usr,channel)
 		else
 			return str,start
 		end
-		st,en = str:find("{`",start)
-		st2,en2 = str:find("`}",start)
+		st,en = str:find(nestBegin,start)
+		st2,en2 = str:find(nestEnd,start)
 	end
 	--add anything remaining
 	if level==0 then tstring=tstring..str:sub(start) end

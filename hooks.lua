@@ -186,23 +186,16 @@ function getArgsOld(msg)
     return args
 end
 
+local nestify
+
 local function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
 		if permFullHost(usr.fullhost) >= commands[cmd].level then
 			--we have permission
 			if msg then
-				--check for `` nested commands, ./echo `echo test` , could nest further with a better pattern
-				msg = msg:gsub("(%b``)",function(nest)
-						local _,_,ncmd,nrest = nest:find("`([^%s]*)%s?(.*)`$")
-						if ncmd then
-							local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
-							if vf then
-								return vf() or ""
-							end
-						end
-						return ""
-				end )
+				--check for {` `} nested commands, ./echo {`echo test`}
+				msg,_ = nestify(msg,1,0,usr,channel)
 			end
 			if msg=="" then msg=nil end
 			return commands[cmd].f[usr][channel][msg][getArgs(msg)]
@@ -212,6 +205,57 @@ local function makeCMD(cmd,usr,channel,msg)
 	else
 		--ircSendChatQ(channel,usr.nick..": "..cmd.." doesn't exist!")
 	end
+end
+local function tryCommand(usr,channel,msg)
+	local temps = ""
+	local _,_,ncmd,nrest = msg:find("([^%s]*)%s?(.*)$")
+	if ncmd then
+		local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
+		if vf then
+			--the level is replaced by function return
+			temps = (vf() or "")
+		end
+	end
+	return temps
+end
+nestify=function(str,start,level,usr,channel)
+	if level>10 then error("Max nest level reached!") end
+	local tstring=""
+	local st,en = str:find("{`",start)
+	local st2,en2 = str:find("`}",start)
+	while st or st2 do
+		if not st then
+			if st2 then
+				--closing bracket, end of level, execute the level
+				tstring = tryCommand(usr,channel,tstring..str:sub(start,en2-2))
+				start = en2+1
+				break
+			else
+				tstring=tstring..str
+				break
+			end
+		else
+			--There is an opening bracket
+			if not st2 then return str,start end
+			if st<st2 then
+				--opening bracket is before close, new level! Keep first part of string
+				tstring=tstring..str:sub(start,st-1)
+				--Add the result of the next level
+				local rstring,cstart = nestify(str,en+1,level+1,usr,channel)
+				tstring,start = tstring..rstring,cstart
+			else
+				--closing bracket first, end of level ,execute the level
+				tstring = tryCommand(usr,channel,tstring..str:sub(start,en2-2))
+				start = en2+1
+				break
+			end
+		end
+	st,en = str:find("{`",start)
+	st2,en2 = str:find("`}",start)
+	end
+	--add anything remaining
+	if level==0 then tstring=tstring..str:sub(start) return tstring,start end
+	return tstring,start
 end
 
 local function realchat(usr,channel,msg)
@@ -226,7 +270,7 @@ local function realchat(usr,channel,msg)
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
 
-	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+
 	local func
 	if cmd then func=makeCMD(cmd,usr,channel,rest) end
 
@@ -253,6 +297,7 @@ local function realchat(usr,channel,msg)
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 local function chat(usr,channel,msg)
+	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
 		clearAllFilts()

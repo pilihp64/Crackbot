@@ -424,7 +424,7 @@ local function quiz(usr,chan,msg,args)
 	if not msg or not tonumber(args[1]) then return "Start a question for the channel, '/quiz <bet>'" end
 	local qName = chan.."quiz"
 	if activeQuiz[qName] then return "There is already an active quiz here!" end
-	local bet=tonumber(args[1])
+	local bet= math.floor(tonumber(args[1]))
 	if chan:sub(1,1)~='#' then if bet>10000 then return "Quiz in query has 10k max bid" end end
 	local gusr = gameUsers[usr.host]
 	if bet~=bet or bet<1000 then

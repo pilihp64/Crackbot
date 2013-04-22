@@ -250,7 +250,7 @@ local function timer(usr,chan,msg,args)
 			table.insert(t,args[i])
 		end
 		local pstring = table.concat(t," ")
-		addTimer(ircSendChatQ[chan][pstring],tonumber(args[1]),chan)
+		addTimer(ircSendChatQ[chan][pstring],tonumber(args[1]),chan,usr.nick)
 	else
 		return "Bad timer"
 	end

@@ -23,6 +23,7 @@ local storeInventory={
 ["diamond"]={name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
 ["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
 ["cracker"]={name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
+["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
 }
 
 --make function hook to reload user cash
@@ -151,11 +152,11 @@ local function odoor(usr,door)
 	local divideFactor = 2
 	if door:find("moo") then divideFactor=2.5 end
 	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or os.time())
-	randMon = randMon+adjust*5--get higher for waiting longer
+	randMon = (randMon+adjust*5)^1.15--get higher for waiting longer
 	gameUsers[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
-		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50) divideFactor=5 end
+		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50)^1.15 divideFactor=6 end
 		isNumber=true
 	end
 	--blacklist of people
@@ -166,7 +167,7 @@ local function odoor(usr,door)
 	--randomly find items
 	local fitem = math.random(9)
 	if fitem==1 then fitem=true else fitem=false end
-	
+	randMon = math.floor(randMon)
 	local minimum = math.floor(randMon/divideFactor)
 	local randomnes = math.random(randMon)-minimum
 	local rstring=""

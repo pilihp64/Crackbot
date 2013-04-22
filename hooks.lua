@@ -30,8 +30,8 @@ function getFilts(chan)
 	for k,v in pairs(activeFilters[chan].t) do
 		table.insert(t, v.name .. " " .. table.concat(v.args," ") )
 	end
-	local text = table.concat(t," > ") or ""
-	return "in > "..text .. " > out"
+	local text = table.concat(t,"> ") or ""
+	return "in > "..text .. "> out"
 end
 --add new filter
 function addFilter(chan,filt,name,args)

@@ -193,6 +193,7 @@ local function invite(usr,chan,msg,args)
 	end
 	ircSendRawQ("INVITE "..args[1].." "..chan)
 end
+add_cmd(invite,"invite",50,"Invite someone to the channel, '/invite <user>'",true)
 --JOIN a channel
 local function join(usr,chan,msg,args)
 	if not args[1] then error("No args") end

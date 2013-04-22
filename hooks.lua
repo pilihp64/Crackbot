@@ -212,7 +212,6 @@ local function tryCommand(usr,channel,msg)
 	if ncmd then
 		local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
 		if vf then
-			--the level is replaced by function return
 			temps = (vf() or "")
 		end
 	end
@@ -224,37 +223,30 @@ nestify=function(str,start,level,usr,channel)
 	local st,en = str:find("{`",start)
 	local st2,en2 = str:find("`}",start)
 	while st or st2 do
-		if not st then
-			if st2 then
+		if st2 then
+			if (not st and level>0) or (st and st>st2) then
 				--closing bracket, end of level, execute the level
+				--Entire level gets replaced with cmd return
 				tstring = tryCommand(usr,channel,tstring..str:sub(start,en2-2))
 				start = en2+1
 				break
-			else
-				tstring=tstring..str
-				break
-			end
-		else
-			--There is an opening bracket
-			if not st2 then return str,start end
-			if st<st2 then
+			elseif st then
 				--opening bracket is before close, new level! Keep first part of string
 				tstring=tstring..str:sub(start,st-1)
 				--Add the result of the next level
 				local rstring,cstart = nestify(str,en+1,level+1,usr,channel)
 				tstring,start = tstring..rstring,cstart
 			else
-				--closing bracket first, end of level ,execute the level
-				tstring = tryCommand(usr,channel,tstring..str:sub(start,en2-2))
-				start = en2+1
-				break
+				return str,start
 			end
+		else
+			return str,start
 		end
-	st,en = str:find("{`",start)
-	st2,en2 = str:find("`}",start)
+		st,en = str:find("{`",start)
+		st2,en2 = str:find("`}",start)
 	end
 	--add anything remaining
-	if level==0 then tstring=tstring..str:sub(start) return tstring,start end
+	if level==0 then tstring=tstring..str:sub(start) end
 	return tstring,start
 end
 
@@ -269,7 +261,6 @@ local function realchat(usr,channel,msg)
 		--no cmd found for prefix, try suffix
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
-
 
 	local func
 	if cmd then func=makeCMD(cmd,usr,channel,rest) end

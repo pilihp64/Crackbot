@@ -234,12 +234,17 @@ nestify=function(str,start,level,usr,channel)
 	local st2,en2 = str:find(nestEnd,start)
 	while st or st2 do
 		if st2 then
-			if (not st and level>0) or (st and st>st2) then
-				--closing bracket, end of level, execute the level
-				--Entire level gets replaced with cmd return
-				tstring = tryCommand(usr,channel,tstring..str:sub(start,st2-1))
-				start = en2+1
-				break
+			if not st or (st and st>st2) then
+				if level~=0 then
+					--closing bracket, end of level, execute the level
+					--Entire level gets replaced with cmd return
+					tstring = tryCommand(usr,channel,tstring..str:sub(start,st2-1))
+					start = en2+1
+					break
+				else
+					tstring = tstring..str:sub(start,en2)
+					start = en2+1
+				end
 			elseif st then
 				--opening bracket is before close, new level! Keep first part of string
 				tstring=tstring..str:sub(start,st-1)

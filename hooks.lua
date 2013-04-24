@@ -2,6 +2,7 @@ local buffer = {}
 local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
 local activeFilters = {}
 local badWordFilts = nil
+local waitingCommands = {}
 setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
 --make print log everything to file as well
 _print = _print or print
@@ -142,6 +143,28 @@ function timerCheck()
 			table.remove(timers,k)
 		end
 	end
+	for k,v in pairs(waitingCommands) do
+		if os.time()>v.time then
+			local s,s2,resp,noNickPrefix = pcall(coroutine.resume,v.co)
+			if not s and s2 then
+				ircSendChatQ(v.channel,s2)
+			elseif s2 then
+				--coroutine was success
+				if resp then
+					if not noNickPrefix then resp=v.usr.nick..": "..resp end
+					ircSendChatQ(v.channel,resp)
+					table.remove(waitingCommands,k)
+				elseif resp==false then
+					--wait this amount of time to resume
+					v.time=os.time()+noNickPrefix-1
+				else
+					table.remove(waitingCommands,k)
+				end
+			else
+				table.remove(waitingCommands,k)
+			end
+		end
+	end
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener
@@ -203,12 +226,14 @@ local function makeCMD(cmd,usr,channel,msg)
 		--command exists
 		if permFullHost(usr.fullhost) >= commands[cmd].level then
 			--we have permission
-			if msg then
-				--check for {` `} nested commands, ./echo {`echo test`}
-				msg,_ = nestify(msg,1,0,usr,channel)
-			end
-			if msg=="" then msg=nil end
-			return commands[cmd].f[usr][channel][msg][getArgs(msg)]
+			return function()
+					if msg then
+						--check for {` `} nested commands, ./echo {`echo test`}
+						msg,_ = nestify(msg,1,0,usr,channel)
+					end
+					if msg=="" then msg=nil end
+					return commands[cmd].f(usr,channel,msg,getArgs(msg))
+				end
 		else
 			return false,usr.nick..": No permission for "..cmd
 		end
@@ -282,13 +307,19 @@ local function realchat(usr,channel,msg)
 
 	if func then
 		--we can execute the command
-		local s,r,noNickPrefix = pcall(func)
-		if not s and r then
-			ircSendChatQ(channel,r)
-		else
-			if r then
-				if not noNickPrefix then r=usr.nick..": "..r end
-				ircSendChatQ(channel,r)
+		local co = coroutine.create(func)
+		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
+
+		if not s and s2 then
+			ircSendChatQ(channel,s2)
+		elseif s2 then
+			--coroutine was success
+			if resp then
+				if not noNickPrefix then resp=usr.nick..": "..resp end
+				ircSendChatQ(channel,resp)
+			elseif resp==false then
+				--wait this amount of time to resume
+				table.insert(waitingCommands,{co=co,time=os.time()+noNickPrefix-1,usr=usr,channel=channel,msg=msg})
 			end
 		end
 	else

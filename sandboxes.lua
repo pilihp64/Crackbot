@@ -10,12 +10,12 @@ local function lua(usr,chan,msg,args,luan)
     								local s = table.remove(r,1)
     								print(unpack(r))
     							else print(err) end' 2>&1]])
-	socket.sleep(1)
+	coroutine.yield(false,1)
 	local kill = io.popen("pgrep -f '"..luan.." -e'"):read("*a")
 	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then r = r:gsub("[\r\n\t]"," ") end
+	if r then r = r:gsub("[\r\n]","") end
 	return r
 end
 local function lua52(usr,chan,msg,args)
@@ -64,13 +64,13 @@ safe_list = {};
 execdict = {"__builtins__": safe_list,"math": math,"cmath": cmath,"random": random};
 exec("def foo(): "+("]]..sdump..[[").decode("hex")+";\nresp=foo();\nif resp!=None: print(resp);",execdict);exit()' 2>&1]])
 
-	socket.sleep(1)
+	coroutine.yield(false,1)
 
 	local kill = io.popen("pgrep -f 'python -c'"):read("*a")
 	if kill~="" then os.execute("pkill -f 'python -c'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
-	if r then r = r:gsub("[\r\n\t]"," ") end
+	if r then r = r:gsub("[\r\n]","") end
 	return r,true
 end
 add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
@@ -101,12 +101,12 @@ local function BF(usr,chan,msg)
 	{__index=function(t,k) return t.t[t.i] end, __newindex=function(t,k,v) t.t[t.i]=v end })
 	load_code(("]=]..sdump..[=["):gsub("[^%+%-<>%.,%[%]]+",""):gsub(".", subst) , "brainfuck", "t", env)()' 2>&1]=])
 			    
-	socket.sleep(1)
+	coroutine.yield(false,1)
 	local kill = io.popen("pgrep -f '"..luan.." -e'"):read("*a")
 	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then return r:gsub("[\r\n\t]"," "),true end
+	if r then return r:gsub("[\r\n]",""),true end
 end
 add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})
 

@@ -137,7 +137,10 @@ add_cmd(sneaky3,"moo",0,"No help for moo found!",false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)
-	if not args[1] then args[1]="hooks" end
+	if not args[1] then args[1]="hooks" args[2]="commands"
+	else
+		if permFullHost(usr.fullhost)<101 then return "You can't use args" end
+	end
 	local rmsg=""
 	for k,v in pairs(args) do
 		local s,r = pcall(dofile,v..".lua")
@@ -147,7 +150,7 @@ local function reload(usr,chan,msg,args)
 	end
 	return rmsg
 end
-add_cmd(reload,"load",100,"Loads file(s), '/load <file1> [<file2>] [<files...>]",true,{"reload"})
+add_cmd(reload,"load",100,"Loads file(s), '/load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
 
 --ECHO
 local function echo(usr,chan,msg)
@@ -176,7 +179,10 @@ local function chmod(usr,chan,msg,args)
 	if not msg then return end
 	local perm = permFullHost(usr.fullhost)
 	local setmax = perm-1
-	local host,level = getBestHost(chan,args[1],true),args[2]
+	local host,level = getBestHost(chan,args[1],true):gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1"),args[2]
+	if tonumber(level)~=tonumber(level) then
+		return "Bad num"
+	end
 	if tonumber(level) > setmax then
 		return "You can't set that high"
 	end

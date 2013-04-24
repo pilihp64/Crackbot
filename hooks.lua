@@ -210,7 +210,7 @@ local function makeCMD(cmd,usr,channel,msg)
 			if msg=="" then msg=nil end
 			return commands[cmd].f[usr][channel][msg][getArgs(msg)]
 		else
-			--ircSendChatQ(channel,usr.nick..": No permission for "..cmd)
+			return false,usr.nick..": No permission for "..cmd
 		end
 	else
 		--ircSendChatQ(channel,usr.nick..": "..cmd.." doesn't exist!")
@@ -219,7 +219,7 @@ end
 local function tryCommand(usr,channel,msg)
 	local temps = ""
 	local _,_,ncmd,nrest = msg:find("([^%s]*)%s?(.*)$")
-	if ncmd then
+	if ncmd and ncmd~="quiz" then
 		local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
 		if vf then
 			temps = (vf() or "")
@@ -277,8 +277,8 @@ local function realchat(usr,channel,msg)
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
 
-	local func
-	if cmd then func=makeCMD(cmd,usr,channel,rest) end
+	local func,err
+	if cmd then func,err=makeCMD(cmd,usr,channel,rest) end
 
 	if func then
 		--we can execute the command
@@ -292,6 +292,7 @@ local function realchat(usr,channel,msg)
 			end
 		end
 	else
+		if err then ircSendChatQ(channel,err) end
 		--Last said
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end

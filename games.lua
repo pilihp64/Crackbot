@@ -116,7 +116,14 @@ local function findClosestItem(amt)
 end
 
 --User cash
-local function myCash(usr)
+local function myCash(usr,all)
+	if all then
+		local cash = gameUsers[usr.host].cash
+		for k,v in pairs(gameUsers[usr.host].inventory or {}) do
+			cash = cash+ (v.cost*v.amount)
+		end
+		return "You have $"..cash.." including items."
+	end
 	return "You have $"..gameUsers[usr.host].cash
 end
 --give money
@@ -166,6 +173,8 @@ local function odoor(usr,door)
 	--blacklist of people
 	--if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
+	if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
+
 	--some other weird functions to change money
 
 	--randomly find items
@@ -203,6 +212,9 @@ local function myMoney(usr,chan,msg,args)
 	if args then
 		if args[1]=="stats" then
 			return "WinStreak: "..gameUsers[usr.host].maxWinStreak.." LoseStreak: "..gameUsers[usr.host].maxLoseStreak
+		end
+		if args[1]=="all" then
+			return myCash(usr,true)
 		end
 	end
 	return myCash(usr)

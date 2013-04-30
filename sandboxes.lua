@@ -5,24 +5,20 @@ local function lua(usr,chan,msg,args,luan)
 	luan = luan or "lua"
 	--byte the string so you can't escape
 	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
-	local rf = io.popen(luan..[[ -e 'dofile("derp.lua") dofile("sandybox.lua") local e,err=load_code("]]..sdump..[[",nil,"t",env)
-    							if e then local r = {pcall(e)}
-    								local s = table.remove(r,1)
-    								print(unpack(r))
-    							else print(err) end' 2>&1]])
+	local rf = io.popen(luan..[=[ -e "dofile('derp.lua') dofile('sandybox.lua') local e,err=load_code(']=]..sdump..[=[',nil,'t',env) if e then local r = {pcall(e)} local s = table.remove(r,1) print(unpack(r)) else print(err) end" 2>&1]=])
 	coroutine.yield(false,1)
-	local kill = io.popen("pgrep -f '"..luan.." -e'"):read("*a")
-	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
+	local kill = io.popen([[pgrep -f "]]..luan..[[ -e"]]):read("*a")
+	if kill~="" then os.execute([[pkill -f "]]..luan..[[ -e"]]) end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then r = r:gsub("[\r\n]","") end
+	if r then r = r:gsub("[\r\n]"," ") end
 	return r
 end
 local function lua52(usr,chan,msg,args)
 	return lua(usr,chan,msg,args,"lua5.2")
 end
 add_cmd(lua,"lua",0,"Runs sandbox lua code, '/lua <code>'",true)
-add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
+--add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
 
 --PYTHON code
 local function python(usr,chan,msg,args)
@@ -54,15 +50,15 @@ local function python(usr,chan,msg,args)
 		f:write(good_func_string)
 		f:close()--]]
 	
-	local rf = io.popen([[python -c '
+	local rf = io.popen([[python -c "
 import math;
 import cmath;
 import random;
-print("]]..usr.nick..[[:");
+print(']]..usr.nick..[[:');
 safe_list = {};
 ]]..good_func_string..[[
-execdict = {"__builtins__": safe_list,"math": math,"cmath": cmath,"random": random};
-exec("def foo(): "+("]]..sdump..[[").decode("hex")+";\nresp=foo();\nif resp!=None: print(resp);",execdict);exit()' 2>&1]])
+execdict = {'__builtins__': safe_list,'math': math,'cmath': cmath,'random': random};
+exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=None: print(resp);',execdict);exit()" 2>&1]])
 
 	coroutine.yield(false,1)
 
@@ -70,7 +66,7 @@ exec("def foo(): "+("]]..sdump..[[").decode("hex")+";\nresp=foo();\nif resp!=Non
 	if kill~="" then os.execute("pkill -f 'python -c'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
-	if r then r = r:gsub("[\r\n]","") end
+	if r then r = r:gsub("[\r\n]"," ") end
 	return r,true
 end
 add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
@@ -87,26 +83,15 @@ local function BF(usr,chan,msg)
 	local inputdump=""
 	for char in input:gmatch(".") do inputdump = inputdump .. "\\"..char:byte() end
 	-----------
-	local rf = io.popen(luan..[=[ -e 'dofile("sandybox.lua")
-	io.write("]=]..usr.nick..[=[: ")
-	local readS = 0
-	local function readInput()
-		readS = readS+1
-		return ("]=]..inputdump..[=["):sub(readS,readS) or "\0"
-	end
-	local subst = {["+"]="v=(v+1)%256 ", ["-"]="v=(v-1)%256 ", [">"]="i=i+1 ", ["<"]="i=i-1 ",
-		["."] = "w(v)", [","]="v=r()", ["["]="while v~=0 do ", ["]"]="end "}
-	local env = setmetatable({ i=0, t=setmetatable({},{__index=function() return 0 end}),
-	r=function() return readInput():byte() end, w=function(c) io.write(string.char(c)) end }, 
-	{__index=function(t,k) return t.t[t.i] end, __newindex=function(t,k,v) t.t[t.i]=v end })
-	load_code(("]=]..sdump..[=["):gsub("[^%+%-<>%.,%[%]]+",""):gsub(".", subst) , "brainfuck", "t", env)()' 2>&1]=])
-			    
+	local rf = io.popen(luan..[=[ -e 'dofile("sandybox.lua")io.write("]=]..usr.nick..[=[: ") local readS = 0 local function readInput()	readS = readS+1	return ("]=]..inputdump..[=["):sub(readS,readS) or "\0"	end	local subst = {["+"]="v=(v+1)%256 ", ["-"]="v=(v-1)%256 ", [">"]="i=i+1 ", ["<"]="i=i-1 ",["."] = "w(v)", [","]="v=r()", ["["]="while v~=0 do ", ["]"]="end "} local env = setmetatable({ i=0, t=setmetatable({},{__index=function() return 0 end}),r=function() return readInput():byte() end, w=function(c) io.write(string.char(c)) end },{__index=function(t,k) return t.t[t.i] end, __newindex=function(t,k,v) t.t[t.i]=v end })load_code(("]=]..sdump..[=["):gsub("[^%+%-<>%.,%[%]]+",""):gsub(".", subst) , "brainfuck", "t", env)()' 2>&1]=])
+
 	coroutine.yield(false,1)
-	local kill = io.popen("pgrep -f '"..luan.." -e'"):read("*a")
-	if kill~="" then os.execute("pkill -f '"..luan.." -e'") end
+	local kill = io.popen([[pgrep -f "]]..luan..[[ -e"]]):read("*a")
+	if kill~="" then os.execute([[pkill -f "]]..luan..[[ -e"]]) end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then return r:gsub("[\r\n]",""),true end
+	if r then r = r:gsub("[\r\n]","") end
+	return r,true
 end
 add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})
 

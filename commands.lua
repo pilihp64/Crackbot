@@ -69,7 +69,7 @@ local function disable(usr,chan,msg,args)
 				table.insert(t,dcmd)
 			end
 		end
-		return "Disabled "..table.concat(t," ")
+		return "Disabled: "..table.concat(t," ")
 	end
 end
 add_cmd(disable,"disable",100,"Disable a command for the bot, '/disable <cmd> [<cmd2> ...]'",true)
@@ -91,7 +91,7 @@ local function enable(usr,chan,msg,args)
 				table.insert(t,ecmd)
 			end
 		end
-		return "Enabled "..table.concat(t," ")
+		return "Enabled: "..table.concat(t," ")
 	end
 end
 add_cmd(enable,"enable",100,"Enables a command previously disabled, '/enable <cmd> [<cmd2> ...]'",true)
@@ -241,15 +241,18 @@ add_cmd(help,"help",0,"Returns hopefully helpful information, '/help <cmd>'",tru
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
-	msg = msg or "help"
+	msg = msg or "unhelp"
 	if commands[msg] then
 		if commands[msg].helptext then
-			return msg ..": ".. commands[msg].helptext
+			return msg ..": ".. string.reverse(commands[msg].helptext)
 		end
+	end
+	if msg==string.reverse(usr.nick) then
+		ircSendChatQ(usr.nick,"1 point gained")
 	end
 	return "No help for "..msg.." found!"
 end
---add_cmd(unhelp,"unhelp",0,"Returns hopefully unhelpful information, '/help <cmd>'",true)
+add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu/' ,noitamrofni lufplehnu yllufepoh snruteR",true)
 
 --TIMER
 local function timer(usr,chan,msg,args)

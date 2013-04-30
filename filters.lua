@@ -9,6 +9,7 @@ local cchar = '\003'
 --returns a table with data about where color codes are, might not be correct at all, old
 local function tableColor(text)
 	local t = {}
+	if not text then return {} end
 	local i = 0 --amount of color chars deleted
 	local d = 0 --amount deleted
 	local startOf = true
@@ -330,6 +331,35 @@ local function numify(text,args)
 end
 add_filt(numify,"mknum",nil,"Turns digits into their text, '/mknum <text>'")
 
+local function luaFilt(text,args)
+	local msg = args[1]
+	if not msg then return false,"No message" end
+	local realtext=""
+	if not args.skip then
+		for i=2,#args do realtext=realtext.." "..args[i] end
+		realtext = realtext:sub(2)
+	else
+		realtext=text
+	end
+
+	msg = msg:gsub("[\"'\\]","\\%1")
+	realtext = realtext:gsub("[\"'\\]","\\%1")
+	local rf = io.popen([[lua -e "dofile('derp.lua') dofile('sandybox.lua') local e,err=load_code('return function(...) ]]..msg..[[ end',nil,'t',env) if e then local r = {pcall(e(),']]..realtext..[[')} local s = table.remove(r,1) print(unpack(r)) else print(err) end" 2>&1]])
+	socket.sleep(0.1)
+	local kill = io.popen([[pgrep -f "lua -e"]]):read("*a")
+	if kill~="" then os.execute([[pkill -f "lua -e"]]) end
+	local r = rf:read("*a")
+	if r=="" and kill and kill~="" then r="Killed" end
+	if r then r = r:gsub("[\r\n]"," ") end
+
+	return r
+end
+local function luaFiltSane(args,filt)
+	args.skip = filt
+	return true
+end
+add_filt(luaFilt,"luaFilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/lua \"<code>\" <text>'")
+
 --function to let filters sanity check some args for direct calls
 function callFilt(f,sanf,filt)
 	return function(usr,chan,msg,args)
@@ -405,6 +435,7 @@ end
 --possibly save this list to file
 local badlist= {"nigger","yolo","^;","^%%"}
 local function badWords(text)
+	if type(text)~="string" then return nil end
 	local t = tableColor(text)
 	local nocol = colorstrip(text)
 	local amt = 0

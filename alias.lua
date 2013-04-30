@@ -1,5 +1,5 @@
 --Contains data needed to create command
-aliasList = aliasList or table.load("AliasList.txt") or {}
+aliasList = table.load("AliasList.txt") or {}
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
 local function mkAliasFunc(t,aArgs)
@@ -17,7 +17,10 @@ local function mkAliasFunc(t,aArgs)
 			end
 			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
 			aliasDepth = aliasDepth+1
-			local ret = {commands[t.cmd].f(nusr,nchan,sendMsg,sendArgs)}
+			local something = makeCMD(t.cmd,nusr,nchan,sendMsg,sendArgs)
+			if not something then return "" end
+			local ret = {something() }
+			coroutine.yield(false,0)
 			aliasDepth = 0
 			return unpack(ret)
 		end
@@ -42,9 +45,11 @@ local function alias(usr,chan,msg,args)
 		if not commands[cmd] then return cmd.." doesn't exist!" end
 		if commands[name] then return name.." already exists!" end
 		if permFullHost(usr.fullhost) < commands[cmd].level then return "You can't alias that!" end
-		if name:find("%*[%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
+		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
+		if #args > 50 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
+		if #aMsg > 500 then return "Alias too complex!" end
 		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level}
 		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
 
@@ -73,7 +78,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="lock" then
 		--Lock an alias so other users can't remove it
 		if not args[2] then return "'/alias lock <name>'" end
-		if permFullHost(usr.fullhost) < 50 then return "No permission to lock!" end
+		if permFullHost(usr.fullhost) < 101 then return "No permission to lock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then
@@ -85,7 +90,7 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	elseif args[1]=="unlock" then
 		if not args[2] then return "'/alias unlock <name>'" end
-		if permFullHost(usr.fullhost) < 50 then return "No permission to unlock!" end
+		if permFullHost(usr.fullhost) < 101 then return "No permission to unlock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then

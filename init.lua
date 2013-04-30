@@ -49,11 +49,13 @@ local function consoleThink()
 		end
 	end
 end
+tick=0
 while true do
 	if shutdown then irc:shutdown() break end
 	irc:think()
 	consoleThink()
 	ircSendOne()
 	timerCheck()
-	sleep(0.5)
+	sleep(0.05)
+	tick=tick+1
 end

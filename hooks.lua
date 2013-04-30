@@ -15,7 +15,56 @@ print = function(...)
 	frqq:flush()
 	frqq:close()
 end
+
+local shortcolors = {"red","orange","yellow","green","blue","purple","pink","black","brown","gray","white"}
+--Try guessing bomb
+--Time 45 - 70
+--detonateTime = self.rng.randint(self.registryValue('minTime', msg.args[0]), self.registryValue('maxTime', msg.args[0]))
+--Wires 2 - 4
+--wireCount = self.rng.randint(self.registryValue('minWires', msg.args[0]), self.registryValue('maxWires', msg.args[0]))
+--wires = self.rng.sample(colors, wireCount)
+--goodWire = self.rng.choice(wires)
 --Activates all filters and then badwords
+
+local lastBomb=os.time()
+function sgsbomb(sec,wir,wnames)
+print("Bomb check, "..sec.." seconds and "..wir.." wires")
+	local rf = io.popen([[python -c "
+import math;
+import cmath;
+import random;
+import sys;
+import time;
+rng=random.Random()
+seedy=int(]]..lastBomb..[[)
+print(seedy)
+for hour in [0]:
+	for x in range(-90,90):
+		rng.seed((seedy)+x)
+		shortcolors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'black', 'brown', 'gray', 'white'];
+		detonateTime = rng.randint(45, 70)
+		wireCount = rng.randint(3, 7)
+		wires = rng.sample(shortcolors, wireCount)
+		goodWire = rng.choice(wires)
+		#print('dettime '+repr(detonateTime)+' wirecount: '+repr(wireCount)+' good: '+goodWire)
+		if detonateTime==]]..sec..[[ and wireCount==]]..wir..[[:
+			print('------------ HOUR: '+repr(hour)+' SEC: '+repr(x))
+			print(repr(wires))
+			print('count: '+ repr(wireCount))
+			print('GoodWire: '+ goodWire)
+" 2>&1]])
+	lastBomb=os.time()
+	print(wnames)
+	socket.sleep(0.05)
+	--local kill = io.popen("pgrep -f 'python -c'"):read("*a")
+	--if kill~="" then os.execute("pkill -f 'python -c'") end
+	local r = rf:read("*a")
+	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
+	--if r then r = r:gsub("[\r\n]"," ") end
+	print(r)
+	return nil,true
+end
+
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
 	for k,v in pairs(activeFilters[chan].t) do
@@ -82,9 +131,10 @@ end
 function ircSendRawQ(text)
 	table.insert(buffer,{["msg"]=text:sub(1,417),["raw"]=true})
 end
+
 --send a line of queue
 function ircSendOne()
-	if #buffer then
+	if tick%10==0 and #buffer then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
 		if line.raw then
@@ -209,7 +259,7 @@ function getArgsOld(msg)
     return args
 end
 
-local nestify
+nestify=nil
 local nestBegin = "<<"
 local nestEnd = ">>"
 function setNest(nb,ne)
@@ -221,7 +271,7 @@ function setNest(nb,ne)
 	end
 end
 
-local function makeCMD(cmd,usr,channel,msg)
+function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
 		if permFullHost(usr.fullhost) >= commands[cmd].level then
@@ -241,11 +291,11 @@ local function makeCMD(cmd,usr,channel,msg)
 		--ircSendChatQ(channel,usr.nick..": "..cmd.." doesn't exist!")
 	end
 end
-local function tryCommand(usr,channel,msg)
+function tryCommand(usr,channel,msg)
 	local temps = ""
 	local _,_,ncmd,nrest = msg:find("([^%s]*)%s?(.*)$")
-	if ncmd and ncmd~="quiz" then
-		local vf = makeCMD(ncmd,usr,channel,nrest,getArgs(nrest))
+	if ncmd then
+		local vf = makeCMD(ncmd,usr,channel,nrest)
 		if vf then
 			temps = (vf() or "")
 		end
@@ -295,7 +345,10 @@ local function realchat(usr,channel,msg)
 		panic,_ = msg:find("^%./fix")
 		if panic then prefix='%./' end
 	end
-
+	if usr.nick=="StewieGriffinSub" then
+		local _,_,bombe,sec,wir,wnames = msg:find("\001ACTION stuffs a bomb down (.-) pants%.  The timer is set for (%d-) seconds!  There are (%d-) wires%.  They are: (.+)$")
+		if wir then sgsbomb(sec,wir,wnames) end
+		end
 	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
 	if not cmd then
 		--no cmd found for prefix, try suffix
@@ -309,7 +362,6 @@ local function realchat(usr,channel,msg)
 		--we can execute the command
 		local co = coroutine.create(func)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
-
 		if not s and s2 then
 			ircSendChatQ(channel,s2)
 		elseif s2 then
@@ -321,6 +373,8 @@ local function realchat(usr,channel,msg)
 				--wait this amount of time to resume
 				table.insert(waitingCommands,{co=co,time=os.time()+noNickPrefix-1,usr=usr,channel=channel,msg=msg})
 			end
+		else
+			ircSendChatQ(channel,resp)
 		end
 	else
 		if err then ircSendChatQ(channel,err) end

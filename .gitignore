@@ -1,3 +1,7 @@
 *~
 *.txt
 config.lua
+ltn12.lua
+mime.lua
+socket.lua
+

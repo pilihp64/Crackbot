@@ -173,7 +173,7 @@ local function odoor(usr,door)
 	--blacklist of people
 	--if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
 	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
-	if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
+	--if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
 
 	--some other weird functions to change money
 
@@ -426,6 +426,24 @@ isPossible= function(s) --this question only accepts number answers
 	if tonumber(s) then return true end
 	return false
 end})
+
+function questionCheck()
+	local rstring=""
+	local res={}
+	for i=1,10000 do
+		local q,ans,_,_,oans = questions[1].q()
+		if not res[oans] then
+			res[oans]=1
+		else
+			res[oans]=res[oans]+1
+		end
+	end
+	for k,v in pairs(res) do
+		rstring=rstring..k..":"..v.." "
+	end
+
+	ircSendChatQ("##powder-bots",rstring)
+end
 --[[
 table.insert(questions,{
 q= function() --A filler question, just testing
@@ -490,8 +508,9 @@ local function quiz(usr,chan,msg,args)
 	end)
 	--insert a timer to remove quiz after a while
 	addTimer(function() chatListeners[qName]=nil activeQuiz[qName]=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,chan,qName)
-
-	return rstring
+	ircSendChatQ(chan,rstring)
+	--no return so you can't see nest result
+	return nil
 end
 add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to answer correctly wins a bit more, only your first message is checked.",true)
 

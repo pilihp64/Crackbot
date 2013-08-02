@@ -28,6 +28,10 @@ local storeInventory={
 ["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
 ["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
 ["billion"]={name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
+["company"]={name="company",cost=25000000000,info="A successful company that makes money (doesn't give you any yet).",amount=1,instock=true},
+["country"]={name="country",cost=1000000000000,info="You own a country and everything in it.",amount=1,instock=true},
+["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
+["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
 }
 
 --make function hook to reload user cash
@@ -75,28 +79,35 @@ local function changeCash(usr,amt)
 		return " Invalid amount, no money changed"
 	end
 	gameUsers[usr.host].cash = gameUsers[usr.host].cash + amt
+	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
 	if gameUsers[usr.host].cash <= 0 then
-		gameUsers[usr.host].cash = 1000
-		return " You went bankrupt, money reset"
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			gameUsers[usr.host].cash = 0
+			return " You went bankrupt, sell items for money"
+		end
+		if not skip then
+			gameUsers[usr.host].cash = 1000
+			return " You went bankrupt, money reset"
+		end
 	end
 	return " ($"..gameUsers[usr.host].cash.." now)"
 end
 
 --add item to inventory, creating if not exists
-local function addInv(usr,item)
+local function addInv(usr,item,amt)
 	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
 	local inv = gameUsers[usr.host].inventory
 	if inv[item.name] then
-		inv[item.name].amount = inv[item.name].amount+1
+		inv[item.name].amount = inv[item.name].amount+amt
 	else
-		inv[item.name]= {name=item.name,cost=item.cost,info=item.info,amount=item.amount,instock=item.instock}
+		inv[item.name]= {name=item.name,cost=item.cost,info=item.info,amount=amt,instock=item.instock}
 	end
 end
-local function remInv(usr,name)
+local function remInv(usr,name,amt)
 	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
 	local inv = gameUsers[usr.host].inventory
 	if inv[name] then
-		inv[name].amount = inv[name].amount-1
+		inv[name].amount = inv[name].amount-amt
 		if inv[name].amount<=0 then inv[name]=nil end
 	end
 end
@@ -115,6 +126,34 @@ local function findClosestItem(amt)
 	return closestitem
 end
 
+--Uses for items, with /use
+local itemUses = {
+	["lamp"]=function(usr)
+		local rnd = math.random(1,100)
+		if rnd<50 then
+			remInv(usr,"lamp",1)
+			return "The lamp broke (-1 lamp)."
+		else
+			local amt = math.floor((.016*rnd)*1001)
+			remInv(usr,"lamp",1)
+			return "You sold lamp on Ebay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
+		end
+	end,
+}
+local function useItem(usr,chan,msg,args)
+	if not args[1] then
+		return "Need to specify an item! '/use <item>'"
+	end
+	if not gameUsers[usr.host].inventory[args[1]] or gameUsers[usr.host].inventory[args[1]].amount<=0 then
+		return "You don't have that item!"
+	elseif itemUses[args[1]] and gameUsers[usr.host].inventory[args[1]] then
+		return itemUses[args[1]](usr)
+	else
+		return "This item can't be used!"
+	end
+end
+add_cmd(useItem,"use",0,"Use an item, '/use <item>', Find out what all the items can do!",true)
+
 --User cash
 local function myCash(usr,all)
 	if all then
@@ -128,8 +167,8 @@ local function myCash(usr,all)
 end
 --give money
 local function give(fromHost,toHost,amt)
-	if gameUsers[fromHost].cash-amt <= 100000 then
-		return "You can only give if you have over 100k left"
+	if gameUsers[fromHost].cash-amt <= 10000 then
+		return "You can only give if you have over 10k left"
 	end
 	gameUsers[fromHost].cash = gameUsers[fromHost].cash-amt
 	gameUsers[toHost].cash = gameUsers[toHost].cash+amt
@@ -188,7 +227,7 @@ local function odoor(usr,door)
 		--find an item of approximate value
 		local item = findClosestItem(randomnes)
 		rstring = "You found a "..item.name.."! Added to inventory, see the store to sell"
-		addInv(usr,item)
+		addInv(usr,item,1)
 	else
 		fitem=false
 		rstring = changeCash(usr,randomnes)
@@ -224,7 +263,13 @@ add_cmd(myMoney,"cash",0,"Your current balance, '/cash [stats]', Sending stats w
 local function giveMon(usr,chan,msg,args)
 	if not args[2] then return "Usage: '/give <username> <amount>'" end
 	local toHost
-	local amt = math.floor(tonumber(args[2]) or 0)
+	local amt,item
+	if tonumber(args[2]) then
+		amt = math.floor(tonumber(args[2]))
+	else
+		amt= math.floor(tonumber(args[3]) or 1)
+		item=args[2]
+	end
 	if chan:sub(1,1)~='#' then
 		if args[1]:sub(1,1)=='#' then
 			if string.lower(args[2])==string.lower(usr.nick) then return "You can't give to yourself..." end
@@ -232,7 +277,13 @@ local function giveMon(usr,chan,msg,args)
 			if toHost~=args[2] then toHost=toHost:sub(5)
 			else return "Invalid user, or not online"
 			end
-			amt = math.floor(tonumber(args[3]) or 0)
+			if tonumber(args[3]) then
+				amt = math.floor(tonumber(args[3]))
+				item=nil
+			else
+				amt= math.floor(tonumber(args[4]) or 1)
+				item=args[3]
+			end
 		else
 			return "Channel required in query, '/give <chan> <username> <amount>'"
 		end
@@ -244,13 +295,25 @@ local function giveMon(usr,chan,msg,args)
 		end
 	end
 
-	if amt and amt>0 and amt==amt then
-		return give(usr.host,toHost,amt)
-	else
-		return "Bad amount!"
+	if amt and not item then
+		if amt>0 and amt==amt then
+			return give(usr.host,toHost,amt)
+		else
+			return "Bad amount!"
+		end
 	end
+	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
+		local i = gameUsers[usr.host].inventory[item]
+		remInv(usr,item,amt)
+		addInv({host=toHost},{name=i.name,cost=i.cost,info=i.info,amount=1,instock=i.instock},amt)
+		return "Gave "..amt.." "..item
+	else
+		return "You don't have that!"
+	end
+	
+	
 end
-add_cmd(giveMon,"give",0,"Give money to a user, '/give <username> <amount>', need over 100k to give.",true)
+add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 100k to give.",true)
 --reload cashtext
 local function loadCash(usr,chan,msg,args)
 	return loadUsersCMD()
@@ -275,7 +338,7 @@ add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happe
 --STORE, to buy somethings?
 local function store(usr,chan,msg,args)
 	if not msg  or args[1]=="help" then
-		return "Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item>' or '/store sell [<item>]' will list your items."
+		return "Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item> [<amt>]' or '/store sell <item> [<amt>]'."
 	end
 	if args[1]=="list" then
 		local t={}
@@ -293,41 +356,49 @@ local function store(usr,chan,msg,args)
 		return "Item not found"
 	end
 	if args[1]=="buy" then
-		if not args[2] then return "Need an item! 'buy <item>'" end
+		if not args[2] then return "Need an item! 'buy <item> [<amt>]'" end
 		local item = args[2]
-		for k,v in pairs(storeInventory) do
-			if k==item and v.instock then
-				if gameUsers[usr.host].cash-v.cost>=0 then
-					changeCash(usr,-v.cost)
-					addInv(usr,v)
-					return "You bought "..k
-				else
-					return "Not enough money!"
+		local amt = math.floor(tonumber(args[3]) or 1)
+		if amt==amt and amt>0 then
+			for k,v in pairs(storeInventory) do
+				if k==item and v.instock then
+					if gameUsers[usr.host].cash-v.cost*amt>=0 then
+						changeCash(usr,-(v.cost*amt))
+						addInv(usr,v,amt)
+						return "You bought "..amt.." "..k
+					else
+						return "Not enough money!"
+					end
 				end
 			end
 		end
 		return "Item not found"
 	end
-	if args[1]=="sell" then
-		if not args[2] then
-			local t={}
-			for k,v in pairs(gameUsers[usr.host].inventory) do
-				table.insert(t,v.name.."("..v.amount..")")
-			end
-			return "You have, "..table.concat(t,", ")
+	if args[1]=="inventory" then
+		local t={}
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			table.insert(t,v.name.."("..v.amount..")")
 		end
+		return "You have, "..table.concat(t,", ")
+	end
+	if args[1]=="sell" then
+		if not args[2] then return "Need an item! 'sell <item> [<amt>]'" end
 		local item = args[2]
-		for k,v in pairs(gameUsers[usr.host].inventory or {}) do
-			if v.name==item then
-				changeCash(usr,v.cost)
-				remInv(usr,k)
-				return "Sold "..v.name.." for $"..v.cost
+		local amt = math.floor(tonumber(args[3]) or 1)
+		if amt==amt and amt>0 then
+			for k,v in pairs(gameUsers[usr.host].inventory or {}) do
+				if v.name==item and v.amount>=amt then
+					changeCash(usr,v.cost*amt)
+					remInv(usr,k,amt)
+					return "Sold "..amt.." "..v.name.." for $"..v.cost*amt
+				end
 			end
 		end
 		return "You don't have that!"
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
+
 
 local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S",["6"]="G",["7"]="Z",["8"]="3",["9"]="6",
 ["b"]="d",["c"]="s",["d"]="b",["e"]="c",["f"]="t",["g"]="q",["h"]="n",["i"]="j",["j"]="i",
@@ -389,24 +460,24 @@ q= function() --Count a letter in string, with some other simple math
 	if extraNumber then
 		local randMod = math.random(40)
 		if randMod<=15 then --subtract
-			intro="What is "..extraNumber.." minus the number of"
+			intro="What is "..mknumscramb(extraNumber).." minus the number of"
 			answer = extraNumber-answer
 			multiplier=0.85
 		elseif randMod<=22 then --Multiply
 			extraNumber = extraNumber%200
-			intro="What is "..extraNumber.." times the number of"
+			intro="What is "..mknumscramb(extraNumber).." times the number of"
 			answer = extraNumber*answer
 			timeout,multiplier = 40,1.1
 		elseif randMod==23 then --addition AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..extraNumber.." plus "..extraNum2.." times the number of"
+			intro="What is "..mknumscramb(extraNumber).." plus "..mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber + (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod==24 then --subtraction AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..extraNumber.." minus "..extraNum2.." times the number of"
+			intro="What is "..mknumscramb(extraNumber).." minus "..mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber - (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
@@ -415,7 +486,7 @@ q= function() --Count a letter in string, with some other simple math
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
 		else --add
-			intro="What is "..extraNumber.." plus the number of"
+			intro="What is "..mknumscramb(extraNumber).." plus the number of"
 			answer = answer+extraNumber
 			multiplier=0.85
 		end
@@ -424,6 +495,71 @@ q= function() --Count a letter in string, with some other simple math
 end,
 isPossible= function(s) --this question only accepts number answers
 	if tonumber(s) then return true end
+	return false
+end})
+local allColors = {white='00', black='01', blue='02', green='03', red='04', brown='05', purple='06', orange='07', yellow='08', lightgreen='09', turquoise='10', cyan='11', skyblue='12', pink='13', gray='14', grey='14'}
+local wordColorList = {'blue','green','red','brown','purple','orange','yellow','cyan','pink','gray',}
+table.insert(questions,{
+q= function() --Count the color of words, or what the word says.
+	local guessC = wordColorList[math.random(#wordColorList)]
+	local answer = math.random(0,5)
+	local filler = math.random(3,10)
+	local intro = "Count the number "
+	local chance = math.random(1,100)
+	local timeout,multiplier=25,.75
+	local t,nt={},{}
+	if chance<25 then --count words of a color
+		for i=1,filler do
+			local ch = wordColorList[math.random(#wordColorList)]
+			if ch~= guessC then table.insert(t,"\003"..allColors[ch]) else i=i-1 end
+		end
+		for i=1,answer do
+			table.insert(t,"\003"..allColors[guessC])
+		end
+		for k,v in pairs(t) do table.insert(nt,v..wordColorList[math.random(#wordColorList)]) end
+		intro = intro.."of words that are coloured "
+	elseif chance<50 then --count words
+		for i=1,filler do
+			local ch = wordColorList[math.random(#wordColorList)]
+			if ch~= guessC then table.insert(t,ch) else i=i-1 end
+		end
+		for i=1,answer do
+			table.insert(t,guessC)
+		end
+		for k,v in pairs(t) do table.insert(nt,"\003"..allColors[wordColorList[math.random(#wordColorList)]]..v) end
+		intro = intro.."of words that say "
+	elseif chance<75 then --what does the coloured word say
+		for i=1,filler do
+			local ch = wordColorList[math.random(#wordColorList)]
+			if ch~= guessC then table.insert(t,"\003"..allColors[ch]) else i=i-1 end
+		end
+		answer = wordColorList[math.random(#wordColorList)]
+		table.insert(nt,"\003"..allColors[guessC]..answer)
+		
+		for k,v in pairs(t) do table.insert(nt,v..wordColorList[math.random(#wordColorList)]) end
+		intro = "What does the "..guessC.." word say" guessC=""
+	else --what colour is the word
+		for i=1,filler do
+			local ch = wordColorList[math.random(#wordColorList)]
+			if ch~= guessC then table.insert(t,ch) else i=i-1 end
+		end
+		answer = wordColorList[math.random(#wordColorList)]
+		table.insert(nt,"\003"..allColors[answer]..guessC)
+		
+		for k,v in pairs(t) do table.insert(nt,"\003"..allColors[wordColorList[math.random(#wordColorList)]]..v) end
+		intro = "What colour is the word "
+	end
+	local n=#nt
+	while n >= 2 do
+		local k = math.random(n)
+		nt[n], nt[k] = nt[k], nt[n]
+		n = n - 1
+	end
+	
+	return intro..guessC.." : "..table.concat(nt," "),tostring(answer),timeout,multiplier
+end,
+isPossible= function(s) --this question only accepts number and color answers
+	if tonumber(s) or allColors[s] then return true end
 	return false
 end})
 
@@ -477,6 +613,7 @@ local function quiz(usr,chan,msg,args)
 	--pick out of questions
 	local wq = math.random(#questions)
 	local rstring,answer,timer,prizeMulti = questions[wq].q()
+	print("QUIZ ANSWER: "..answer)
 	activeQuiz[qName],activeQuizTime[qName] = true,os.time()
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
@@ -508,7 +645,7 @@ local function quiz(usr,chan,msg,args)
 	end)
 	--insert a timer to remove quiz after a while
 	addTimer(function() chatListeners[qName]=nil activeQuiz[qName]=false ircSendChatQ(chan,"Quiz timed out, no correct answers! Answer was "..answer) end,timer,chan,qName)
-	ircSendChatQ(chan,rstring)
+	ircSendChatQ(chan,rstring,true)
 	--no return so you can't see nest result
 	return nil
 end

@@ -18,7 +18,7 @@ dofile("fakefs.lua")
 dofile("tableSave.lua")
 local userData = table.load("userData.txt")
 for k,v in pairs(userData) do
-	v.lastDoor=nil
+	--v.lastDoor=nil
 end
 local coroutine={create=coroutine.create,resume=coroutine.resume,running=coroutine.running,status=coroutine.status,wrap=coroutine.wrap,yield=coroutine.yield}
 local string={byte=string.byte,char=string.char,find=string.find,format=string.format,gmatch=string.gmatch,gsub=string.gsub,len=string.len,lower=string.lower,match=string.match,rep=string.rep,reverse=string.reverse,sub=string.sub,upper=string.upper}

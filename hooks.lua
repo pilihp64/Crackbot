@@ -2,7 +2,7 @@ local buffer = {}
 local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
 local activeFilters = {}
 local badWordFilts = nil
-local waitingCommands = {}
+waitingCommands = {}
 setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
 --make print log everything to file as well
 _print = _print or print
@@ -14,55 +14,6 @@ print = function(...)
 	frqq:write(os.date("[%x] [%X] ")..str.."\n")
 	frqq:flush()
 	frqq:close()
-end
-
-local shortcolors = {"red","orange","yellow","green","blue","purple","pink","black","brown","gray","white"}
---Try guessing bomb
---Time 45 - 70
---detonateTime = self.rng.randint(self.registryValue('minTime', msg.args[0]), self.registryValue('maxTime', msg.args[0]))
---Wires 2 - 4
---wireCount = self.rng.randint(self.registryValue('minWires', msg.args[0]), self.registryValue('maxWires', msg.args[0]))
---wires = self.rng.sample(colors, wireCount)
---goodWire = self.rng.choice(wires)
---Activates all filters and then badwords
-
-local lastBomb=os.time()
-function sgsbomb(sec,wir,wnames)
-print("Bomb check, "..sec.." seconds and "..wir.." wires")
-	local rf = io.popen([[python -c "
-import math;
-import cmath;
-import random;
-import sys;
-import time;
-rng=random.Random()
-seedy=int(]]..lastBomb..[[)
-print(seedy)
-for hour in [0]:
-	for x in range(-90,90):
-		rng.seed((seedy)+x)
-		shortcolors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'black', 'brown', 'gray', 'white'];
-		detonateTime = rng.randint(45, 70)
-		wireCount = rng.randint(3, 7)
-		wires = rng.sample(shortcolors, wireCount)
-		goodWire = rng.choice(wires)
-		#print('dettime '+repr(detonateTime)+' wirecount: '+repr(wireCount)+' good: '+goodWire)
-		if detonateTime==]]..sec..[[ and wireCount==]]..wir..[[:
-			print('------------ HOUR: '+repr(hour)+' SEC: '+repr(x))
-			print(repr(wires))
-			print('count: '+ repr(wireCount))
-			print('GoodWire: '+ goodWire)
-" 2>&1]])
-	lastBomb=os.time()
-	print(wnames)
-	socket.sleep(0.05)
-	--local kill = io.popen("pgrep -f 'python -c'"):read("*a")
-	--if kill~="" then os.execute("pkill -f 'python -c'") end
-	local r = rf:read("*a")
-	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
-	--if r then r = r:gsub("[\r\n]"," ") end
-	print(r)
-	return nil,true
 end
 
 local function chatFilter(chan,text)
@@ -188,6 +139,7 @@ end
 function timerCheck()
 	for k,v in pairs(timers) do
 		if os.time()>v.time then
+			didSomething=true
 			local s,r = pcall(v.f)
 			if not s then ircSendChatQ(v.chan,r) end
 			table.remove(timers,k)
@@ -195,6 +147,7 @@ function timerCheck()
 	end
 	for k,v in pairs(waitingCommands) do
 		if os.time()>v.time then
+			didSomething=true
 			local s,s2,resp,noNickPrefix = pcall(coroutine.resume,v.co)
 			if not s and s2 then
 				ircSendChatQ(v.channel,s2)
@@ -341,14 +294,11 @@ nestify=function(str,start,level,usr,channel)
 end
 
 local function realchat(usr,channel,msg)
+	didSomething=true
 	if prefix~= '%./' then
 		panic,_ = msg:find("^%./fix")
 		if panic then prefix='%./' end
 	end
-	if usr.nick=="StewieGriffinSub" then
-		local _,_,bombe,sec,wir,wnames = msg:find("\001ACTION stuffs a bomb down (.-) pants%.  The timer is set for (%d-) seconds!  There are (%d-) wires%.  They are: (.+)$")
-		if wir then sgsbomb(sec,wir,wnames) end
-		end
 	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
 	if not cmd then
 		--no cmd found for prefix, try suffix

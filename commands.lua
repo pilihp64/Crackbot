@@ -3,7 +3,7 @@ dofile("tableSave.lua")
 local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
-local allCommands = {}
+allCommands = {}
 local stepcount=0
 local cmdcount = 0
 local function infhook()
@@ -51,6 +51,18 @@ for k,v in pairs(modList) do
 end
 
 --CORE FUNCTIONS HERE
+
+local function userstatus(usr,chan,msg,args)
+	if chan:sub(1,1)~="#" then return "Be in chan idiot" end
+	if irc.channels[chan].users[msg] then
+		local info = msg.." on "..chan
+		if irc.channels[chan].users[msg].access then
+			info = info.." has "..irc.channels[chan].users[msg].access
+		end
+		ircSendChatQ(chan,info)
+	end
+end
+add_cmd(userstatus,"userinfo",101,"Test info about someone",false)
 
 --DISABLE a command for the bot
 local function disable(usr,chan,msg,args)
@@ -274,7 +286,7 @@ add_cmd(timer,"timer",0,"Time until a print is done, '/timer <time(seconds)> <te
 local function rbug(usr,chan,msg,args)
 	if not msg then error("No msg") end
 	local f = io.open("bug.txt","a")
-	f:write("["..os.date().."] ".. usr.host..": "..msg.."\n")
+	f:write("["..os.date().."] ".. usr.host..": "..msg.."\r\n")
 	f:close()
 	return "Reported bug"
 end

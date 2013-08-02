@@ -76,15 +76,13 @@ handlers["NICK"] = function(o, prefix, newnick)
 	end
 end
 --WHO list
-handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, access ,something, something2)
+handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, access1 ,something, something2)
 	if o.track_users then
-	    local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access)}
+	    local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1)}
 	    --print(user.nick,user.host,user.ID,user.serv,user.access)
-	    for channel, v in pairs(o.channels) do
-		if v.users[user.nick] then
-		   v.users[user.nick] = user
+		if o.channels[channel].users[user.nick] then
+			o.channels[channel].users[user.nick] = user
 		end
-	    end
 	end
 end
 --NAMES list
@@ -142,8 +140,13 @@ handlers["324"] = function(o, prefix, user, channel, modes)
 	o:invoke("OnChannelMode", channel, modes)
 end
 
-handlers["MODE"] = function(o, prefix, target, modes)
-	o:invoke("OnModeChange", parsePrefix(prefix), target, modes)
+handlers["MODE"] = function(o, prefix, targetchan, modes, ...)
+	print(prefix,target,modes, ...)
+	if o.track_users then
+	--TODO: track user access changes.
+	
+	end
+	o:invoke("OnModeChange", parsePrefix(prefix), target, modes, ...)
 end
 
 handlers["ERROR"] = function(o, prefix, message)

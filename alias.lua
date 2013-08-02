@@ -43,7 +43,7 @@ local function alias(usr,chan,msg,args)
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
 		local name,cmd,aArgs = args[2],args[3],{}
 		if not commands[cmd] then return cmd.." doesn't exist!" end
-		if commands[name] then return name.." already exists!" end
+		if allCommands[name] then return name.." already exists!" end
 		if permFullHost(usr.fullhost) < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if #args > 50 then return "Alias too complex!" end

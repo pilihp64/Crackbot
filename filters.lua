@@ -16,7 +16,7 @@ local function tableColor(text)
 	while true do
 		local st3,en3,cap3 = text:find("(\003%d%d?,%d%d?)",1)
 		local st2,en2,cap2 = text:find("(\003%d%d?)",1)
-		local st,en,cap = text:find("(\003)",1)
+		local st,en,cap = text:find("([\003\015])",1)
 		local short=false
 		if not en then break end --smallest check
 
@@ -27,6 +27,7 @@ local function tableColor(text)
 		else --else first x03 is x03
 			short=true
 		end
+		local ending,_ = text:find("([\003\015])",en+1)
 		text = text:sub(en+1)
 		local skip=false
 		if startOf then
@@ -36,12 +37,13 @@ local function tableColor(text)
 			startOf=false
 		end
 		if not skip then
-			local ending,_ = text:find("(\003)",1)
 			ending = ending or 99999
-			table.insert(t,{["start"]=st+d-i,["en"]=st+ending+d-i-2,["col"]=cap})
+			if en+1<ending then
+				table.insert(t,{["start"]=st+d-i,["en"]=st+ending-en+d-i-2,["col"]=cap})
+			end
 		end
 		i = i + #cap
-		d = d+en
+		d = d + en
 	end
 	return t
 end
@@ -49,7 +51,7 @@ end
 local function colorstrip(text)
 	local newstring = text:gsub("\003%d%d?,%d%d?","") --remove colors with backgrounds
 	newstring = newstring:gsub("\003%d%d?","") --remove normal
-	newstring = newstring:gsub("\003","") --remove extra \003
+	newstring = newstring:gsub("[\003\015]","") --remove extra \003
 	return newstring
 end
 add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
@@ -80,7 +82,7 @@ end
 local function colorsane(args)
 	if args then
 		local _,_,c1,c2 = args[1]:find("^(%w-),(%w-)$") --backgrounds
-		if not c1 then _,_,c1 = args[1]:find("^(%w-)$")end --normal
+		if not c1 then _,_,c1 = args[1]:find("^([^%s]-)$")end --normal
 		local nc1 = allColors[c1] or allColors[tonumber(c1)]
 		local nc2 = allColors[c2] or allColors[tonumber(c2)]
 		if (c1 and not nc1) or (c2 and not nc2) then
@@ -330,16 +332,21 @@ local function numify(text,args)
 	return text:gsub("(%-?%d+)",function(s) return mknum(tonumber(s)) end)
 end
 add_filt(numify,"mknum",nil,"Turns digits into their text, '/mknum <text>'")
+function mknumscramb(n)
+	local rnd=math.random(1,100)
+	if rnd<15 then return tostring(n) end
+	return scramble(mknum(n),{skip=true})
+end
 
 local function luaFilt(text,args)
 	local msg = args[1]
-	if not msg then return false,"No message" end
+	if not msg then return "" end
 	local realtext=""
 	if not args.skip then
 		for i=2,#args do realtext=realtext.." "..args[i] end
 		realtext = realtext:sub(2)
 	else
-		realtext=text
+		realtext=text or ""
 	end
 
 	msg = msg:gsub("[\"'\\]","\\%1")
@@ -358,7 +365,7 @@ local function luaFiltSane(args,filt)
 	args.skip = filt
 	return true
 end
-add_filt(luaFilt,"luaFilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/lua \"<code>\" <text>'")
+add_filt(luaFilt,"luaFilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/luaFilt \"<code>\" <text>'")
 
 --function to let filters sanity check some args for direct calls
 function callFilt(f,sanf,filt)
@@ -445,11 +452,11 @@ local function badWords(text)
 	end
 	local tempstring = ""
 	if #t>0 then
-		local index=0
+		local index=1
 		for char in nocol:gmatch(".") do
 			local code=""
 			for i,v in ipairs(t) do
-				if (v.start)<=index+1 then
+				if (v.start)<=index then
 					code=v.col
 					v.start = 99999
 					break

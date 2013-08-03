@@ -73,14 +73,14 @@ end
 function ircSendChatQ(chan,text,nofilter)
 	--possibly keep rest of text to send later
 	if not text then return end
-	text = text:sub(1,417)
+	text = text:sub(1,417):gsub("[\r\n]","")
 	if not nofilter then
 		chan,text = chatFilter(chan,text)
 	end
 	table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
 end
 function ircSendRawQ(text)
-	table.insert(buffer,{["msg"]=text:sub(1,417),["raw"]=true})
+	table.insert(buffer,{["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=true})
 end
 
 --send a line of queue
@@ -294,6 +294,7 @@ nestify=function(str,start,level,usr,channel)
 end
 
 local function realchat(usr,channel,msg)
+	--if usr.host:find("c%-75%-70%-221%-236%.hsd1%.co%.comcast%.net") then return end
 	didSomething=true
 	if prefix~= '%./' then
 		panic,_ = msg:find("^%./fix")

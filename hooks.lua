@@ -19,7 +19,7 @@ end
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
 	for k,v in pairs(activeFilters[chan].t) do
-		text = v.f(text,v.args,true)
+		text = v.f(text,v.args,true):sub(1,500)
 	end
 	--don't censor query
 	if badWordFilts and chan:sub(1,1)=='#' then text = badWordFilts(text) end
@@ -32,6 +32,7 @@ function getFilts(chan)
 		table.insert(t, v.name .. " " .. table.concat(v.args," ") )
 	end
 	local text = table.concat(t,"> ") or ""
+	print(text)
 	return "in > "..text .. "> out"
 end
 --add new filter
@@ -73,19 +74,19 @@ end
 function ircSendChatQ(chan,text,nofilter)
 	--possibly keep rest of text to send later
 	if not text then return end
-	text = text:sub(1,417)
+	text = text:sub(1,417):gsub("[\r\n]","")
 	if not nofilter then
 		chan,text = chatFilter(chan,text)
 	end
 	table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
 end
 function ircSendRawQ(text)
-	table.insert(buffer,{["msg"]=text:sub(1,417),["raw"]=true})
+	table.insert(buffer,{["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=true})
 end
 
 --send a line of queue
 function ircSendOne()
-	if tick%10==0 and #buffer then
+	if tick%12==0 and #buffer then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
 		if line.raw then
@@ -125,6 +126,7 @@ end
 
 --timers, might be useful to save these for long bans
 timers = timers or {}
+updates = updates or {}
 function addTimer(f,time,chan,name)
 	name = name or ""--name for removing a timer
 	table.insert(timers,{f=f,time=os.time()+time-1,chan=chan,name=name})
@@ -136,6 +138,17 @@ function remTimer(name)
 		end
 	end
 end
+function addUpdate(f,time,chan,name)
+	name = name or ""--name for removing
+	table.insert(updates,{f=f,time=time,lastcheck=0,chan=chan,name=name})
+end
+function remUpdate(name)
+	for k,v in pairs(updates) do
+		if v.name==name then
+			updates[k]=nil
+		end
+	end
+end
 function timerCheck()
 	for k,v in pairs(timers) do
 		if os.time()>v.time then
@@ -143,6 +156,14 @@ function timerCheck()
 			local s,r = pcall(v.f)
 			if not s then ircSendChatQ(v.chan,r) end
 			table.remove(timers,k)
+		end
+	end
+	--updates should never be removed, have an interval timer
+	for k,v in pairs(updates) do
+		if os.time()-v.lastcheck>=v.time then
+			v.lastcheck = os.time()
+			local s,r = pcall(v.f)
+			if not s then ircSendChatQ(v.chan,r) end
 		end
 	end
 	for k,v in pairs(waitingCommands) do
@@ -294,6 +315,7 @@ nestify=function(str,start,level,usr,channel)
 end
 
 local function realchat(usr,channel,msg)
+	--if usr.host:find("c%-75%-70%-221%-236%.hsd1%.co%.comcast%.net") then return end
 	didSomething=true
 	if prefix~= '%./' then
 		panic,_ = msg:find("^%./fix")
@@ -332,7 +354,7 @@ local function realchat(usr,channel,msg)
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if channel=='#neotenic' and usr.host:find("github.com$") then
+	if channel=='#neotenic' and usr.host:find("192%.30%.252%.49$") then
 		--relay to ##powder-bots because i'm lazy
 		ircSendChatQ("##powder-bots",msg)
 	end

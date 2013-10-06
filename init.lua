@@ -2,6 +2,7 @@ if IRC_RUNNING then error("Already running") end
 IRC_RUNNING=true
 dofile("derp.lua")
 dofile("irc/init.lua")
+
 local s,r = pcall(dofile,"config.lua")
 if not s then print("Config not found, copying template") os.execute("cp configtemplate.lua config.lua") r=dofile("config.lua") end
 config = r
@@ -34,7 +35,6 @@ conConnect()
 
 dofile("hooks.lua")
 dofile("commands.lua")
-
 if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
 for k,v in pairs(config.autojoin) do
 	irc:join(v)

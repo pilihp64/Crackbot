@@ -64,6 +64,7 @@ local function alias(usr,chan,msg,args)
 				if v.lock then return "Alias is locked!" end
 				aliasList[k]=nil
 				commands[name]=nil
+				allCommands[name]=nil
 				table.save(aliasList,"AliasList.txt")
 				return "Removed alias"
 			end

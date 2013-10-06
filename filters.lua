@@ -214,7 +214,7 @@ add_filt(scramble,"scramble",scrambSane,"Scrambles words, '/scramble <text>'")
 --Pattern filter
 local function patF(text,args)
 	if not args.skip then text = args.str end
-	return (text:gsub(args.pat,args.repl)):sub(1,500) or "" --prevent huge messages
+	return (text:gsub(args.pat,args.repl)) or ""
 end
 local function patFSane(args,filt)
 	args.pat = args[1]
@@ -349,8 +349,8 @@ local function luaFilt(text,args)
 		realtext=text or ""
 	end
 
-	msg = msg:gsub("[\"'\\]","\\%1")
-	realtext = realtext:gsub("[\"'\\]","\\%1")
+	msg = msg:gsub("[\"\'\\$`]","\\%1")
+	realtext = realtext:gsub("[\"\'\\$`]","\\%1")
 	local rf = io.popen([[lua -e "dofile('derp.lua') dofile('sandybox.lua') local e,err=load_code('return function(...) ]]..msg..[[ end',nil,'t',env) if e then local r = {pcall(e(),']]..realtext..[[')} local s = table.remove(r,1) print(unpack(r)) else print(err) end" 2>&1]])
 	socket.sleep(0.1)
 	local kill = io.popen([[pgrep -f "lua -e"]]):read("*a")
@@ -445,11 +445,13 @@ local function badWords(text)
 	if type(text)~="string" then return nil end
 	local t = tableColor(text)
 	local nocol = colorstrip(text)
+	--local orig = nocol
 	local amt = 0
 	for k,word in pairs(badlist) do
 		local nonocol,newamt = (nocol):gsub(word,function(s) return ("*")*#s end)
 		nocol,amt = nonocol, amt+newamt
 	end
+	--if orig==nocol then return text end
 	local tempstring = ""
 	if #t>0 then
 		local index=1

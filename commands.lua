@@ -1,6 +1,6 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","alias.lua"}
+local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}
@@ -17,6 +17,7 @@ local function infhook()
 	end
 end
 function add_cmd(f, name, lvl, help, shown, aliases)
+	if type(f)~="function" then return end
 	allCommands[name]={["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,["show"]=shown}
 	commands[name]=allCommands[name]
 	if aliases then

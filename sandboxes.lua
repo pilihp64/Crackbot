@@ -11,7 +11,7 @@ local function lua(usr,chan,msg,args,luan)
 	if kill~="" then os.execute([[pkill -f "]]..luan..[[ -e"]]) end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then r = r:gsub("[\r\n]"," ") end
+	if r then r = r:gsub("[\r\n]"," "):sub(1,500) end
 	return r
 end
 local function lua52(usr,chan,msg,args)
@@ -19,10 +19,13 @@ local function lua52(usr,chan,msg,args)
 end
 add_cmd(lua,"lua",0,"Runs sandbox lua code, '/lua <code>'",true)
 --add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
+-- ./py print [x for x in (1).__class__.__base__.__subclasses__() if x.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('ls /cygdrive/c/')
 
 --PYTHON code
 local function python(usr,chan,msg,args)
 	if not msg then return "No code" end
+	if msg:find("%.%s*__?") then return "Nope" end
+	if msg:find("%[[\'\"]%+?[\'\"]+__?") then return "Nope" end
 	local sdump= hexStr(msg,"") --hex the string for python to load
 	good_func_string = 'safe_list["False"]=False;safe_list["True"]=True;safe_list["abs"]=abs;safe_list["divmod"]=divmod;safe_list["staticmethod"]=staticmethod;safe_list["all"]=all;safe_list["enumerate"]=enumerate;safe_list["int"]=int;safe_list["ord"]=ord;safe_list["str"]=str;safe_list["any"]=any;safe_list["isinstance"]=isinstance;safe_list["pow"]=pow;safe_list["sum"]=sum;safe_list["basestring"]=basestring;safe_list["issubclass"]=issubclass;safe_list["super"]=super;safe_list["bin"]=bin;safe_list["iter"]=iter;safe_list["property"]=property;safe_list["tuple"]=tuple;safe_list["bool"]=bool;safe_list["filter"]=filter;safe_list["len"]=len;safe_list["range"]=range;safe_list["type"]=type;safe_list["bytearray"]=bytearray;safe_list["float"]=float;safe_list["list"]=list;safe_list["unichr"]=unichr;safe_list["callable"]=callable;safe_list["format"]=format;safe_list["locals"]=locals;safe_list["reduce"]=reduce;safe_list["unicode"]=unicode;safe_list["chr"]=chr;safe_list["frozenset"]=frozenset;safe_list["long"]=long;safe_list["vars"]=vars;safe_list["classmethod"]=classmethod;safe_list["getattr"]=getattr;safe_list["map"]=map;safe_list["repr"]=repr;safe_list["xrange"]=xrange;safe_list["cmp"]=cmp;safe_list["globals"]=globals;safe_list["max"]=max;safe_list["reversed"]=reversed;safe_list["zip"]=zip;safe_list["compile"]=compile;safe_list["hasattr"]=hasattr;safe_list["memoryview"]=memoryview;safe_list["round"]=round;safe_list["complex"]=complex;safe_list["hash"]=hash;safe_list["min"]=min;safe_list["set"]=set;safe_list["apply"]=apply;safe_list["delattr"]=delattr;safe_list["help"]=help;safe_list["next"]=next;safe_list["setattr"]=setattr;safe_list["buffer"]=buffer;safe_list["dict"]=dict;safe_list["hex"]=hex;safe_list["object"]=object;safe_list["slice"]=slice;safe_list["coerce"]=coerce;safe_list["dir"]=dir;safe_list["id"]=id;safe_list["oct"]=oct;safe_list["sorted"]=sorted;safe_list["intern"]=intern;'
 	--[[good_funcs = {
@@ -66,7 +69,7 @@ exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=Non
 	if kill~="" then os.execute("pkill -f 'python -c'") end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r=usr.nick..": Killed" end
-	if r then r = r:gsub("[\r\n]"," ") end
+	if r then r = r:gsub("[\r\n]"," "):sub(1,500) end
 	return r,true
 end
 add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
@@ -90,7 +93,7 @@ local function BF(usr,chan,msg)
 	if kill~="" then os.execute([[pkill -f "]]..luan..[[ -e"]]) end
 	local r = rf:read("*a")
 	if r=="" and kill and kill~="" then r="Killed" end
-	if r then r = r:gsub("[\r\n]","") end
+	if r then r = r:gsub("[\r\n]",""):sub(1,500) end
 	return r,true
 end
 add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})

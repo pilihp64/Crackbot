@@ -38,16 +38,12 @@ local storeInventory={
 local function loadUsersCMD()
 	gameUsers = loadUsers()
 end
-local function saveUsers()
-	table.save(gameUsers,"userData.txt")
-end
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
-	saveUsers()
-	addTimer(timedSave,60,"cracker64","gameSave")
+	table.save(gameUsers,"userData.txt")
 end
-remTimer("gameSave")
-addTimer(timedSave,60,"cracker64","gameSave")
+remUpdate("gameSave")
+addUpdate(timedSave,60,"cracker64","gameSave")
 
 --adjust win/lose streak
 local function streak(usr,win)

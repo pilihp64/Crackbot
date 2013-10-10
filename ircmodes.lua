@@ -207,12 +207,14 @@ end
 add_cmd(join,"join",101,"Make bot join a channel, '/join <chan>'",true)
 --PART a channel
 local function part(usr,chan,msg,args)
-	if not args[1] then return "Need a message" end
-	if args[1]:sub(1,1)~='#' then
-		error("Not a channel")
-	else
-		chan=args[1]
+	if args[1] then
+		if args[1]:sub(1,1)~='#' then
+			error("Not a channel")
+		else
+			chan=args[1]
+		end
 	end
+	expectedPart=chan
 	ircSendRawQ("PART "..chan)
 end
 add_cmd(part,"part",101,"Make bot part a channel, '/part <chan>'",true)

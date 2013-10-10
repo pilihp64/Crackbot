@@ -354,7 +354,7 @@ local function realchat(usr,channel,msg)
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if channel=='#neotenic' and usr.host:find("192%.30%.252%.49$") then
+	if user.nick=="Crackbot" and channel=='#neotenic' and usr.host:find("192%.30%.252%.49$") then
 		--relay to ##powder-bots because i'm lazy
 		ircSendChatQ("##powder-bots",msg)
 	end
@@ -408,10 +408,15 @@ pcall(irc.unhook,irc,"OnKick","kickCheck")
 irc:hook("OnKick","kickCheck",kickCheck)
 
 --auto rejoin
+expectedPart = ""
 local function partCheck(usr,chan,reason)
 	if usr.nick==user.nick then
 		print("Parted from "..chan)
-		ircSendRawQ("JOIN "..chan)
+		if expectedPart~=chan then
+			ircSendRawQ("JOIN "..chan)
+		else 
+			expectedPart=""
+		end
 	else
 		print(usr.nick.." Parted from "..chan)
 	end

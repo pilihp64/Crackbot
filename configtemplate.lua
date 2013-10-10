@@ -5,12 +5,15 @@ permissions = {}
 
 --Get perm value for part of a hostmask (usually just host)
 function permFullHost(host)
+	local highest=-99
 	for k,v in pairs(permissions) do
 		if host:find(k) then
-			return v
+			if v>highest then
+				highest=v
+			end
 		end
 	end
-	return 0
+	return highest
 end
 
 --This has server specific data

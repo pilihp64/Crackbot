@@ -13,6 +13,7 @@ function permFullHost(host)
 			end
 		end
 	end
+	if highest<-1 then highest=0 end
 	return highest
 end
 

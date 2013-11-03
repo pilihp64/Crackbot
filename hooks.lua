@@ -77,7 +77,7 @@ function ircSendChatQ(chan,text,nofilter)
 	if not nofilter then
 		chan,text = chatFilter(chan,text)
 	end
-	text = text:gsub("[\r\n]","")
+	text = text:gsub("[\r\n]"," ")
 	host = ""
 	if irc.channels["##jacob1"] and irc.channels["##jacob1"].users[irc.nick] then
 		host = irc.channels["##jacob1"].users[irc.nick].host

@@ -1,25 +1,20 @@
 --LUA sandbox
 local function lua(usr,chan,msg,args,luan)
-	return "42"
---	if not msg then return "No code" end
---	local sdump=""
---	luan = luan or "lua"
---	--byte the string so you can't escape
---	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
---	local rf = io.popen(luan..[=[ -e "dofile('derp.lua') dofile('sandybox.lua') local e,err=load_code(']=]..sdump..[=[',nil,'t',env) if e then local r = {pcall(e)} local s = table.remove(r,1) print(unpack(r)) else print(err) end" 2>&1]=])
---	coroutine.yield(false,1)
---	local kill = io.popen([[pgrep -f "]]..luan..[[ -e"]]):read("*a")
---	if kill~="" then os.execute([[pkill -f "]]..luan..[[ -e"]]) end
---	local r = rf:read("*a")
---	if r=="" and kill and kill~="" then r="Killed" end
---	if r then r = r:gsub("[\r\n]"," "):sub(1,500) end
---	return r
+	--if chan:sub(1,1) ~= "#" then
+	--	return "Error: do this in a channel for now"
+	--end
+	if not msg then return "No code" end
+	luan = luan or "lua"
+	msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
+	local rf = io.popen(luan.." "..msg)
+	local r = rf:read("*a")
+	return r
 end
 local function lua52(usr,chan,msg,args)
 	return lua(usr,chan,msg,args,"lua5.2")
 end
 add_cmd(lua,"lua",0,"Runs sandbox lua code, '/lua <code>'",true)
---add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
+
 -- ./py print [x for x in (1).__class__.__base__.__subclasses__() if x.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('ls /cygdrive/c/')
 
 --PYTHON code

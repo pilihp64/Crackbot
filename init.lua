@@ -20,7 +20,13 @@ irc=irc.new(user)
 
 --support multiple networks sometime
 irc:connect(config.network.server,config.network.port)
-print("Connected")
+if config.user.password then
+	irc:sendChat("NickServ", "identify "..config.user.nick.." "..config.user.password)
+	print("Connected, sleeping for 6 seconds")
+	sleep(6)
+else
+	print("Connected")
+end
 
 local connected=false
 --connect to console thread

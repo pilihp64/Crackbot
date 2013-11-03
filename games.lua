@@ -1,5 +1,5 @@
 local function loadUsers()
-	local t= table.load("userData.txt")
+	local t= table.load("userData.txt") or {}
 	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time(), winStreak=0, loseStreak=0, maxWinStreak=1, maxLoseStreak=1, lastGameWon=nil, inventory={}} return t[k] end})
 	return t
 end
@@ -43,7 +43,7 @@ local function timedSave()
 	table.save(gameUsers,"userData.txt")
 end
 remUpdate("gameSave")
-addUpdate(timedSave,60,"cracker64","gameSave")
+addUpdate(timedSave,60,"jacob1","gameSave")
 
 --adjust win/lose streak
 local function streak(usr,win)

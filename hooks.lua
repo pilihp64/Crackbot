@@ -382,7 +382,7 @@ function consoleChat(msg)
 		conChannel = chan
 		return
 	end
-	chat({nick="cracker64",host="Powder/Developer/cracker64",fullhost="!~meow@Powder/Developer/cracker64"},conChannel,msg)
+	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="!jacob1@Powder/Developer/jacob1"},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

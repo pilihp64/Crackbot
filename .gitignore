@@ -4,4 +4,6 @@ config.lua
 ltn12.lua
 mime.lua
 socket.lua
-
+lua/*
+mime/*
+socket/*

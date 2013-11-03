@@ -1,7 +1,7 @@
 local defaultVars = {cash=0,employees=0,workSpeed=1,emplSpeed=1,loyalty=65,currentProject={},completedProjects=0,lastNick="",}
 local defaultPVars = {name="Project0",work=0,needed=60,reward=150,time=70,timespent=0}
 local function loadUsers()
-	return table.load("compData.txt")
+	return table.load("compData.txt") or {}
 end
 compData = compData or loadUsers()
 local function metafy(t)
@@ -82,7 +82,7 @@ local function updateComps()
 	end
 end
 remUpdate("company")
-addUpdate(updateComps,1,"cracker64","company")
+addUpdate(updateComps,1,"jacob1","company")
 
 local function calcWork(comp)
 	return comp.workSpeed + comp.employees*comp.emplSpeed

@@ -74,11 +74,21 @@ end
 function ircSendChatQ(chan,text,nofilter)
 	--possibly keep rest of text to send later
 	if not text then return end
-	text = text:sub(1,417):gsub("[\r\n]","")
 	if not nofilter then
 		chan,text = chatFilter(chan,text)
 	end
-	table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
+	text = text:gsub("[\r\n]","")
+	host = ""
+	if irc.channels["##jacob1"] and irc.channels["##jacob1"].users[irc.nick] then
+		host = irc.channels["##jacob1"].users[irc.nick].host
+	end
+	byteLimit = 499 - #irc.nick - #chan - #host
+	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
+		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false})
+		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
+	else
+		table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
+	end
 end
 function ircSendRawQ(text)
 	table.insert(buffer,{["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=true})

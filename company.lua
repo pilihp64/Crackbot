@@ -123,7 +123,7 @@ local function hireEmp(usr,chan,msg,args)
 	local comp = compData[usr.host]
 	if not msg then return "Hiring Firm Sells: Employee(1w/s, $1/s)($"..((comp.employees)*50+100)..") Manager(+.5 w/s to 10 employees, $2/s) (unavailble right now) '/hire <amt>'" end
 	local amt= tonumber(args[1])
-	if amt>0 then
+	if amt and amt > 0 and amt == math.floor(amt) then
 		local cost = ((comp.employees)*50+100)*amt + (amt-1)*50 --(amt*100)+(amt+comp.employees-1)*50
 		if comp.cash>=cost then
 			comp.employees = comp.employees + amt

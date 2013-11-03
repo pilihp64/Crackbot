@@ -441,7 +441,7 @@ end
 
 --BADWORD filter, hopefully always active, uses my terrible color table to re-add
 --possibly save this list to file
-local badlist= {"nigger","yolo","^;","^%%"}
+local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-"}
 local function badWords(text)
 	if type(text)~="string" then return nil end
 	local t = tableColor(text)

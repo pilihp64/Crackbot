@@ -1,10 +1,10 @@
 extern "C"
 {
-#include <lua.h> //use as standalone executable called from lua
+#include <lua.h>
 #include <lualib.h>
-#include <lauxlib.h> //:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
+#include <lauxlib.h>
 }
-#include <pthread.h> //os.execute("box "..luacode:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end))
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

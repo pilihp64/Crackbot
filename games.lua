@@ -69,6 +69,15 @@ local function streak(usr,win)
 	end
 end
 
+--adds up total value of inventory
+local function invTotal(hostmask)
+	local total = 0
+	for k,v in pairs(gameUsers[hostmask].inventory) do
+		total = total + v.cost * v.amount
+	end
+	return total
+end
+
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
 	if amt ~= amt then
@@ -77,8 +86,14 @@ local function changeCash(usr,amt)
 	gameUsers[usr.host].cash = gameUsers[usr.host].cash + amt
 	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
 	if gameUsers[usr.host].cash <= 0 then
+		local total = 0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			gameUsers[usr.host].cash = 0
+			total = total + v.cost * v.amount
+		end
+		if total then
+			if gameUsers[usr.host].cash < -total then
+				gameUsers[usr.host].cash = -total
+			end
 			return " You went bankrupt, sell items for money"
 		end
 		if not skip then
@@ -86,7 +101,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..gameUsers[usr.host].cash.." now)"
+	return " ($"..gameUsers[usr.host].cash.." now)"
 end
 
 --add item to inventory, creating if not exists
@@ -192,6 +207,10 @@ end
 
 --open a weird door
 local function odoor(usr,door)
+	if gameUsers[usr.host].cash <= 0 then
+		return "You are broke, you can't afford to open doors"
+	end
+	
 	door = door[1] or "" --do something with more args later?
 	local isNumber=false
 	local randMon = 50
@@ -290,8 +309,14 @@ local function giveMon(usr,chan,msg,args)
 		else return "Invalid user, or not online"
 		end
 	end
-
+	
+	if toHost == "unaffiliated/jacob1/bot/jacobot" then
+		return "Please do not give to the bot"
+	end
 	if amt and not item then
+		if toHost == "Powder/Developer/jacob1" and amt < 1000000 then
+			return "Donations to jacob1 must be at least 1 million"
+		end
 		if amt>0 and amt==amt then
 			return give(usr.host,toHost,amt)
 		else
@@ -300,6 +325,9 @@ local function giveMon(usr,chan,msg,args)
 	end
 	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
 		local i = gameUsers[usr.host].inventory[item]
+		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
+			return "Please do not give crap to jacob1"
+		end
 		remInv(usr,item,amt)
 		addInv({host=toHost},{name=i.name,cost=i.cost,info=i.info,amount=1,instock=i.instock},amt)
 		return "Gave "..amt.." "..item
@@ -615,8 +643,6 @@ local function quiz(usr,chan,msg,args)
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
 		--blacklist of people
-		--if nusr.host=="Powder/Developer/jacob1" then return end
-		if nusr.host=="gprs-inet-65-130.elisa.ee" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime[qName]-1

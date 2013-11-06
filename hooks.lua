@@ -16,10 +16,26 @@ print = function(...)
 	frqq:close()
 end
 
+function getkeys(table)
+	if type(table) ~= "table" then
+		return "Not a table"
+	end
+	local str = ""
+	for k,v in pairs(table) do
+		str = str..type(v).." "..k.." | "
+	end
+	return str
+end
+
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
+	local oldtext = colorstrip(text)
 	for k,v in pairs(activeFilters[chan].t) do
-		text = v.f(text,v.args,true):sub(1,500)
+		text = v.f(text,v.args,true):sub(1,445)
+	end
+	if #colorstrip(text) > 100 and #colorstrip(text) > 2*#oldtext then
+		text = "Error, filter too long"
+		table.remove(activeFilters[chan].t)
 	end
 	--don't censor query
 	if badWordFilts and chan:sub(1,1)=='#' then text = badWordFilts(text) end

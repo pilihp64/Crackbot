@@ -48,7 +48,7 @@ local function tableColor(text)
 	return t
 end
 --COLORSTRIP strips colors
-local function colorstrip(text)
+function colorstrip(text)
 	local newstring = text:gsub("\003%d%d?,%d%d?","") --remove colors with backgrounds
 	newstring = newstring:gsub("\003%d%d?","") --remove normal
 	newstring = newstring:gsub("[\003\015]","") --remove extra \003
@@ -348,8 +348,9 @@ local function luaFilt(text,args)
 	else
 		realtext=text or ""
 	end
-
-	command = "return (function(...) "..msg.." end)('"..realtext.."')"
+	
+	realtext = realtext:gsub(".",function(x)return("\\%03d"):format(x:byte())end)
+	local command = "return (function(...) "..msg.." end)('"..realtext.."')"
 	command = command:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
 	local rf = io.popen("lua "..command)
 	local r = rf:read("*a")
@@ -368,7 +369,7 @@ function callFilt(f,sanf,filt)
 		if not msg then return end
 		local s,err = sanf(args,filt) --allow filter to sanity check args before running
 		if s then
-			return f(msg,args)
+			return ret
 		else
 			return err
 		end

@@ -10,6 +10,7 @@ local function setMode(chan,mode,tar)
 		end
 	end
 end
+
 --MODE
 local function mode(usr,chan,msg,args)
 	if not msg then return "Usage: '/mode [<chan>] <mode> [...]', if no chan given, will use current" end
@@ -31,6 +32,7 @@ local function mode(usr,chan,msg,args)
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
 add_cmd(mode,"mode",40,"Set a mode, '/mode [<chan>] <mode> [...]', if no chan given, will use current",true)
+
 --OP
 local function op(usr,chan,msg,args)
 	if not args[1] then args[2]=usr.nick end
@@ -59,6 +61,7 @@ local function deop(usr,chan,msg,args)
 	setMode(chan,"-o",args[2] or msg)
 end
 add_cmd(deop,"deop",30,"DeOp a user, '/deop [<chan>] <username>'",true)
+
 --VOICE
 local function voice(usr,chan,msg,args)
 	if not args[1] then args[2]=usr.nick end
@@ -73,6 +76,7 @@ local function voice(usr,chan,msg,args)
 	setMode(chan,"+v",args[2] or msg)
 end
 add_cmd(voice,"voice",10,"Voice a user, '/voice [<chan>] <username>'",true)
+
 --DEVOICE
 local function devoice(usr,chan,msg,args)
 	if not args[1] then args[2]=usr.nick end
@@ -102,6 +106,7 @@ local function unquiet(usr,chan,msg,args)
 	setMode(chan,"-q",host)
 end
 add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true,{"unstab"})
+
 --QUIET
 local function quiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -144,6 +149,7 @@ local function unban(usr,chan,msg,args)
 	setMode(chan,"-b",host)
 end
 add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
+
 --BAN
 local function ban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -165,6 +171,7 @@ local function ban(usr,chan,msg,args)
 	end
 end
 add_cmd(ban,"ban",25,"Ban a user, '/ban [<chan>] <username> [<time>]'",true)
+
 --KICK
 local function kick(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -179,15 +186,24 @@ local function kick(usr,chan,msg,args)
 		reason=table.concat(t," ")
 		chan=args[1]
 	end
-	ircSendRawQ("KICK "..chan.." "..(args[2] or msg).." :"..reason)
+	local nick = args[2] or msg
+	local user = irc:getUserFromNick(nick)
+	if nick ~= usr.nick and user and user.fullhost and permFullHost(user.fullhost) > 30 then
+		return "Error: You can't kick other ops"
+	elseif nick == irc.nick then
+		nick = usr.nick
+	end
+	ircSendRawQ("KICK "..chan.." "..nick.." :"..reason)
 end
 add_cmd(kick,"kick",10,"Kick a user, '/kick [<chan>] <username> [<reason>]'",true)
+
 --KBAN
 local function kickban(usr,chan,msg,args)
 	ban(usr,chan,msg,args)
 	kick(usr,chan,msg,args)
 end
 add_cmd(kickban,"kban",30,"Kick and ban user, '/kban [<chan>] <username> [<time>] [<reason>]'",true)
+
 --INVITE
 local function invite(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -201,6 +217,7 @@ local function invite(usr,chan,msg,args)
 	ircSendRawQ("INVITE "..args[1].." "..chan)
 end
 add_cmd(invite,"invite",50,"Invite someone to the channel, '/invite <user>'",true)
+
 --JOIN a channel
 local function join(usr,chan,msg,args)
 	if not args[1] then error("No args") end
@@ -212,6 +229,7 @@ local function join(usr,chan,msg,args)
 	ircSendRawQ("JOIN "..chan)
 end
 add_cmd(join,"join",101,"Make bot join a channel, '/join <chan>'",true)
+
 --PART a channel
 local function part(usr,chan,msg,args)
 	if args[1] then
@@ -225,3 +243,18 @@ local function part(usr,chan,msg,args)
 	ircSendRawQ("PART "..chan)
 end
 add_cmd(part,"part",101,"Make bot part a channel, '/part <chan>'",true)
+
+--CYCLE a channel
+local function cycle(usr,chan,msg,args)
+	if args[1] then
+		if args[1]:sub(1,1)~='#' then
+			error("Not a channel")
+		else
+			chan=args[1]
+		end
+	end
+	expectedPart=chan
+	ircSendRawQ("PART "..chan)
+	ircSendRawQ("JOIN "..chan)
+end
+add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '/cycle <chan>'",true)

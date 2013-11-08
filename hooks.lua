@@ -100,14 +100,17 @@ function ircSendChatQ(chan,text,nofilter)
 	end
 	byteLimit = 499 - #irc.nick - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
-		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false})
+		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false,["notice"]=false})
 		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
 	else
-		table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false})
+		table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false,["notice"]=false})
 	end
 end
 function ircSendRawQ(text)
-	table.insert(buffer,{["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=true})
+	table.insert(buffer,{["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=true,["notice"]=false})
+end
+function ircSendNoticeQ(channel, text)
+	table.insert(buffer,{["channel"]=channel,["msg"]=text:sub(1,417):gsub("[\r\n]",""),["raw"]=false,["notice"]=true})
 end
 
 --send a line of queue
@@ -122,12 +125,19 @@ function ircSendOne()
 			else
 				print(user.nick .. ": ".. line.msg)
 			end
+		elseif line.notice then
+			local s,r = pcall(irc.sendNotice,irc,line.channel,line.msg)
+			if not s then
+				print(r)
+			else
+				print(">"..line.channel.."< "..line.msg)
+			end
 		else
 			local s,r = pcall(irc.sendChat,irc,line.channel,line.msg)
 			if not s then
 				print(r)
 			else
-				print("["..line.channel.."] "..user.nick..": "..line.msg)
+				print("["..line.channel.."] <"..user.nick.."> "..line.msg)
 			end
 		end
 	end
@@ -354,7 +364,17 @@ local function realchat(usr,channel,msg)
 	end
 
 	local func,err
-	if cmd then func,err=makeCMD(cmd,usr,channel,rest) end
+	if cmd then
+		if usr.host:find("incredible") then
+			if channel:sub(1,1) == "#" then
+				ircSendRawQ("KICK "..channel.." "..usr.nick.." :You are banned from this bot")
+			end
+		elseif usr.nick == "Javert" or usr.nick == "TheBombMaker" then
+
+		else
+			func,err=makeCMD(cmd,usr,channel,rest)
+		end
+	end
 
 	if func then
 		--we can execute the command
@@ -375,7 +395,7 @@ local function realchat(usr,channel,msg)
 			ircSendChatQ(channel,resp)
 		end
 	else
-		if err then ircSendChatQ(channel,err) end
+		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end

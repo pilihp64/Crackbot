@@ -369,7 +369,7 @@ function callFilt(f,sanf,filt)
 		if not msg then return end
 		local s,err = sanf(args,filt) --allow filter to sanity check args before running
 		if s then
-			return ret
+			return f(msg,args)
 		else
 			return err
 		end

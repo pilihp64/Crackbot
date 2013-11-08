@@ -69,15 +69,6 @@ local function streak(usr,win)
 	end
 end
 
---adds up total value of inventory
-local function invTotal(hostmask)
-	local total = 0
-	for k,v in pairs(gameUsers[hostmask].inventory) do
-		total = total + v.cost * v.amount
-	end
-	return total
-end
-
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
 	if amt ~= amt then
@@ -90,7 +81,7 @@ local function changeCash(usr,amt)
 		for k,v in pairs(gameUsers[usr.host].inventory) do
 			total = total + v.cost * v.amount
 		end
-		if total then
+		if total > 0 then
 			if gameUsers[usr.host].cash < -total then
 				gameUsers[usr.host].cash = -total
 			end
@@ -506,7 +497,7 @@ q= function() --Count a letter in string, with some other simple math
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
 			extraNumber = extraNumber%1000
-			intro="Repeat the string \" "..extraNumber.." \" by the amount of"
+			intro="Repeat \" "..extraNumber.." \" by the amount of"
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
 		else --add
@@ -515,7 +506,7 @@ q= function() --Count a letter in string, with some other simple math
 			multiplier=0.85
 		end
 	end
-	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
+	return intro.." '"..countChar.."' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
 end,
 isPossible= function(s) --this question only accepts number answers
 	if tonumber(s) then return true end
@@ -541,7 +532,7 @@ q= function() --Count the color of words, or what the word says.
 			table.insert(t,"\003"..allColors[guessC])
 		end
 		for k,v in pairs(t) do table.insert(nt,v..wordColorList[math.random(#wordColorList)]) end
-		intro = intro.."of words that are coloured "
+		intro = intro.."of words that are colored "
 	elseif chance<50 then --count words
 		for i=1,filler do
 			local ch = wordColorList[math.random(#wordColorList)]
@@ -552,7 +543,7 @@ q= function() --Count the color of words, or what the word says.
 		end
 		for k,v in pairs(t) do table.insert(nt,"\003"..allColors[wordColorList[math.random(#wordColorList)]]..v) end
 		intro = intro.."of words that say "
-	elseif chance<75 then --what does the coloured word say
+	elseif chance<75 then --what does the colored word say
 		for i=1,filler do
 			local ch = wordColorList[math.random(#wordColorList)]
 			if ch~= guessC then table.insert(t,"\003"..allColors[ch]) else i=i-1 end
@@ -571,7 +562,7 @@ q= function() --Count the color of words, or what the word says.
 		table.insert(nt,"\003"..allColors[answer]..guessC)
 		
 		for k,v in pairs(t) do table.insert(nt,"\003"..allColors[wordColorList[math.random(#wordColorList)]]..v) end
-		intro = "What colour is the word "
+		intro = "What color is the word "
 	end
 	local n=#nt
 	while n >= 2 do
@@ -643,6 +634,7 @@ local function quiz(usr,chan,msg,args)
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
 		--blacklist of people
+		if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime[qName]-1

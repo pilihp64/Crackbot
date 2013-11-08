@@ -269,6 +269,9 @@ add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu/' ,noitamrofni lufplehnu yllufepoh snru
 
 --TIMER
 local function timer(usr,chan,msg,args)
+	if #timers > 10 then
+		return "Error: too many timers already"
+	end
 	local num = tonumber(args[1])
 	if num and num==num and num<36000 and args[2] then
 		local t={}

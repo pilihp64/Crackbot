@@ -205,7 +205,7 @@ local function chmod(usr,chan,msg,args)
 	permissions[host] = tonumber(level)
 	return "perm['"..host.."'] = "..level
 end
-add_cmd(chmod,"chmod",2,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
+add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 --hostmask
 local function getHost(usr,chan,msg,args)

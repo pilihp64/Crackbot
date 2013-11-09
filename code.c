@@ -1,14 +1,12 @@
-extern "C"
-{
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-}
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#define MEMLIMIT 10000000
+#include <windows.h>
+#define MEMLIMIT 5000000 //20MB
 
 static int memused = 0;
 
@@ -91,10 +89,11 @@ int main(int argc, char *argv[])
 	lua_atpanic(l, &panic);
 	luaL_openlibs(l);
 	luaL_dostring(l,"dofile('tableSave.lua')\n\
-					 cashList = table.load('userData.txt')\n\
-					 table.load, table.save = nil\n\
-					 debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
-					 io={write=io.write}\n\
+					cashList = table.load('userData.txt')\n\
+					table.load, table.save = nil\n\
+					math.randomseed(os.time())\n\
+					debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
+					io={write=io.write}\n\
 		");
 	const char *h = argv[1];
 	char *code = (char*)malloc(strlen(h)/2)+1;

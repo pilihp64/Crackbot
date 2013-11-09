@@ -367,7 +367,7 @@ local function realchat(usr,channel,msg)
 	if cmd then
 		if usr.host:find("incredible") then
 			if channel:sub(1,1) == "#" then
-				ircSendRawQ("KICK "..channel.." "..usr.nick.." :You are banned from this bot")
+				ircSendRawQ("REMOVE "..channel.." "..usr.nick.." :You are banned from this bot")
 			end
 		elseif usr.nick == "Javert" or usr.nick == "TheBombMaker" then
 

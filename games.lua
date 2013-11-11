@@ -5,7 +5,7 @@ local function loadUsers()
 end
 gameUsers = gameUsers or loadUsers()
 
-local storeInventory={
+storeInventory={
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
 ["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
@@ -83,7 +83,7 @@ local function changeCash(usr,amt)
 		end
 		if total > 0 then
 			if gameUsers[usr.host].cash < -total then
-				gameUsers[usr.host].cash = -total
+				gameUsers[usr.host].cash = -total+1
 			end
 			return " You went bankrupt, sell items for money"
 		end
@@ -201,14 +201,18 @@ local function odoor(usr,door)
 	if gameUsers[usr.host].cash <= 0 then
 		return "You are broke, you can't afford to open doors"
 	end
+	--[[if usr.nick == "JZTech101" then
+		return "You forgot how to open doors"
+	end]]
 	
 	door = door[1] or "" --do something with more args later?
 	local isNumber=false
 	local randMon = 50
 	local divideFactor = 2
 	if door:find("moo") then divideFactor=2.5 end
-	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or os.time())
+	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or (os.time()-1))
 	randMon = (randMon+adjust*5)^1.15--get higher for waiting longer
+	--reset last door time
 	gameUsers[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
@@ -221,7 +225,7 @@ local function odoor(usr,door)
 	--if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
 
 	--some other weird functions to change money
-
+	
 	--randomly find items
 	local fitem = math.random(9)
 	if fitem==1 then fitem=true else fitem=false end
@@ -229,6 +233,7 @@ local function odoor(usr,door)
 	local minimum = math.floor(randMon/divideFactor)
 	local randomnes = math.random(randMon)-minimum
 	local rstring=""
+	
 	if fitem and randomnes>0 then
 		--find an item of approximate value
 		local item = findClosestItem(randomnes)
@@ -612,6 +617,9 @@ local function quiz(usr,chan,msg,args)
 	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
 		return "You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
+	if chan == config.logchannel then
+		return "What is ten tsunoahd and setnveeen plus one hdnerud and frotuy fvie times times the number of 'b' in: OOgOOOgbbOggOgO&gO&@&gO&&OOg&&g&&gO&gO&@&gO&&OOg&&g&&ggObO@@&"
+	end
 	if not msg or not tonumber(args[1]) then return "Start a question for the channel, '/quiz <bet>'" end
 	local qName = chan.."quiz"
 	if activeQuiz[qName] then return "There is already an active quiz here!" end
@@ -670,6 +678,9 @@ local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
 	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
+	if toChan and toChan:sub(1,1) ~= "#" then
+		return "Error, you must ask questions to a channel"
+	end
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end
 	local rstring,answer,timer = "Question from "..usr.nick..": "..args[2],args[3],30

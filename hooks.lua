@@ -103,7 +103,7 @@ function ircSendChatQ(chan,text,nofilter)
 		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false,["notice"]=false})
 		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
 	else
-		table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false,["notice"]=false})
+		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,512),["raw"]=false,["notice"]=false})
 	end
 end
 function ircSendRawQ(text)
@@ -377,6 +377,9 @@ local function realchat(usr,channel,msg)
 	end
 
 	if func then
+		if channel:sub(1,1) ~= "#" then
+			ircSendChatQ(config.logchannel, usr.nick..": "..msg)
+		end
 		--we can execute the command
 		local co = coroutine.create(func)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)

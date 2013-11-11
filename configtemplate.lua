@@ -34,6 +34,7 @@ local config={
 	autojoin = {
 		--"##foo",
 	},
+	logchannel = "##foo"
 }
 
 return config

@@ -75,7 +75,7 @@ local function voice(usr,chan,msg,args)
 	end
 	setMode(chan,"+v",args[2] or msg)
 end
-add_cmd(voice,"voice",10,"Voice a user, '/voice [<chan>] <username>'",true)
+add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)
 
 --DEVOICE
 local function devoice(usr,chan,msg,args)
@@ -130,7 +130,7 @@ local function quiet(usr,chan,msg,args)
 	end
 	if unbanTimer then
 		addTimer(setMode[chan]["-q"][host],unbanTimer,chan)
-		irc:sendNotice(usr.nick, nick.." has been quieted for "..unbanTimer.." seconds")
+		ircSendNoticeQ(usr.nick, nick.." has been quieted for "..unbanTimer.." seconds")
 	end
 end
 add_cmd(quiet,"quiet",20,"Quiet a user, '/quiet [<chan>] <host/username> [<time>]. If no time is specified, picks a random time between 60 and 600 seconds.'",true,{"stab"})

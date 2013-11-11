@@ -16,6 +16,9 @@ local function mkAliasFunc(t,aArgs)
 				end
 			end
 			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
+			if t.cmd == "use" or t.cmd == "timer" or t.cmd == "bug" then
+				error("You can't alias to that")
+			end
 			aliasDepth = aliasDepth+1
 			local something = makeCMD(t.cmd,nusr,nchan,sendMsg,sendArgs)
 			if not something then return "" end
@@ -43,6 +46,9 @@ local function alias(usr,chan,msg,args)
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
 		local name,cmd,aArgs = args[2],args[3],{}
 		if not commands[cmd] then return cmd.." doesn't exist!" end
+		if cmd == "timer" or cmd == "use" or cmd == "bug" then
+			return "Error: You can't alias to that"
+		end
 		if allCommands[name] then return name.." already exists!" end
 		if permFullHost(usr.fullhost) < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end

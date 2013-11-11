@@ -88,12 +88,12 @@ int main(int argc, char *argv[])
 	l = lua_newstate(&alloc, NULL);
 	lua_atpanic(l, &panic);
 	luaL_openlibs(l);
-	luaL_dostring(l,"dofile('tableSave.lua')\n\
-					cashList = table.load('userData.txt')\n\
-					table.load, table.save = nil\n\
-					math.randomseed(os.time())\n\
-					debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
-					io={write=io.write}\n\
+	luaL_dostring(l,"math.randomseed(os.time())\n\
+			 dofile('tableSave.lua')\n\
+			 cashList = table.load('userData.txt')\n\
+			 table.load, table.save = nil\n\
+			 debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
+			 io={write=io.write}\n\
 		");
 	const char *h = argv[1];
 	char *code = (char*)malloc(strlen(h)/2)+1;

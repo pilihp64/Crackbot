@@ -1,5 +1,9 @@
 *~
 *.txt
+*.exe
+*.dll
+*.sh
+code2.c
 config.lua
 ltn12.lua
 mime.lua

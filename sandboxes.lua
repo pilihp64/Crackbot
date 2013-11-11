@@ -7,7 +7,7 @@ local function lua(usr,chan,msg,args,luan)
 	if msg:sub(1,1) =="\27" then
 		return "Error: bytecode (?)"
 	end
-	luan = luan or "lua"
+	luan = luan or "./luasandbox"
 	msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
 	local rf = io.popen(luan.." "..msg)
 	local r = rf:read("*a")

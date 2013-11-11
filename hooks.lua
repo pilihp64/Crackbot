@@ -306,6 +306,9 @@ function tryCommand(usr,channel,msg)
 	local _,_,ncmd,nrest = msg:find("([^%s]*)%s?(.*)$")
 	if ncmd then
 		local vf = makeCMD(ncmd,usr,channel,nrest)
+		if ncmd == "timer" or ncmd == "use" or ncmd == "bug" then
+			return "Error: this command cannot be nested"
+		end
 		if vf then
 			temps = (vf() or "")
 		end

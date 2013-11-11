@@ -352,7 +352,7 @@ local function luaFilt(text,args)
 	realtext = realtext:gsub(".",function(x)return("\\%03d"):format(x:byte())end)
 	local command = "return (function(...) "..msg.." end)('"..realtext.."')"
 	command = command:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
-	local rf = io.popen("lua "..command)
+	local rf = io.popen("./luasandbox "..command)
 	local r = rf:read("*a")
 	return r
 end

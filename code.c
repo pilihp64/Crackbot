@@ -1,11 +1,10 @@
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
+#include <lua5.1/lua.h>
+#include <lua5.1/lualib.h>
+#include <lua5.1/lauxlib.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
 #define MEMLIMIT 5000000 //20MB
 
 static int memused = 0;
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 	}
 	pthread_t th;
 	pthread_create(&th, NULL, &thread, NULL);
-	Sleep(500);
+	sleep(1);
 	pthread_cancel(th);
 	printf("time limit exceeded\n");
 }

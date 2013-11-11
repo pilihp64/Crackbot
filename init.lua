@@ -13,7 +13,7 @@ local console=socket.tcp()
 console:settimeout(5)
 
 --start my console line-in
-os.execute("xfce4-terminal -x lua consolein.lua")
+os.execute("mate-terminal -x lua consolein.lua")
 shutdown = false
 user = config.user
 irc=irc.new(user)

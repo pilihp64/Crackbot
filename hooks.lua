@@ -380,9 +380,6 @@ local function realchat(usr,channel,msg)
 	end
 
 	if func then
-		if channel:sub(1,1) ~= "#" then
-			ircSendChatQ(config.logchannel, usr.nick..": "..msg)
-		end
 		--we can execute the command
 		local co = coroutine.create(func)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
@@ -400,13 +397,17 @@ local function realchat(usr,channel,msg)
 		else
 			ircSendChatQ(channel,resp)
 		end
+		--log to channel, to notice things faster
+		if channel:sub(1,1) ~= "#" then
+			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used ./"..cmd)
+		end
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if user.nick=="jacobot" and channel=='##jacob1' and usr.host:find("192%.30%.252") then
+	if user.nick=="jacobot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))

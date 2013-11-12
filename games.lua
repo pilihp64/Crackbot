@@ -212,8 +212,6 @@ local function odoor(usr,door)
 	if door:find("moo") then divideFactor=2.5 end
 	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or (os.time()-1))
 	randMon = (randMon+adjust*5)^1.15--get higher for waiting longer
-	--reset last door time
-	gameUsers[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50)^1.15 divideFactor=6 end
@@ -231,8 +229,10 @@ local function odoor(usr,door)
 	if fitem==1 then fitem=true else fitem=false end
 	randMon = math.floor(randMon)
 	local minimum = math.floor(randMon/divideFactor)
-	local randomnes = math.random(randMon)-minimum
+	local randomnes = math.ceil(randMon*math.random())-minimum
 	local rstring=""
+	--reset last door time
+	gameUsers[usr.host].lastDoor = os.time()
 	
 	if fitem and randomnes>0 then
 		--find an item of approximate value

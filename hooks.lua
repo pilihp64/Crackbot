@@ -406,8 +406,7 @@ local function realchat(usr,channel,msg)
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if user.nick=="Crackbot" and channel=='#neotenic' and usr.host:find("192%.30%.252%.49$") then
-		--relay to ##powder-bots because i'm lazy
+	if user.nick=="jacobot" and channel=='##jacob1' and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))

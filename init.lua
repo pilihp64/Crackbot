@@ -1,5 +1,6 @@
 if IRC_RUNNING then error("Already running") end
 IRC_RUNNING=true
+WINDOWS = package.config:sub(1,1) == "\\"
 dofile("derp.lua")
 dofile("irc/init.lua")
 
@@ -12,8 +13,10 @@ local socket = require"socket"
 local console=socket.tcp()
 console:settimeout(5)
 
---start my console line-in
-os.execute("mate-terminal -x lua consolein.lua")
+if not WINDOWS then
+	--start my console line-in
+	os.execute("mate-terminal -x lua consolein.lua")
+end
 shutdown = false
 user = config.user
 irc=irc.new(user)
@@ -28,15 +31,17 @@ else
 	print("Connected")
 end
 
-local connected=false
---connect to console thread
-function conConnect()
-	console:connect("localhost",1337)
-	console:settimeout(0)
-	console:setoption("keepalive",true)
-	connected=true
+if not WINDOWS then
+	local connected=false
+	--connect to console thread
+	function conConnect()
+		console:connect("localhost",1337)
+		console:settimeout(0)
+		console:setoption("keepalive",true)
+		connected=true
+	end
+	conConnect()
 end
-conConnect()
 
 dofile("hooks.lua")
 dofile("commands.lua")

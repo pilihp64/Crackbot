@@ -75,9 +75,12 @@ end
 
 --BRAINFUCK
 local function BF(usr,chan,msg)
+	if WINDOWS then
+		return "Error: BF does not work on windows"
+	end
 	if not msg then return "No code" end
 	local sdump=""
-	luan = luan or "lua"
+	local luan = luan or WINDOWS and "lua5.1" or "lua"
 	--byte the string so you can't escape
 	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
 	
@@ -95,5 +98,5 @@ local function BF(usr,chan,msg)
 	if r then r = r:gsub("[\r\n]",""):sub(1,500) end
 	return r,true
 end
---add_cmd(BF,"BF",101,"Runs BF code, '/bf <code>'",false,{"bf"})
+add_cmd(BF,"BF",100,"Runs BF code, '/bf <code>'",false,{"bf"})
 

@@ -447,9 +447,9 @@ local function giveMon(usr,chan,msg,args)
 		return "Please do not give to the bot"
 	end
 	if amt and not item then
-		if toHost == "Powder/Developer/jacob1" and amt < 1000000 then
-			return "Donations to jacob1 must be at least 1 million"
-		end
+		--if toHost == "Powder/Developer/jacob1" and amt < 1000000 then
+		--	return "Donations to jacob1 must be at least 1 million"
+		--end
 		if amt>0 and amt==amt then
 			return give(usr.host,toHost,amt)
 		else

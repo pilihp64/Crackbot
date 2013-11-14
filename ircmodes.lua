@@ -188,7 +188,8 @@ local function kick(usr,chan,msg,args)
 	end
 	local nick = args[2] or msg
 	local user = irc:getUserFromNick(nick)
-	if nick ~= usr.nick and user and user.fullhost and permFullHost(user.fullhost) > 30 then
+	local fullhost = user.nick.."!"..user.username.."@"..user.host
+	if nick ~= usr.nick and user and permFullHost(fullhost) > 30 then
 		return "Error: You can't kick other ops"
 	elseif nick == irc.nick then
 		nick = usr.nick

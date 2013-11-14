@@ -71,7 +71,7 @@ exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=Non
 	if r then r = r:gsub("[\r\n]"," "):sub(1,500) end
 	return r,true
 end
-add_cmd(python,"py",101,"Runs sandy python code, '/py <code>'",true)
+--add_cmd(python,"py",101,"Runs sandy python code, '/py <code>'",true)
 
 --BRAINFUCK
 local function BF(usr,chan,msg)
@@ -95,5 +95,5 @@ local function BF(usr,chan,msg)
 	if r then r = r:gsub("[\r\n]",""):sub(1,500) end
 	return r,true
 end
-add_cmd(BF,"BF",101,"Runs BF code, '/bf <code>'",false,{"bf"})
+--add_cmd(BF,"BF",101,"Runs BF code, '/bf <code>'",false,{"bf"})
 

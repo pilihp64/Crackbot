@@ -130,6 +130,66 @@ end
 
 --Uses for items, with /use
 local itemUses = {
+	["chips"] = function(usr)
+		local rnd = math.random(1,150)
+		if rnd <= 3 then
+			remInv(usr,"chips",1)
+			return "You got lead poisoning. You sued the chip company and made $"..(rnd*100000)..changeCash(usr,rnd*100000)
+		elseif rnd < 30 then
+			remInv(usr,"chips",1)
+			return "You finished the bag of chips (-1 chips)"
+		else
+			return "You ate a chip"..((rnd%3 == 1) and ". It needs more salt" or "")
+		end
+	end,
+	["shoe"]=function(usr)
+		if gameUsers[usr.host].inventory["shoe"].amount > 1 then
+			remInv(usr,"shoe",2)
+			local rnd = math.random(1,200000)
+			if rnd < 10000 then
+				return "You put on another pair of shoes. Why do they always go missing ... (-2 shoes)"
+			else
+				return "You sold your designer pair of shoes for $"..rnd..changeCash(usr,rnd*100)
+			end
+		end
+		if math.random(1,20) == 1 then
+			remInv(usr,"shoe",1)
+			return "Your shoe gets worn out (-1 shoe)"
+		else
+			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,50000))
+		end
+	end,
+	["iPad"] = function(usr)
+		local rnd = math.random(1,5)
+		if rnd == 1 then
+			remInv(usr,"iPad",1)
+			if math.random(1,5) == 5 then
+				return "Your iPad was incinerated (-1 iPad)"
+			else
+				return "Your iPad broke (-1 iPad)"
+			end
+		end
+		local name
+		for k,v in pairs(storeInventory) do
+			if math.random(1,7) < 2 then
+				name = k
+				break
+			end
+		end
+		if name == nil then
+			return "You play Angry birds."
+		elseif storeInventory[name].instock then
+			local cost = math.floor(storeInventory[name].cost*(math.random()+.2))
+			if cost < gameUsers[usr.host].cash then
+				addInv(usr, storeInventory[name], 1)
+				return "You bought a "..name.." on Ebay for "..cost..changeCash(usr,-cost)
+			else
+				return "You couldn't afford to buy "..name
+			end
+		else
+			return "You couldn't find "..name.." on Ebay"
+		end
+	end,
 	["lamp"]=function(usr)
 		local rnd = math.random(1,100)
 		if rnd<50 then
@@ -141,7 +201,84 @@ local itemUses = {
 			return "You sold lamp on Ebay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
 		end
 	end,
+	["penguin"]=function(usr)
+		local rnd = math.random(1,10)
+		if usr.nick:find("iam") then
+			return "Error: You can't use yourself"..changeCash(usr,1)
+		end
+		remInv(usr,"penguin",1)
+		if rnd < 3 then
+			return "Your pet penguin caught a plane back to Antarctica (-1 penguin)"
+		elseif rnd < 4 then
+			return "You were fined $10000 for having an illegal pet"..changeCash(usr,-10000)
+		end
+		return "You sold your pet penguin for $5000000. You feel bad for selling such a rare species"..changeCash(usr,5000000)
+	end,
+	["nothing"]=function(usr)
+		local rnd = math.random(1,10)
+		if rnd < 2 then
+			remInv(usr,"nothing",1)
+			return "Your nothing was confiscated by the universal oversight comittee for breaking the laws of the universe. You are given a $50000 fine"..changeCash(usr,-50000)
+		elseif rnd < 3 then
+			remInv(usr,"nothing",1)
+			return "You look inside your nothing and get sucked inside to an alternate universe where you didn't have it (-1 nothing)"
+		elseif rnd < 8 then
+			addInv(usr,storeInventory["nothing"],1)
+			return "You look inside your nothing and find nothing inside (+1 nothing)"
+		else
+			return "You can't use nothin'"
+		end
+	end,
+	["doll"]=function(usr)
+		remInv(usr,"doll",1)
+		if string.lower(usr.nick):find("mitch") then
+			ircSendRawQ("KICK ##powder-bots "..usr.nick)
+			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
+		end
+		local rnd = math.random(1,100)
+		if rnd <= 50 then
+			return "You find out the doll was gay and throw it away (-1 doll)"
+		elseif rnd == 51 then
+			ircSendRawQ("KICK ##powder-bots wolfmitchell")
+			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
+		else
+			return "The doll looks so ugly that you burn it (-1 doll)"
+		end
+	end,
+	["derp"]=function(usr)
+		remInv(usr,"derp",1)
+		local count = 0
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			count = count + v.amount
+		end
+		local item,rnd,count = nil,math.random(count),0
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			count = count + v.amount
+			if count >= rnd then
+				item = v
+				break
+			end
+		end
+		if not item then
+			return "jacob1 is a derp"
+		end
+		rnd = math.random()
+		if rnd < .5 then
+			addInv(usr,item,1)
+			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
+		else
+			remInv(usr,item.name,1)
+			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
+		end
+	end,
 }
+--powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
+--potato
+--gold, diamond, cow, house, cube, cracker, estate, moo2, billion, company, country, 
+--world, god
+--- computer ($99) Who would use this piece of junk from your grandmother
+--- iMac ($2999) Glorious master race
+--- MacPro ($999999) A bit expensive but does have an apple logo!
 local function useItem(usr,chan,msg,args)
 	if not args[1] then
 		return "Need to specify an item! '/use <item>'"

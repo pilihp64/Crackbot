@@ -1,6 +1,13 @@
+#ifdef WIN32
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <windows.h>
+#else
 #include <lua5.1/lua.h>
 #include <lua5.1/lualib.h>
 #include <lua5.1/lauxlib.h>
+#endif
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,6 +95,7 @@ int main(int argc, char *argv[])
 	lua_atpanic(l, &panic);
 	luaL_openlibs(l);
 	luaL_dostring(l,"math.randomseed(os.time())\n\
+			 dofile('derp.lua')\n\
 			 dofile('tableSave.lua')\n\
 			 cashList = table.load('userData.txt')\n\
 			 table.load, table.save = nil\n\
@@ -109,7 +117,11 @@ int main(int argc, char *argv[])
 	}
 	pthread_t th;
 	pthread_create(&th, NULL, &thread, NULL);
+#ifdef WIN32
+	Sleep(500);
+#else
 	sleep(1);
+#endif
 	pthread_cancel(th);
 	printf("time limit exceeded\n");
 }

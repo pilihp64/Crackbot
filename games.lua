@@ -292,11 +292,14 @@ local itemUses = {
 		return "You use vroom! A cloud of smoke appears (-1 vroom)"
 	end,
 	["potato"]=function(usr)
+		if usr.nick == "jacob1" then
+			return "You are a potato"..changeCash(usr,1000)
+		end
 		local rnd = math.random(0,99)
-		if rnd < 20 or usr.nick == "jacob1" then
+		if rnd < 20 then
 			return "I'm a potato"
 		elseif rnd < 30 then
-			addInv(usr,storeInventory["vroom"],1)
+			addInv(usr,storeInventory["potato"],1)
 			return "You are turned into a potato (+1 potato)"
 		elseif rnd < 50 then
 			return "You stare at the potato. You determine it is a potato"

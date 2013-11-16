@@ -251,6 +251,9 @@ local itemUses = {
 		for k,v in pairs(gameUsers[usr.host].inventory) do
 			count = count + v.amount
 		end
+		if count == 0 then
+			return "You are a derp"
+		end
 		local item,rnd,count = nil,math.random(count),0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
 			count = count + v.amount
@@ -271,6 +274,55 @@ local itemUses = {
 			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
 		end
 	end,
+	["water"]=function(usr)
+		local rnd = math.random(1,10)
+		remInv(usr,"water",1)
+		if rnd < 3 then
+			return "You drink the holy water. Nothing happens (-1 water)"
+		elseif rnd < 5 then
+			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
+		else
+			local amt = ((rnd-5)^3)*100000+1
+			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
+		end
+	end,
+	["vroom"]=function(usr)
+		--maybe have this do something later
+		remInv(usr,"vroom",1)
+		return "You use vroom! A cloud of smoke appears (-1 vroom)"
+	end,
+	["potato"]=function(usr)
+		local rnd = math.random(0,99)
+		if rnd < 20 or usr.nick == "jacob1" then
+			return "I'm a potato"
+		elseif rnd < 30 then
+			addInv(usr,storeInventory["vroom"],1)
+			return "You are turned into a potato (+1 potato)"
+		elseif rnd < 50 then
+			return "You stare at the potato. You determine it is a potato"
+		elseif rnd < 60 then
+			remInv(usr,"potato",1)
+			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 60000000)
+		else
+			local str
+			if rnd < 70 then
+				str = "You plant the potato in the ground"
+			elseif rnd < 80 then
+				str = "You run over the potato with a steamroller to make mashed potatoes"
+			elseif rnd < 90 then
+				str = "You peel the potato"
+			elseif rnd < 100 then
+				str = "You fry the potato and make french fries"
+			end
+			if rnd%2 == 1 then
+				str = str..". The potato attacks you"..changeCash(usr,-10000000)
+				ircSendRawQ("KICK ##powder-bots "..usr.nick.." :"..str)
+				str = ""
+			end
+			remInv(usr,"potato",1)
+			return str
+		end
+	end
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato
@@ -447,7 +499,7 @@ local function giveMon(usr,chan,msg,args)
 		return "Please do not give to the bot"
 	end
 	if amt and not item then
-		--if toHost == "Powder/Developer/jacob1" and amt < 1000000 then
+		--if toHost == "Powder/Developer/jacob1" and amt < 50 then
 		--	return "Donations to jacob1 must be at least 1 million"
 		--end
 		if amt>0 and amt==amt then

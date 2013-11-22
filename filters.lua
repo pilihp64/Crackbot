@@ -389,7 +389,7 @@ local function filter(usr,chan,msg,args)
 		end
 		return "Filters: "..table.concat(t,", ")
 	elseif msg=="lock" then
-		local perm = permFullHost(usr.fullhost)
+		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtLock(chan)
 			return "Locked "..chan
@@ -397,7 +397,7 @@ local function filter(usr,chan,msg,args)
 			return "No permissions to lock"
 		end
 	elseif msg=="unlock" then
-		local perm = permFullHost(usr.fullhost)
+		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtUnLock(chan)
 			return "Unlocked "..chan

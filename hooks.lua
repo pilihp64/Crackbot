@@ -284,7 +284,7 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
-		if permFullHost(usr.fullhost) >= commands[cmd].level then
+		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
 			return function()
 					if msg then
@@ -434,7 +434,7 @@ function consoleChat(msg)
 		conChannel = chan
 		return
 	end
-	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="!jacob1@Powder/Developer/jacob1"},conChannel,msg)
+	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="jacob1!jacob1@Powder/Developer/jacob1"},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

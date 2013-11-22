@@ -219,19 +219,6 @@ function meta:whois(nick)
 	return result
 end
 
-function meta:getUserFromNick(nick)
-	for k,v in pairs(self.channels) do
-		if v and v.users then
-			for k2,v2 in pairs(v.users) do
-				if v2 and v2.nick == nick then
-					return v2
-				end
-			end
-		end
-	end
-end
-
 function meta:topic(channel)
 	self:send("TOPIC %s", channel)
 end
-

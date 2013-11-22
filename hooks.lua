@@ -143,7 +143,7 @@ function ircSendOne()
 	end
 end
 
-local prefix = "%./"
+local prefix = config.prefix
 function setPrefix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		prefix=fix
@@ -151,7 +151,7 @@ function setPrefix(fix)
 		error("Not a string")
 	end
 end
-local suffix = "moo+"
+local suffix = config.suffix
 function setSuffix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		suffix=fix
@@ -356,9 +356,9 @@ end
 local function realchat(usr,channel,msg)
 	--if usr.host:find("c%-75%-70%-221%-236%.hsd1%.co%.comcast%.net") then return end
 	didSomething=true
-	if prefix~= '%./' then
-		panic,_ = msg:find("^%./fix")
-		if panic then prefix='%./' end
+	if prefix ~= config.prefix then
+		panic,_ = msg:find("^"..config.prefix.."fix")
+		if panic then prefix = config.prefix end
 	end
 	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
 	if not cmd then
@@ -399,7 +399,7 @@ local function realchat(usr,channel,msg)
 		end
 		--log to channel, to notice things faster
 		if channel:sub(1,1) ~= "#" then
-			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used ./"..cmd)
+			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
 		end
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
@@ -424,10 +424,10 @@ end
 --console is read as messages from me
 local conChannel = "##powder-bots"
 function consoleChat(msg)
-	local _,_,chan = msg:find("^%./chan (.+)")
-	local isPrefix = msg:find("^%./")
+	local _,_,chan = msg:find("^"..config.prefix.."chan (.+)")
+	local isPrefix = msg:find("^"..config.prefix)
 	if not isPrefix then
-		msg = "./echo "..msg
+		msg = config.prefix:gsub("%%","").."echo "..msg
 	end
 	if chan then
 		print("Channel set to "..chan)

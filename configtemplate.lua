@@ -1,11 +1,11 @@
 permissions = {}
---insert !user@host into permissions here
---example: permissions["!~meow@Powder/Developer/cracker64"] = 101
+--insert host into permissions here
+--example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
 
 --Get perm value for part of a hostmask (usually just host)
 function permFullHost(host)
-	local highest=-99
+	local highest = -100
 	for k,v in pairs(permissions) do
 		if host:find(k) then
 			if v>highest then
@@ -13,7 +13,6 @@ function permFullHost(host)
 			end
 		end
 	end
-	if highest<-1 then highest=0 end
 	return highest
 end
 
@@ -34,7 +33,9 @@ local config={
 	autojoin = {
 		--"##foo",
 	},
-	logchannel = "##foo"
+	logchannel = "##foo",
+	prefix = "%./",
+	suffix = "moo+"
 }
 
 return config

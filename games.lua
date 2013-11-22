@@ -670,7 +670,7 @@ q= function() --Count a letter in string, with some other simple math
 	end
 	local intro="Count the number of"
 	if extraNumber then
-		local randMod = math.random(40)
+		local randMod = math.random(43)
 		if randMod<=15 then --subtract
 			intro="What is "..mknumscramb(extraNumber).." minus the number of"
 			answer = extraNumber-answer
@@ -694,19 +694,28 @@ q= function() --Count a letter in string, with some other simple math
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
 			extraNumber = extraNumber%1000
-			intro="Repeat \" "..extraNumber.." \" by the amount of"
+			intro="Repeat the string \" "..extraNumber.." \" by the amount of"
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
-		else --add
+		elseif randMod<=40 then --add
 			intro="What is "..mknumscramb(extraNumber).." plus the number of"
 			answer = answer+extraNumber
 			multiplier=0.85
+		else
+			local possibleAnswers = {"Ring-ding-ding-ding-dingeringeding", "Wa-pa-pa-pa-pa-pa-pow", "Hatee-hatee-hatee-ho", "Joff-tchoff-tchoffo-tchoffo-tchoff", "Jacha-chacha-chacha-chow", "Fraka-kaka-kaka-kaka-kow", "A-hee-ahee ha-hee", "A-oo-oo-oo-ooo"}
+			answer = possibleAnswers[math.random(#possibleAnswers)]
+			multiplier = 2
+			return "What does the fox say?", answer, timeout, multiplier
 		end
 	end
-	return intro.." '"..countChar.."' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
+	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
 end,
 isPossible= function(s) --this question only accepts number answers
 	if tonumber(s) then return true end
+	local possibleAnswers = {"Ring-ding-ding-ding-dingeringeding", "Wa-pa-pa-pa-pa-pa-pow", "Hatee-hatee-hatee-ho", "Joff-tchoff-tchoffo-tchoffo-tchoff", "Jacha-chacha-chacha-chow", "Fraka-kaka-kaka-kaka-kow", "A-hee-ahee ha-hee", "A-oo-oo-oo-ooo"}
+	for k,v in pairs(possibleAnswers) do
+		if s == k then return true end
+	end
 	return false
 end})
 local allColors = {white='00', black='01', blue='02', green='03', red='04', brown='05', purple='06', orange='07', yellow='08', lightgreen='09', turquoise='10', cyan='11', skyblue='12', pink='13', gray='14', grey='14'}
@@ -812,11 +821,29 @@ local function quiz(usr,chan,msg,args)
 	if chan == config.logchannel then
 		return "What is ten tsunoahd and setnveeen plus one hdnerud and frotuy fvie times times the number of 'b' in: OOgOOOgbbOggOgO&gO&@&gO&&OOg&&g&&gO&gO&@&gO&&OOg&&g&&ggObO@@&"
 	end
-	if not msg or not tonumber(args[1]) then return "Start a question for the channel, '/quiz <bet>'" end
+	if not msg or not tonumber(args[1]) then
+		return "Start a question for the channel, '/quiz <bet>'"
+	end
+	
 	local qName = chan.."quiz"
-	if activeQuiz[qName] then return "There is already an active quiz here!" end
+	if activeQuiz[qName] then return
+		"There is already an active quiz here!"
+	end
+	
 	local bet= math.floor(tonumber(args[1]))
-	if chan:sub(1,1)~='#' then if bet>10000 then return "Quiz in query has 10k max bid" end end
+	if chan:sub(1,1)~='#' then
+		if bet>10000 then
+			return "Quiz in query has 10k max bid"
+		end
+	end
+	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="unaffiliated/mniip" then
+		if bet > 13333337 then
+			return "You cannot bet this high!"
+		end
+	elseif bet > 10000000000 then
+		return "You cannot bet more than 10 billion"
+	end
+	
 	local gusr = gameUsers[usr.host]
 	if bet~=bet or bet<1000 then
 		return "Must bet at least 1000!"
@@ -834,7 +861,10 @@ local function quiz(usr,chan,msg,args)
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
 		--blacklist of people
-		if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
+		--if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
+		--if nusr.host=="unaffiliated/mniip/bot/xsbot" then return end
+		--if nusr.host=="178.219.36.155" then return end
+		--if nusr.host=="unaffiliated/mniip" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime[qName]-1

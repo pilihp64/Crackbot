@@ -52,6 +52,7 @@ local function alias(usr,chan,msg,args)
 		if allCommands[name] then return name.." already exists!" end
 		if permFullHost(usr.fullhost) < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
+		if name:find("[\128-\255]") then return "Ascii aliases only" end
 		if #args > 50 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")

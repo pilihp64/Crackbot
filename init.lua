@@ -31,8 +31,8 @@ else
 	print("Connected")
 end
 
+local connected=false
 if not WINDOWS then
-	local connected=false
 	--connect to console thread
 	function conConnect()
 		console:connect("localhost",1337)

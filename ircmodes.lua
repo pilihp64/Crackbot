@@ -95,35 +95,38 @@ add_cmd(devoice,"devoice",10,"DeVoice a user, '/devoice [<chan>] <username>'",tr
 --UNQUIET
 local function unquiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
+	local nick
 	local host
 	if args[1]:sub(1,1)=='#' then
-		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
 		chan=args[1]
+		if not args[2] then error("Missing target") end
+		nick = args[2]
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
+		host = getUserFromNick(args[1])
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"-q",host)
 end
-add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true,{"unstab"})
+add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unquiet [<chan>] <host/username>'",true,{"unstab"})
 
 --QUIET
 local function quiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
 	local unbanTimer
-	local host
 	local nick
 	if args[1]:sub(1,1)=='#' then
+		chan=args[1]
 		if not args[2] then error("Missing target") end
 		nick = args[2]
-		host = getBestHost(chan, nick or msg)
 		unbanTimer = tonumber(args[3])
-		chan=args[1]
 	else
 		nick = args[1]
-		host = getBestHost(chan, nick or msg)
 		unbanTimer = tonumber(args[2])
 	end
+	local host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"+q",host)
 	if not unbanTimer then
 		unbanTimer = math.random(60,600)
@@ -138,14 +141,17 @@ add_cmd(quiet,"quiet",20,"Quiet a user, '/quiet [<chan>] <host/username> [<time>
 --UNBAN
 local function unban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
+	local nick
 	local host
 	if args[1]:sub(1,1)=='#' then
+		chan = args[1]
 		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
-		chan=args[1]
+		nick = args[2]
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"-b",host)
 end
 add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
@@ -153,18 +159,20 @@ add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
 --BAN
 local function ban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
-	local unbanTimer
-	--if not user.access:match("@") then error("Not Op") end
+	local nick
 	local host
+	local unbanTimer
 	if args[1]:sub(1,1)=='#' then
-		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
-		unbanTimer = tonumber(args[3])
 		chan=args[1]
+		if not args[2] then error("Missing target") end
+		nick = args[2]
+		unbanTimer = tonumber(args[3])
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
 		unbanTimer = tonumber(args[2])
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"+b",host)
 	if unbanTimer then
 		addTimer(setMode[chan]["-b"][host],unbanTimer,chan)

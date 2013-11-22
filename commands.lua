@@ -28,23 +28,6 @@ function add_cmd(f, name, lvl, help, shown, aliases)
 	end
 end
 
---Helper to return hostmask for a name
-function getBestHost(chan,msg,long)
-	local host = false
-	local besthost = nil
-	if msg:match("@") then host=true end
-	if not host then
-		for nick,v in pairs(irc.channels[chan].users) do
-			if (string.lower(nick))==(string.lower(msg)) then
-				if not long then besthost= "*!*@"..v.host
-				else besthost= "!"..v.username.."@"..v.host
-				end
-			end
-		end
-	end
-	return besthost or msg
-end
-
 --Helper to return user object from a name
 function getUserFromNick(nick)
 	for k,v in pairs(irc.channels) do

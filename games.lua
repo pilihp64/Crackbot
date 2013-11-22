@@ -473,30 +473,14 @@ local function giveMon(usr,chan,msg,args)
 		amt= math.floor(tonumber(args[3]) or 1)
 		item=args[2]
 	end
-	if chan:sub(1,1)~='#' then
-		if args[1]:sub(1,1)=='#' then
-			if string.lower(args[2])==string.lower(usr.nick) then return "You can't give to yourself..." end
-			toHost = getBestHost(args[1],args[2])
-			if toHost~=args[2] then toHost=toHost:sub(5)
-			else return "Invalid user, or not online"
-			end
-			if tonumber(args[3]) then
-				amt = math.floor(tonumber(args[3]))
-				item=nil
-			else
-				amt= math.floor(tonumber(args[4]) or 1)
-				item=args[3]
-			end
-		else
-			return "Channel required in query, '/give <chan> <username> <amount>'"
-		end
-	else
-		toHost = getBestHost(chan,args[1])
-		if string.lower(args[1])==string.lower(usr.nick) then return "You can't give to yourself..." end
-		if toHost~=args[1] then toHost=toHost:sub(5)
-		else return "Invalid user, or not online"
-		end
+	if string.lower(args[1]) == string.lower(usr.nick) then
+		return "You can't give to yourself..."
 	end
+	toHost = getUserFromNick(args[1])
+	if not toHost then
+		return "Invalid user, or not online"
+	end
+	toHost = toHost.host
 	
 	if toHost == "unaffiliated/jacob1/bot/jacobot" then
 		return "Please do not give to the bot"
@@ -525,7 +509,7 @@ local function giveMon(usr,chan,msg,args)
 	
 	
 end
-add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 100k to give.",true)
+add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 10k to give.",true)
 --reload cashtext
 local function loadCash(usr,chan,msg,args)
 	return loadUsersCMD()

@@ -72,8 +72,7 @@ local function voice(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end
-	local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
+	end local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
 	setMode(chan,"+v", nick)
 end
 add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)

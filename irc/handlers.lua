@@ -78,7 +78,7 @@ end
 --WHO list
 handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, access1 ,something, something2)
 	if o.track_users then
-		local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1)}
+		local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1), fullhost=name.."!"..name1.."@"..host}
 		--print(user.nick,user.host,user.ID,user.serv,user.access)
 		o.channels[channel].users[user.nick] = user
 	end

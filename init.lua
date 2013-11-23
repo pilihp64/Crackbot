@@ -25,8 +25,8 @@ irc=irc.new(user)
 irc:connect(config.network.server,config.network.port)
 if config.user.password then
 	irc:sendChat("NickServ", "identify "..config.user.nick.." "..config.user.password)
-	print("Connected, sleeping for 6 seconds")
-	sleep(6)
+	print("Connected, sleeping for 7 seconds")
+	sleep(7)
 else
 	print("Connected")
 end

@@ -56,7 +56,7 @@ function colorstrip(text)
 end
 add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
 --RAINBOW every letter is new color
-local function rainbow(text)
+function rainbow(text)
 	local newtext= ""
 	local rCount=1
 	for char in colorstrip(text):gmatch(".") do

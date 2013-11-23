@@ -325,6 +325,55 @@ local itemUses = {
 			remInv(usr,"potato",1)
 			return str
 		end
+	end,
+	["cow"]=function(moo)
+		local cowCount = gameUsers[moo.host].inventory["cow"].amount
+		local rnd = math.random(1,100)
+		if cowCount > 2 then
+			if rnd%5 == 1 then
+				local amountgained = math.ceil(cowCount/24)
+				addInv(moo,storeInventory["cow"], amountgained )
+				return "Your cows moo and "..amountgained.." baby cow"..(amountgained==1 and " is" or "s are").." born"
+			end
+			if cowCount > 10 then
+				if rnd%5 == 2 then
+					local amountLost = math.ceil(cowCount*math.random()/2)
+					remInv(moo, "cow", amountLost)
+					return "Your cows stampede and many escape (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
+				end
+				if cowCount > 20 and rnd%5 == 3 then
+					local amountLost = math.ceil(rnd/5)
+					local amountgained = math.floor(math.random(1,10))*4+1
+					remInv(moo, "cow", amountLost)
+					return "You start a cow farm and make an expensive enchantment table factory (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..") (+$"..(amountgained*25000000)..")"..changeCash(moo, amountgained*25000000)
+				end
+			end
+		end
+		if rnd <= 15 then
+			remInv(moo, "cow", 1)
+			return "You have a fancy steak dinner (-1 cow)"
+		elseif rnd <= 25 then
+			addInv(moo,storeInventory["cow"],1)
+			return "Your cow breeds asexually (+1 cow)"
+		elseif rnd <= 30 then
+			addInv(moo,storeInventory["cow"], cowCount)
+			return "Your cows all breed asexually (+"..cowCount.." cows)"
+		elseif rnd <= 45 then
+			return "The cow tries to moo but is unable to because you never feed it"
+		elseif rnd <= 55 then
+			return "You feed your cow"
+		elseif rnd <= 85 then
+			addInv(moo,storeInventory["moo"],cowCount)
+			return "Your cows all moo (+"..cowCount.." moos)"
+		elseif rnd <= 88 then
+			local amountLost = math.ceil(cowCount*math.random())
+			remInv(moo, "cow", amountLost)
+			remInv(moo, "powder", 1)
+			addInv(moo,storeInventory["moo2"],1)
+			return "Your cow moos. This cow was special though, it moos so hard that it makes a moo2 appear! Some of the other cows can't handle such a special moo and die (+1 moo2) (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
+		else
+			return rainbow("mo".."o"*math.random(1,75))
+		end
 	end
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 

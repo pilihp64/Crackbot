@@ -343,9 +343,9 @@ local itemUses = {
 				end
 				if cowCount > 20 and rnd%5 == 3 then
 					local amountLost = math.ceil(rnd/5)
-					local amountgained = math.floor(math.random(1,10))*4+1
+					local amountgained = (math.floor(math.random(1,10))*4+1)*25000000
 					remInv(moo, "cow", amountLost)
-					return "You start a cow farm and make an expensive enchantment table factory (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..") (+$"..(amountgained*25000000)..")"..changeCash(moo, amountgained*25000000)
+					return "You start a cow farm and make an expensive enchantment table factory (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..") (+$"..amountgained..")"..changeCash(moo, amountgained)
 				end
 			end
 		end
@@ -368,7 +368,6 @@ local itemUses = {
 		elseif rnd <= 88 then
 			local amountLost = math.ceil(cowCount*math.random())
 			remInv(moo, "cow", amountLost)
-			remInv(moo, "powder", 1)
 			addInv(moo,storeInventory["moo2"],1)
 			return "Your cow moos. This cow was special though, it moos so hard that it makes a moo2 appear! Some of the other cows can't handle such a special moo and die (+1 moo2) (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
 		else

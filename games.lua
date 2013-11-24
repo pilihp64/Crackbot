@@ -333,7 +333,7 @@ local itemUses = {
 		if info and os.time() < info then
 			return "Please wait "..(info-os.time()).." seconds before spamming this again"
 		end
-		gameUsers[moo.host].inventory["cow"].status = os.time()+5
+		gameUsers[moo.host].inventory["cow"].status = os.time()+4
 		if cowCount > 2 then
 			if rnd%5 == 1 then
 				local amountgained = math.ceil(cowCount/24)

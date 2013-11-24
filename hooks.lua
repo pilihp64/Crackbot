@@ -287,7 +287,7 @@ function makeCMD(cmd,usr,channel,msg)
 		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
 			return function()
-					if msg then
+					if msg and cmd ~= "alias" and cmd ~= "aa" then
 						--check for {` `} nested commands, ./echo {`echo test`}
 						msg,_ = nestify(msg,1,0,usr,channel)
 					end

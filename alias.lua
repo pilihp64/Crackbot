@@ -62,6 +62,9 @@ local function alias(usr,chan,msg,args)
 
 		table.insert(aliasList,alis)
 		table.save(aliasList,"AliasList.txt")
+		if config.logchannel then
+			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." added alias "..name.." to "..cmd.." "..aMsg)
+		end
 		return "Added alias"
 	elseif args[1]=="rem" or args[1]=="remove" then
 		if not args[2] then return "Usage: '/alias rem <name>'" end

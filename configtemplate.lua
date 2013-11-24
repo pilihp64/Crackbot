@@ -22,12 +22,16 @@ local config={
 	network = {
 		server = "irc.freenode.net",
 		port = 6667,
+		--password = ""
 	},
 	--User info, set these to whatever you need
 	user = {
 		nick = "Crackbot",
 		username = "Meow",
 		realname = "moo",
+		
+		--account = "Crackbot",
+		--password = "password"
 	},
 	--Channels to join on start
 	autojoin = {

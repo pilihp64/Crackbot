@@ -72,7 +72,7 @@ function meta:invoke(name, ...)
 	end
 end
 
-function meta_preconnect:connect(_host, _port)
+function meta_preconnect:connect(_host, _port, _password)
 	local host, port, password, secure, timeout
 
 	if type(_host) == "table" then
@@ -84,6 +84,7 @@ function meta_preconnect:connect(_host, _port)
 	else
 		host = _host
 		port = _port
+		password = _password
 	end
 
 	host = host or error("host name required to connect", 2)

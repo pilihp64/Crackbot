@@ -22,9 +22,11 @@ user = config.user
 irc=irc.new(user)
 
 --support multiple networks sometime
-irc:connect(config.network.server,config.network.port)
+irc:connect(config.network.server,config.network.port,config.network.password)
+config.network.password = nil
 if config.user.password then
-	irc:sendChat("NickServ", "identify "..config.user.nick.." "..config.user.password)
+	irc:sendChat("NickServ", "identify "..config.user.account.." "..config.user.password)
+	config.user.password = nil
 	print("Connected, sleeping for 7 seconds")
 	sleep(7)
 else

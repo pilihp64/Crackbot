@@ -398,7 +398,7 @@ local function realchat(usr,channel,msg)
 			ircSendChatQ(channel,resp)
 		end
 		--log to channel, to notice things faster
-		if channel:sub(1,1) ~= "#" then
+		if config.logchannel and channel:sub(1,1) ~= "#" then
 			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
 		end
 	else

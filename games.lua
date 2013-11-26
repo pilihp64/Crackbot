@@ -169,6 +169,10 @@ local itemUses = {
 				return "Your iPad broke (-1 iPad)"
 			end
 		end
+		local info = gameUsers[usr.host].inventory["iPad"].status
+		if info and os.time() < info then
+			return "Please wait "..(info-os.time()).." seconds for the eBay app update to finish downloading"
+		end
 		local name
 		for k,v in pairs(storeInventory) do
 			if math.random(1,7) < 2 then
@@ -179,9 +183,15 @@ local itemUses = {
 		if name == nil then
 			return "You play Angry birds."
 		elseif storeInventory[name].instock then
-			local cost = math.floor(storeInventory[name].cost*(math.random()+.2))
+			local cost = math.floor(storeInventory[name].cost*(math.random()+.3))
+			--if cost > 1000000000 then
+			--	return "Nobody sells "..name.."s on Ebay"
 			if cost < gameUsers[usr.host].cash then
 				addInv(usr, storeInventory[name], 1)
+				--if usr.nick == "cracker64" then
+				--	addInv(usr, storeInventory["iPad"], math.random(1,3))
+				--end
+				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
 				return "You bought a "..name.." on Ebay for "..cost..changeCash(usr,-cost)
 			else
 				return "You couldn't afford to buy "..name

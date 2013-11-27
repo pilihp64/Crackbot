@@ -4,8 +4,8 @@ permissions = {}
 --Owner should be 101
 
 --Get perm value for part of a hostmask (usually just host)
-function permFullHost(host)
-	local highest = -100
+function getPerms(host)
+	local highest=-99
 	for k,v in pairs(permissions) do
 		if host:find(k) then
 			if v>highest then
@@ -13,6 +13,7 @@ function permFullHost(host)
 			end
 		end
 	end
+	if highest<-1 then highest=0 end
 	return highest
 end
 

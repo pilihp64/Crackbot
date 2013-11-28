@@ -641,19 +641,30 @@ local function store(usr,chan,msg,args)
 		return "You have, "..table.concat(t,", ")
 	end
 	if args[1]=="sell" then
-		if not args[2] then return "Need an item! 'sell <item> [<amt>]'" end
-		local item = args[2]
-		local amt = math.floor(tonumber(args[3]) or 1)
-		if amt==amt and amt>0 then
-			for k,v in pairs(gameUsers[usr.host].inventory or {}) do
-				if v.name==item and v.amount>=amt then
+		if not args[2] then return "Need an item! 'sell <item> [<amt>] [<item2> [<amt2>]]...'" end
+		local sold, rstring, totalSold = false, "Sold ", 0
+		local i=2
+		while args[i] do
+			local item = args[i]
+			local amt = math.floor(tonumber(args[i+1]) or 1)
+			if tonumber(args[i+1]) then i=i+1 end
+			if amt==amt and amt>0 then
+				local v = gameUsers[usr.host].inventory[item]
+				if v and v.amount>=amt then
 					changeCash(usr,v.cost*amt)
-					remInv(usr,k,amt)
-					return "Sold "..amt.." "..v.name.." for $"..v.cost*amt
+					remInv(usr,item,amt)
+					rstring = rstring..amt.." "..v.name..", "
+					totalSold = totalSold + (v.cost*amt)
+					sold=true
 				end
 			end
+			i=i+1
 		end
-		return "You don't have that!"
+		if sold then
+			return rstring.."for $"..totalSold
+		else
+			return "You don't have that!"
+		end
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true)
@@ -945,23 +956,29 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
-	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
+	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
 	if toChan and toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
 	end
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end
-	local rstring,answer,timer = "Question from "..usr.nick..": "..args[2],args[3],30
+	local prize, argA = args[2]:match("(%d+)"), 0
+	if prize then 
+		if gameUsers[usr.host].cash-prize<0 then return "You don't have that much money for the prize!" end
+		argA=1
+	end
+	local rstring,answer,timer = "Question from "..usr.nick.." ($"..(prize or 0).."): "..args[2+argA],args[3+argA],30
 	local answers= {}
-	for i=3,#args do
+	for i=3+argA,#args do
 		answers[args[i]]=true
 	end
 	activeQuiz[qName] = true
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
 		if nchan==toChan and answers[nmsg] then
-			ircSendChatQ(toChan,nusr.nick..": "..nmsg.." is correct, congratulations!")
+			if prize then changeCash(usr,-prize) end
+			ircSendChatQ(toChan,nusr.nick..": "..nmsg.." is correct, congratulations!"..(prize and " Got $"..prize..changeCash(nusr,prize) or ""))
 			remTimer(qName)
 			activeQuiz[qName]=false
 			return true
@@ -973,4 +990,4 @@ local function ask(usr,chan,msg,args)
 	ircSendChatQ(toChan,rstring)
 	return nil
 end
-add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer.",true)
+add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer.",true)

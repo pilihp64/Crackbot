@@ -49,5 +49,7 @@ function fop(op)
 end
 debug.setmetatable(fempty,{__index=_index,__sub=_sub(),__mod=_mod(),__concat=_concat()})
 local smeta = debug.getmetatable("")
-smeta["__mul"] = function(s,v) if type(v)=="number" then local olds = s for i=2,v do s = olds..s end end return s end
+smeta["__mul"] = function(s,v) if type(v)=="number" then s=s:rep(v) end return s end
+smeta["__add"] = function(s,v) s = s..v return s end
+smeta["__metatable"] = {}
 math.randomseed(os.time())

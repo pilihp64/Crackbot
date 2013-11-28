@@ -222,6 +222,18 @@ local function getHost(usr,chan,msg,args)
 end
 add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
 
+--username, for nesting
+local function getName(usr,chan,msg,args)
+	return usr.nick
+end
+add_cmd(getName,"nick",0,"Your nick, '/nick'",false)
+
+--channel name, for nesting
+local function getChan(usr,chan,msg,args)
+	return chan
+end
+add_cmd(getChan,"chan",0,"The current channel, '/chan'",false)
+
 --LUA full access
 local function lua2(usr,chan,msg,args)
 	local e,err = loadstring(msg)

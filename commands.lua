@@ -296,4 +296,4 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-add_cmd(rbug,"bug",0,"Report something to jacob1, '/bug <msg>'",true)
+add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)

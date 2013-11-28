@@ -43,7 +43,7 @@ local function timedSave()
 	table.save(gameUsers,"userData.txt")
 end
 remUpdate("gameSave")
-addUpdate(timedSave,60,"jacob1","gameSave")
+addUpdate(timedSave,60,"cracker64","gameSave")
 
 --adjust win/lose streak
 local function streak(usr,win)

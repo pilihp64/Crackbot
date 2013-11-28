@@ -407,7 +407,7 @@ local function realchat(usr,channel,msg)
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if user.nick=="jacobot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
+	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
@@ -434,7 +434,7 @@ function consoleChat(msg)
 		conChannel = chan
 		return
 	end
-	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="jacob1!jacob1@Powder/Developer/jacob1"},conChannel,msg)
+	chat({nick="cracker64",host="Powder/Developer/cracker64",fullhost="cracker64!~meow@Powder/Developer/cracker64"},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

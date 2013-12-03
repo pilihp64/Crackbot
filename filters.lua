@@ -404,6 +404,12 @@ local function filter(usr,chan,msg,args)
 		else
 			return "No permission to unlock"
 		end
+	elseif msg=="pop" then
+		if popFilter(chan) then
+			return "Removed last filter"
+		else
+			return "Can't pop! Locked or no filters"
+		end	
 	elseif not msg then
 		if clearFilter(chan) then
 			return "Cleared Filts"
@@ -436,7 +442,7 @@ end
 
 --BADWORD filter, hopefully always active, uses my terrible color table to re-add
 --possibly save this list to file
-local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-", "^%&"}
+local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-", "^%&","^%)","^%("}
 local function badWords(text)
 	if type(text)~="string" then return nil end
 	local t = tableColor(text)

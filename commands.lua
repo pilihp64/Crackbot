@@ -30,6 +30,7 @@ end
 
 --Helper to return user object from a name
 function getUserFromNick(nick)
+	if not nick then return end
 	for k,v in pairs(irc.channels) do
 		if v and v.users then
 			for k2,v2 in pairs(v.users) do
@@ -208,19 +209,22 @@ end
 add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 --hostmask
-local function getHost(usr,chan,msg,args)
-	if not msg then return usr.host end
-	local full = args[2]=="full"
-	local user = getUserFromNick(args[1])
+local function getHost(usr,chan,msg,args,ofull)
+	local full,user = false,getUserFromNick(args[1])
 	if not user then
-		return "Invalid user or not online."
+		user = usr
+		full = args[1]=="full"
+	else
+		full = args[2]=="full"
 	end
-	if full then
-		return user.fullhost
-	end
-	return user.host
+	return ((ofull or full) and user.fullhost or user.host)
 end
-add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
+add_cmd(getHost,"host",0,"The host for a user, '/host <name>' Use /hostmask for full hostmask",false)
+
+local function getHostmask(usr,chan,msg,args)
+	return getHost(usr,chan,msg,args,true)
+end
+add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '/hostmask <name>' Use /host for short host",false)
 
 --username, for nesting
 local function getName(usr,chan,msg,args)

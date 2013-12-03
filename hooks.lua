@@ -29,9 +29,14 @@ end
 
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
-	local oldtext = colorstrip(text)
+	local oldtext, status = colorstrip(text), true
 	for k,v in pairs(activeFilters[chan].t) do
-		text = v.f(text,v.args,true):sub(1,445)
+		status, text = pcall(v.f,text,v.args,true)
+		if text then text = text:sub(1,445) end
+	end
+	if not status then
+		text = "Error in filter: "..text
+		table.remove(activeFilters[chan].t)
 	end
 	if #colorstrip(text) > 100 and #colorstrip(text) > 2*#oldtext then
 		text = "Error, filter too long"
@@ -57,9 +62,8 @@ function addFilter(chan,filt,name,args)
 		if not activeFilters[chan].lock then
 			table.insert(activeFilters[chan].t,{['f']=filt,['name']=name,['args']=args})
 			return true
-		else
-			return false
 		end
+		return false
 	end
 end
 function setBadWordFilter(f)
@@ -70,9 +74,17 @@ function clearFilter(chan)
    	if not activeFilters[chan].lock then
 		activeFilters[chan].t={}
 		return true
-	else
-		return false
 	end
+	return false
+end
+--remove last filter
+function popFilter(chan)
+	local chanF = activeFilters[chan]
+	if not chanF.lock and #chanF.t>0 then
+		table.remove(chanF.t,#chanF.t)
+		return true
+	end
+	return false
 end
 --kill all filters, for errors
 function clearAllFilts()

@@ -1,29 +1,62 @@
 --Contains data needed to create command
 aliasList = table.load("AliasList.txt") or {}
+local macroCMDs = {
+	["%*"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		local add = ""
+		for k,v in pairs(nargs) do
+			if not usedArgs[k] then
+				add = add .. v .. (k<#nargs and " " or "")
+			end
+		end
+		return add
+	end,
+	["me"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return nusr.nick
+	end,
+	["chan"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return nchan
+	end,
+	["host([^m])"] = function(nusr,nchan,nmsg,nargs,usedArgs,left)
+		return nusr.host..left
+	end,
+	["hostmask"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return nusr.fullhost
+	end,
+	["cash"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return gameUsers[nusr.host].cash
+	end,
+}
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
 local function mkAliasFunc(t,aArgs)
 	return function(nusr,nchan,nmsg,nargs)
-			--Put new args after alias args
+			--TODO: FIX DEPTH CHECK
 			if aliasDepth>10 then aliasDepth=0 error("Alias depth limit reached!") end
-			local sendArgs = {}
-			for i=1,#aArgs do table.insert(sendArgs,aArgs[i]) end
-			for i=1,#nargs do table.insert(sendArgs,nargs[i]) end
-			local sendMsg = t.aMsg
-			if nmsg and nmsg~="" then
-				if t.aMsg~="" then sendMsg=sendMsg.." "..nmsg
-				else sendMsg=nmsg
-				end
-			end
 			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
+			--A few blacklists
 			if t.cmd == "use" or t.cmd == "timer" or t.cmd == "bug" then
 				error("You can't alias to that")
 			end
+			--Replace for numbered macros first
+			local usedArgs = {}
+			nmsg = t.aMsg:gsub("%$(%d)",function(repl)
+				local repN = tonumber(repl)
+				if repN and repN~=0 then
+					usedArgs[repN] = true
+					return nargs[repN] or ""
+				end
+			end)
+			--Replace custom macros now
+			for k,v in pairs(macroCMDs) do
+				nmsg = nmsg:gsub("%$"..k,v[nusr][nchan][nmsg][nargs][usedArgs])
+			end
 			aliasDepth = aliasDepth+1
-			local something = makeCMD(t.cmd,nusr,nchan,sendMsg,sendArgs)
-			if not something then return "" end
-			local ret = {something() }
+			--TODO: Fix coroutine to actually make nested alias loops not block
 			coroutine.yield(false,0)
+			
+			local f = makeCMD(t.cmd,nusr,nchan,nmsg,getArgs(nmsg))
+			if not f then return "" end
+			local ret = {f()}
 			aliasDepth = 0
 			return unpack(ret)
 		end

@@ -1,26 +1,19 @@
 --Contains data needed to create command
 aliasList = table.load("AliasList.txt") or {}
 local macroCMDs = {
-	["%*"] = function(nusr,nchan,nmsg,nargs,usedArgs)
-		local add = ""
-		for k,v in pairs(nargs) do
-			if not usedArgs[k] then
-				add = add .. v .. (k<#nargs and " " or "")
-			end
-		end
-		return add
-	end,
 	["me"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return nusr.nick
 	end,
 	["chan"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return nchan
 	end,
-	["host([^m])"] = function(nusr,nchan,nmsg,nargs,usedArgs,left)
-		return nusr.host..left
-	end,
-	["hostmask"] = function(nusr,nchan,nmsg,nargs,usedArgs)
-		return nusr.fullhost
+	["host(m?a?s?k?)"] = function(nusr,nchan,nmsg,nargs,usedArgs,right)
+		if right then
+			if right=="mask" then
+				return nusr.fullhost
+			end
+		end
+		return nusr.host..right
 	end,
 	["cash"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return gameUsers[nusr.host].cash
@@ -46,6 +39,16 @@ local function mkAliasFunc(t,aArgs)
 					return nargs[repN] or ""
 				end
 			end)
+			--Replace $* here because
+			nmsg = nmsg:gsub("%$%*",function()
+				local t = {}
+				for k,v in pairs(nargs) do
+					if not usedArgs[k] then
+						table.insert(t,v)
+					end
+				end
+				return table.concat(t," ")
+			end,1)
 			--Replace custom macros now
 			for k,v in pairs(macroCMDs) do
 				nmsg = nmsg:gsub("%$"..k,v[nusr][nchan][nmsg][nargs][usedArgs])

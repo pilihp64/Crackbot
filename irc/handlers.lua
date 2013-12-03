@@ -68,7 +68,9 @@ handlers["NICK"] = function(o, prefix, newnick)
 			if oldinfo then
 				users[newnick] = oldinfo
 				users[newnick].nick = newnick
-				users[newnick].fullhost = users[newnick].nick.."!"..users[newnick].username.."@"..users[newnick].host
+				if users[newnick].fullhost then
+					users[newnick].fullhost = users[newnick].nick.."!"..users[newnick].username.."@"..users[newnick].host
+				end
 				users[user.nick] = nil
 				o:invoke("NickChange", user, newnick, channel)
 			end

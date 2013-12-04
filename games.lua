@@ -6,6 +6,12 @@ end
 gameUsers = gameUsers or loadUsers()
 
 storeInventory={
+["paradox"]={name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=false},
+["blackhole"]=	{name="blackhole",	cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=false},
+["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=false},
+["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=false},
+["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=false},
+["junk"]=	{name="junk",	cost=-500,info="Why do you have this, you will have to PAY someone to get rid of it",amount=1,instock=false},
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
 ["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
@@ -38,12 +44,6 @@ storeInventory={
 local function loadUsersCMD()
 	gameUsers = loadUsers()
 end
---make a timer loop save users every minute, errors go to me
-local function timedSave()
-	table.save(gameUsers,"userData.txt")
-end
-remUpdate("gameSave")
-addUpdate(timedSave,60,"cracker64","gameSave")
 
 --adjust win/lose streak
 local function streak(usr,win)
@@ -114,6 +114,27 @@ local function remInv(usr,name,amt)
 	end
 end
 
+--make a timer loop save users every minute, errors go to me
+local function timedSave()
+	--now we are parsing items in inventories for updates
+	for host,usr in pairs(gameUsers) do
+		for k,v in pairs(usr.inventory or {}) do
+			if k=="loan" then
+				v.cost = math.floor(v.cost*1.0002)
+			elseif k=="blackhole" then
+				v.cost = math.floor(v.cost*1.02)
+			elseif k=="paradox" then
+				v.cost = math.floor(v.cost*.9)
+			elseif k=="cow" and math.random()>.9 then
+				addInv({host=host},storeInventory["moo"],1)
+			end
+		end
+	end
+	table.save(gameUsers,"userData.txt")
+end
+remUpdate("gameSave")
+addUpdate(timedSave,60,"cracker64","gameSave")
+
 --Find closest item value
 local function findClosestItem(amt)
 	local closestitem=nil
@@ -163,10 +184,11 @@ local itemUses = {
 		local rnd = math.random(1,5)
 		if rnd == 1 then
 			remInv(usr,"iPad",1)
+			addInv(usr,storeInventory["junk"],1)
 			if math.random(1,5) == 5 then
-				return "Your iPad was incinerated (-1 iPad)"
+				return "Your iPad was incinerated (-1 iPad, +1 junk)"
 			else
-				return "Your iPad broke (-1 iPad)"
+				return "Your iPad broke (-1 iPad, +1 junk)"
 			end
 		end
 		local info = gameUsers[usr.host].inventory["iPad"].status
@@ -175,7 +197,7 @@ local itemUses = {
 		end
 		local name
 		for k,v in pairs(storeInventory) do
-			if math.random(1,7) < 2 then
+			if math.random(1,7) < 2 and v.cost>0 then
 				name = k
 				break
 			end
@@ -184,9 +206,12 @@ local itemUses = {
 			return "You play Angry birds."
 		elseif storeInventory[name].instock then
 			local cost = math.floor(storeInventory[name].cost*(math.random()+.3))
-			--if cost > 1000000000 then
-			--	return "Nobody sells "..name.."s on Ebay"
 			if cost < gameUsers[usr.host].cash then
+				if cost > 1000000000 and gameUsers[usr.host].cash > 100000000000 and math.random()>.8 then
+					remInv(usr,"iPad",1)
+					addInv(usr,storeInventory["blackhole"],1)
+					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
+				end
 				addInv(usr, storeInventory[name], 1)
 				--if usr.nick == "cracker64" then
 				--	addInv(usr, storeInventory["iPad"], math.random(1,3))
@@ -298,8 +323,16 @@ local itemUses = {
 	end,
 	["vroom"]=function(usr)
 		--maybe have this do something later
-		remInv(usr,"vroom",1)
-		return "You use vroom! A cloud of smoke appears (-1 vroom)"
+		local rnd = math.random(1,100)
+		if rnd<33 then
+			remInv(usr,"vroom",1)
+			return "You use vroom! A cloud of smoke appears (-1 vroom)"
+		elseif rnd<46 then
+			addInv(usr,storeInventory["credit"],1)
+			return "You find out the vroom was stolen, you have to take out a credit card to pay it off ( +1 credit)"
+		else
+			return "Ye ye vroom vroom +$1500000"..changeCash(usr,1500000)
+		end	
 	end,
 	["potato"]=function(usr)
 		if usr.nick == "jacob1" then
@@ -357,6 +390,10 @@ local itemUses = {
 					return "Your cows stampede and many escape (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
 				end
 				if cowCount > 20 and rnd%5 == 3 then
+					if math.random()>.9 then
+						addInv(moo,storeInventory["loan"],1)
+						return "You start a cow farm, but it quickly becomes overrun with peasants who start summoning a demonic rift. A great demon appears and allows you to live at a cost (+1 loan)"
+					end
 					local amountLost = math.ceil(rnd/5)
 					local amountgained = (math.floor(math.random(1,10))*4+1)*25000000
 					remInv(moo, "cow", amountLost)
@@ -373,8 +410,12 @@ local itemUses = {
 		elseif rnd <= 30 then
 			addInv(moo,storeInventory["cow"], cowCount)
 			return "Your cows all breed asexually (+"..cowCount.." cows)"
-		elseif rnd <= 45 then
+		elseif rnd <= 40 then
 			return "The cow tries to moo but is unable to because you never feed it"
+		elseif rnd <= 50 then
+			local voids = math.random(45*cowCount)
+			addInv(moo,storeInventory["void"],voids)
+			return "The cow tries to moo but accidentally creates voids everywhere (+"..voids.." voids)"
 		elseif rnd <= 55 then
 			return "You feed your cow"
 		elseif rnd <= 85 then
@@ -559,6 +600,7 @@ local function giveMon(usr,chan,msg,args)
 		end
 	end
 	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
+		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
@@ -609,6 +651,9 @@ local function store(usr,chan,msg,args)
 	if args[1]=="info" then
 		if not args[2] then return "Need an item! 'info <item>'" end
 		local item = args[2]
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+		end
 		for k,v in pairs(storeInventory) do
 			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
 		end
@@ -956,7 +1001,7 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
-	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer." end
+	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
 	if toChan and toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
@@ -990,4 +1035,4 @@ local function ask(usr,chan,msg,args)
 	ircSendChatQ(toChan,rstring)
 	return nil
 end
-add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer.",true)
+add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer.",true)

@@ -18,6 +18,18 @@ local macroCMDs = {
 	["cash"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return gameUsers[nusr.host].cash
 	end,
+	["ping"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return "pong"
+	end,
+	["inv%[(%w-)%]"] = function(nusr,nchan,nmsg,nargs,usedArgs,item)
+		return tostring((gameUsers[nusr.host].inventory[item] or {amount=0}).amount)
+	end,
+	["USER"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return "crackbot"
+	end,
+	["PWD"] = function(nusr,nchan,nmsg,nargs,usedArgs)
+		return "/home/crackbot/bot"
+	end,
 }
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
@@ -49,9 +61,12 @@ local function mkAliasFunc(t,aArgs)
 				end
 				return table.concat(t," ")
 			end,1)
-			--Replace custom macros now
-			for k,v in pairs(macroCMDs) do
-				nmsg = nmsg:gsub("%$"..k,v[nusr][nchan][nmsg][nargs][usedArgs])
+			--An alias of 'alias add $*' should skip macro evaluate to properly insert macros
+			if not (t.cmd=="alias" and aArgs[1]=="add")then
+				--Replace custom macros now
+				for k,v in pairs(macroCMDs) do
+					nmsg = nmsg:gsub("%$"..k,v[nusr][nchan][nmsg][nargs][usedArgs])
+				end
 			end
 			aliasDepth = aliasDepth+1
 			--TODO: Fix coroutine to actually make nested alias loops not block

@@ -119,6 +119,11 @@ local function ping(usr,chan,msg)
 end
 add_cmd(ping,"ping",0,"pong",true)
 
+local function useless(usr,chan,msg)
+	return "I am useless"
+end
+add_cmd(useless,"useless",0,"wat",false)
+
 --DO
 local function dothis(usr,chan,msg) --fix DO and ME with filters
 	if msg then return "\001ACTION does "..msg.."\001",true end

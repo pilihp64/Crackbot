@@ -120,7 +120,7 @@ end
 add_cmd(ping,"ping",0,"pong",true)
 
 local function useless(usr,chan,msg)
-	return "I am useless"
+	return "I am not useless at all"
 end
 add_cmd(useless,"useless",0,"wat",false)
 

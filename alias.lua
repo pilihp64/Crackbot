@@ -104,10 +104,10 @@ local function alias(usr,chan,msg,args)
 		if getPerms(usr.host) < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if name:find("[\128-\255]") then return "Ascii aliases only" end
-		if #args > 50 then return "Alias too complex!" end
+		if #args > 60 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
-		if #aMsg > 500 then return "Alias too complex!" end
+		if #aMsg > 550 then return "Alias too complex!" end
 		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level}
 		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
 

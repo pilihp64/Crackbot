@@ -52,4 +52,8 @@ local smeta = debug.getmetatable("")
 smeta["__mul"] = function(s,v) if type(v)=="number" then s=s:rep(v) end return s end
 smeta["__add"] = function(s,v) s = s..v return s end
 smeta["__metatable"] = {}
-math.randomseed(os.time())
+local _rand,first = math.random,true
+math.random = function(...)
+	if first then math.randomseed(os.time()) first=false for i=0,20 do _rand() end end
+	return _rand(...)
+end

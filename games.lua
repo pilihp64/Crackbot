@@ -39,6 +39,14 @@ storeInventory={
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
 ["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
 }
+local inStockSorted = {}
+for k,v in pairs(storeInventory) do
+	if v.instock then
+		table.insert(inStockSorted,v)
+	end
+end
+table.sort(inStockSorted,function(a,b) if a.cost<b.cost then return a end end)
+--for k,v in pairs(inStockSorted) do print(v.name) end
 
 --make function hook to reload user cash
 local function loadUsersCMD()
@@ -196,9 +204,9 @@ local itemUses = {
 			return "Please wait "..(info-os.time()).." seconds for the eBay app update to finish downloading"
 		end
 		local name
-		for k,v in pairs(storeInventory) do
+		for k,v in pairs(inStockSorted) do
 			if math.random(1,7) < 2 and v.cost>0 then
-				name = k
+				name = v.name
 				break
 			end
 		end
@@ -207,7 +215,7 @@ local itemUses = {
 		elseif storeInventory[name].instock then
 			local cost = math.floor(storeInventory[name].cost*(math.random()+.3))
 			if cost < gameUsers[usr.host].cash then
-				if cost > 1000000000 and gameUsers[usr.host].cash > 100000000000 and math.random()>.8 then
+				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
 					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
@@ -1001,7 +1009,7 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
-	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
+	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
 	if toChan and toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
@@ -1035,4 +1043,4 @@ local function ask(usr,chan,msg,args)
 	ircSendChatQ(toChan,rstring)
 	return nil
 end
-add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer.",true)
+add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer.",true)

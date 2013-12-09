@@ -1,9 +1,5 @@
 local buffer = {}
-local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
-local activeFilters = {}
-local badWordFilts = nil
-waitingCommands = {}
-setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
+local waitingCommands = {}
 --make print log everything to file as well
 _print = _print or print
 print = function(...)
@@ -16,94 +12,24 @@ print = function(...)
 	frqq:close()
 end
 
-function getkeys(table)
-	if type(table) ~= "table" then
-		return "Not a table"
+local onSendHooks = {}
+function addSendHook(hook,key)
+	if type(hook)=="function" then
+		onSendHooks[key] = onSendHooks[key] or hook
 	end
-	local str = ""
-	for k,v in pairs(table) do
-		str = str..type(v).." "..k.." | "
-	end
-	return str
+end
+function remSendHook(key)
+	onSendHooks[key] = nil
 end
 
-local function chatFilter(chan,text)
-	if bannedChans[chan:lower()] then error("Bad chan") end
-	local oldtext, status = colorstrip(text), true
-	for k,v in pairs(activeFilters[chan].t) do
-		status, text = pcall(v.f,text,v.args,true)
-		if text then text = text:sub(1,445) end
-	end
-	if not status then
-		text = "Error in filter: "..text
-		table.remove(activeFilters[chan].t)
-	end
-	if #colorstrip(text) > 100 and #colorstrip(text) > 2*#oldtext then
-		text = "Error, filter too long"
-		table.remove(activeFilters[chan].t)
-	end
-	--don't censor query
-	if badWordFilts and chan:sub(1,1)=='#' then text = badWordFilts(text) end
-	return chan,text
-end
---show active filters
-function getFilts(chan)
-	local t={}
-	for k,v in pairs(activeFilters[chan].t) do
-		table.insert(t, v.name .. " " .. table.concat(v.args," ") )
-	end
-	local text = table.concat(t,"> ") or ""
-	print(text)
-	return "in > "..text .. "> out"
-end
---add new filter
-function addFilter(chan,filt,name,args)
-	if type(filt)=='function' then
-		if not activeFilters[chan].lock then
-			table.insert(activeFilters[chan].t,{['f']=filt,['name']=name,['args']=args})
-			return true
-		end
-		return false
-	end
-end
-function setBadWordFilter(f)
-	badWordFilts  = f
-end
---clear filter
-function clearFilter(chan)
-   	if not activeFilters[chan].lock then
-		activeFilters[chan].t={}
-		return true
-	end
-	return false
-end
---remove last filter
-function popFilter(chan)
-	local chanF = activeFilters[chan]
-	if not chanF.lock and #chanF.t>0 then
-		table.remove(chanF.t,#chanF.t)
-		return true
-	end
-	return false
-end
---kill all filters, for errors
-function clearAllFilts()
-	for k,v in pairs(activeFilters) do
-		v.t = {}
-	end
-end
-function filtLock(chan)
-	activeFilters[chan].lock = true
-end
-function filtUnLock(chan)
-	activeFilters[chan].lock = false
-end
 --chat queue, needs to prevent excess flood eventually
-function ircSendChatQ(chan,text,nofilter)
+function ircSendChatQ(chan,text,nohook)
 	--possibly keep rest of text to send later
 	if not text then return end
-	if not nofilter then
-		chan,text = chatFilter(chan,text)
+	if not nohook then
+		for k,v in pairs(onSendHook) do
+			chan,text = v(chan,text)
+		end
 	end
 	text = text:gsub("[\r\n]"," ")
 	host = ""
@@ -240,7 +166,7 @@ function timerCheck()
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener
-chatListeners = {}
+local chatListeners = {}
 function addListener(name,f)
 	if type(f)=="function" then
 		chatListeners[name]=f
@@ -428,7 +354,7 @@ local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
-		clearAllFilts()
+		onSendHooks = nil
 		ircSendChatQ(channel,r)
 	end
 end

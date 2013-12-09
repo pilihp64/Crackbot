@@ -126,7 +126,7 @@ function ircSendNoticeQ(channel, text)
 end
 
 --send a line of queue
-function ircSendOne()
+function ircSendOne(tick)
 	if tick%12==0 and #buffer then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
@@ -281,7 +281,7 @@ function getArgsOld(msg)
     return args
 end
 
-nestify=nil
+local nestify=nil
 local nestBegin = "<<"
 local nestEnd = ">>"
 function setNest(nb,ne)

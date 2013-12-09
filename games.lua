@@ -437,7 +437,34 @@ local itemUses = {
 		else
 			return rainbow("mo".."o"*math.random(1,75))
 		end
-	end
+	end,
+	["billion"] = function(usr,args)
+		local other = getUserFromNick(args[2])
+		if other and other.nick ~= usr.nick then
+			local rnd = math.random(100)
+			if rnd < 33 then
+				remInv(usr, "billion", 1)
+				addInv(other,storeInventory["billion"],1)
+				return "You threw your billion at "..other.nick.." and they gladly accept it"
+			elseif rnd < 66 then
+				return "You threw your billion at "..other.nick..", but they kindly return it."
+			else
+				remInv(usr, "billion", 1)
+				addInv(other,storeInventory["billion"],1)
+				local t = {}
+				for k,v in pairs(gameUsers[other.host].inventory) do table.insert(t,v) end
+				local otheritem = t[math.random(#t)]
+				if otheritem.instock or otheritem.cost<0 then
+					remInv(other, otheritem.name, 1)
+					addInv(other, otheritem,1)
+					return "You threw your billion at "..other.nick..", they are thankful and give you a " .. otheritem.name .. " in return without thinking."
+				else
+					return "You dropped the billion down a drain. "..other.nick.." lives in the sewers and found it."
+				end
+			end
+		end
+		return "You are just happy you have the billion"
+	end,
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato
@@ -453,7 +480,7 @@ local function useItem(usr,chan,msg,args)
 	if not gameUsers[usr.host].inventory[args[1]] or gameUsers[usr.host].inventory[args[1]].amount<=0 then
 		return "You don't have that item!"
 	elseif itemUses[args[1]] and gameUsers[usr.host].inventory[args[1]] then
-		return itemUses[args[1]](usr)
+		return itemUses[args[1]](usr,args)
 	else
 		return "This item can't be used!"
 	end
@@ -895,23 +922,6 @@ isPossible= function(s) --this question only accepts number and color answers
 	return false
 end})
 
-function questionCheck()
-	local rstring=""
-	local res={}
-	for i=1,10000 do
-		local q,ans,_,_,oans = questions[1].q()
-		if not res[oans] then
-			res[oans]=1
-		else
-			res[oans]=res[oans]+1
-		end
-	end
-	for k,v in pairs(res) do
-		rstring=rstring..k..":"..v.." "
-	end
-
-	ircSendChatQ("##powder-bots",rstring)
-end
 --[[
 table.insert(questions,{
 q= function() --A filler question, just testing

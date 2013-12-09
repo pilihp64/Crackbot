@@ -27,7 +27,7 @@ function ircSendChatQ(chan,text,nohook)
 	--possibly keep rest of text to send later
 	if not text then return end
 	if not nohook then
-		for k,v in pairs(onSendHook) do
+		for k,v in pairs(onSendHooks) do
 			chan,text = v(chan,text)
 		end
 	end

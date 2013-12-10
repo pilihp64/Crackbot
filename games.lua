@@ -159,6 +159,45 @@ end
 
 --Uses for items, with /use
 local itemUses = {
+	["junk"] = function(usr)
+		local rnd = math.random(100)
+		if rnd <= 10 then
+			remInv(usr,"junk",1)
+			addInv(usr,storeInventory["iPad"], 1)
+			return "It wasn't junk after all! (-1 junk, +1 iPad)"
+		elseif rnd <= 20 then
+			addInv(usr,storeInventory["junk"], 2)
+			return "You had more junk than you realized! (+2 junk)"
+		elseif rnd <= 30 then
+			remInv(usr,"junk",1)
+			addInv(usr,storeInventory["nothing"], 1)
+			return "You never had any junk. (-1 junk, +1 nothing)"
+		elseif rnd <= 40 then
+			return "You trip over the junk and hurt your leg. The hospital bill was $10000. (-$10000)"..changeCash(usr,-10000)
+		elseif rnd <= 50 then
+			return "You look for your junk, you find it in your pants"
+		elseif rnd <= 60 then
+			remInv(usr,"junk",1)
+			addInv(usr,storeInventory["doll"], 1)
+			return "You look at your junk and find it is actually mitch (-1 junk, +1 doll)"
+		elseif rnd <= 70 then
+			return "You attempt to dispose of your junk, but are caught and fined $50000 for illegal dumping"..changeCash(usr,-50000)
+		elseif rnd <= 80 then
+			local junk = (gameUsers[usr.host].inventory.junk or {amount=1}).amount
+			addInv(usr, storeInventory["junk"], junk)
+			return "You donate the junk to charity, but they refuse your offer and give you just as much. (+".. junk .." junk)"
+		elseif rnd <= 90 then
+			local t = {}
+			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 then table.insert(t,v) end end
+			local nom = t[math.random(#t)]
+			remInv(usr, nom.name, 1)
+			return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
+		else
+			addInv(usr, storeInventory["penguin"], 1)
+			return "You find a penguin in your junk. (+1 penguin)"
+		end
+		return "Yup it is junk all right"
+	end,
 	["chips"] = function(usr)
 		local rnd = math.random(1,150)
 		if rnd <= 3 then

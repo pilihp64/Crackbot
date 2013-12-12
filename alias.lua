@@ -33,7 +33,8 @@ local macroCMDs = {
 }
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
-local function mkAliasFunc(t,aArgs)
+local function mkAliasFunc(t,aArgs,userlevel)
+	local usrlevel = userlevel or 0
 	return function(nusr,nchan,nmsg,nargs)
 			--TODO: FIX DEPTH CHECK
 			if aliasDepth>10 then aliasDepth=0 error("Alias depth limit reached!") end
@@ -71,10 +72,11 @@ local function mkAliasFunc(t,aArgs)
 			aliasDepth = aliasDepth+1
 			--TODO: Fix coroutine to actually make nested alias loops not block
 			coroutine.yield(false,0)
-			
+			if usrlevel < getPerms(nusr.host) then nusr.level = usrlevel end
 			local f = makeCMD(t.cmd,nusr,nchan,nmsg,getArgs(nmsg))
 			if not f then return "" end
 			local ret = {f()}
+			nusr.level = nil
 			aliasDepth = 0
 			return unpack(ret)
 		end
@@ -83,7 +85,7 @@ end
 for k,v in pairs(aliasList) do
 	local aArgs = getArgs(v.aMsg)
 	if not commands[v.name] then
-		add_cmd( mkAliasFunc(v,aArgs) ,v.name,v.level,"Alias for "..v.cmd.." "..v.aMsg,false)
+		add_cmd( mkAliasFunc(v,aArgs,v.usrlvl) ,v.name,v.level,"Alias for "..v.cmd.." "..v.aMsg,false)
 	else
 		--name already exists, hide alias
 		aliasList[k]=nil
@@ -91,6 +93,7 @@ for k,v in pairs(aliasList) do
 end
 --ALIAS, add an alias for a command
 local function alias(usr,chan,msg,args)
+	args = getArgsOld(msg)
 	if not msg or not args[1] then return "Usage: '/alias add/rem/list <name> <cmd> [<args>]'" end
 	if args[1]=="add" then
 		if not args[2] then return "Usage: '/alias add <name> <cmd> [<args>]'" end
@@ -101,15 +104,16 @@ local function alias(usr,chan,msg,args)
 			return "Error: You can't alias to that"
 		end
 		if allCommands[name] then return name.." already exists!" end
-		if getPerms(usr.host) < commands[cmd].level then return "You can't alias that!" end
+		local userlevel = getPerms(usr.host)
+		if userlevel < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if name:find("[\128-\255]") then return "Ascii aliases only" end
 		if #args > 60 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
 		if #aMsg > 550 then return "Alias too complex!" end
-		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level}
-		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
+		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level, usrlvl = userlevel}
+		add_cmd( mkAliasFunc(alis,aArgs,userlevel) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
 
 		table.insert(aliasList,alis)
 		table.save(aliasList,"AliasList.txt")

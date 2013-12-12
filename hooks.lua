@@ -222,16 +222,16 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
-		if getPerms(usr.host) >= commands[cmd].level then
+		if (usr.level or getPerms(usr.host)) >= commands[cmd].level then
 			--we have permission
 			return function()
-					if msg and cmd ~= "alias" and cmd ~= "aa" then
-						--check for {` `} nested commands, ./echo {`echo test`}
-						msg,_ = nestify(msg,1,0,usr,channel)
-					end
-					if msg=="" then msg=nil end
-					return commands[cmd].f(usr,channel,msg,getArgs(msg))
+				if msg and cmd ~= "alias" and cmd ~= "aa" then
+					--check for {` `} nested commands, ./echo {`echo test`}
+					msg,_ = nestify(msg,1,0,usr,channel)
 				end
+				if msg=="" then msg=nil end
+				return commands[cmd].f(usr,channel,msg,getArgs(msg))
+			end
 		else
 			return false,usr.nick..": No permission for "..cmd
 		end

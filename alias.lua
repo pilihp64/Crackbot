@@ -37,13 +37,13 @@ local function mkAliasFunc(t,aArgs)
 	local temp={}
 	preCommands[t.name] = function(nusr)
 		temp[nusr.host] = permissions[nusr.host]
-		local curlevel =(t.usrlvl or getPerms(nusr.host))
+		local curlevel = (t.usrlvl or getPerms(nusr.host))
 		if curlevel < getPerms(nusr.host) or t.suid then
 			permissions[nusr.host] = curlevel
 		end
 	end
 	postCommands[t.name] = function(nusr)
-		permissions[nusr.host] = temp[nusr.host]
+		if temp[nusr.host] then permissions[nusr.host] = temp[nusr.host] end
 	end
 	return function(nusr,nchan,nmsg,nargs)
 			--TODO: FIX DEPTH CHECK

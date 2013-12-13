@@ -33,8 +33,18 @@ local macroCMDs = {
 }
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
-local function mkAliasFunc(t,aArgs,userlevel)
-	local usrlevel = userlevel or 0
+local function mkAliasFunc(t,aArgs)
+	local temp={}
+	preCommands[t.name] = function(nusr)
+		temp[nusr.host] = permissions[nusr.host]
+		local curlevel =(t.usrlvl or getPerms(nusr.host))
+		if curlevel < getPerms(nusr.host) or t.suid then
+			permissions[nusr.host] = curlevel
+		end
+	end
+	postCommands[t.name] = function(nusr)
+		permissions[nusr.host] = temp[nusr.host]
+	end
 	return function(nusr,nchan,nmsg,nargs)
 			--TODO: FIX DEPTH CHECK
 			if aliasDepth>10 then aliasDepth=0 error("Alias depth limit reached!") end
@@ -71,12 +81,14 @@ local function mkAliasFunc(t,aArgs,userlevel)
 			end
 			aliasDepth = aliasDepth+1
 			--TODO: Fix coroutine to actually make nested alias loops not block
-			coroutine.yield(false,0)
-			if usrlevel < getPerms(nusr.host) then nusr.level = usrlevel end
+			--coroutine.yield(false,0)
+			if getPerms(nusr.host) < t.level then
+				return "NoO permission for "..t.name --this is never displayed anyway
+			end
+			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
 			local f = makeCMD(t.cmd,nusr,nchan,nmsg,getArgs(nmsg))
 			if not f then return "" end
 			local ret = {f()}
-			nusr.level = nil
 			aliasDepth = 0
 			return unpack(ret)
 		end
@@ -85,7 +97,7 @@ end
 for k,v in pairs(aliasList) do
 	local aArgs = getArgs(v.aMsg)
 	if not commands[v.name] then
-		add_cmd( mkAliasFunc(v,aArgs,v.usrlvl) ,v.name,v.level,"Alias for "..v.cmd.." "..v.aMsg,false)
+		add_cmd( mkAliasFunc(v,aArgs) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..(v.usrlvl or 0)..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
 	else
 		--name already exists, hide alias
 		aliasList[k]=nil
@@ -112,9 +124,8 @@ local function alias(usr,chan,msg,args)
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
 		if #aMsg > 550 then return "Alias too complex!" end
-		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level, usrlvl = userlevel}
-		add_cmd( mkAliasFunc(alis,aArgs,userlevel) ,name,alis.level,"Alias for "..cmd.." "..aMsg,false)
-
+		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level,usrlvl = userlevel,suid=false}
+		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"(lvl="..userlevel..",req="..commands[cmd].level..") Alias for "..cmd.." "..aMsg,false)
 		table.insert(aliasList,alis)
 		table.save(aliasList,"AliasList.txt")
 		if config.logchannel then
@@ -163,6 +174,36 @@ local function alias(usr,chan,msg,args)
 				v.lock = nil
 				table.save(aliasList,"AliasList.txt")
 				return "Unlocked alias"
+			end
+		end
+		return "Alias not found"
+	elseif args[1]=="suid" then
+		if not args[2] then return "'/alias suid <name> [level]' No level will disable" end
+		if getPerms(usr.host) < 101 then return "No permission to suid!" end
+		local name, level = args[2],tonumber(args[3])
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				v.usrlvl,v.suid = (level or v.usrlvl),(level and 1 or nil)
+				table.save(aliasList,"AliasList.txt")
+				commands[name]=nil
+				allCommands[name]=nil
+				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
+				return "Set suid to "..level
+			end
+		end
+		return "Alias not found"
+	elseif args[1]=="restrict" then
+		if not args[3] then return "'/alias restrict <name> <level>'" end
+		if getPerms(usr.host) < 101 then return "No permission to restrict!" end
+		local name, level = args[2],(tonumber(args[3]) or 101)
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				v.level = level
+				commands[name].level = level
+				table.save(aliasList,"AliasList.txt")
+				commands[name]=nil
+				allCommands[name]=nil
+				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)				return "Set restrict to "..level
 			end
 		end
 		return "Alias not found"

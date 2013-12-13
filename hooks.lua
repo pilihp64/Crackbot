@@ -181,6 +181,16 @@ local function listen(usr,chan,msg)
 	end
 end
 
+--Something to run before/after specific commands
+preCommands = {}
+postCommands = {}
+local function onPreCommand(cmd,usr)
+	if preCommands[cmd] then preCommands[cmd](usr) end
+end
+local function onPostCommand(cmd,usr)
+	if postCommands[cmd] then postCommands[cmd](usr) end
+end
+
 --capture args into table that supports "test test" args
 function getArgs(msg)
 	if not msg then return {} end
@@ -222,11 +232,12 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
-		if (usr.level or getPerms(usr.host)) >= commands[cmd].level then
+		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
+			--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
 			return function()
 				if msg and cmd ~= "alias" and cmd ~= "aa" then
-					--check for {` `} nested commands, ./echo {`echo test`}
+					--check for nested commands, ./echo {`echo test`}
 					msg,_ = nestify(msg,1,0,usr,channel)
 				end
 				if msg=="" then msg=nil end
@@ -320,7 +331,9 @@ local function realchat(usr,channel,msg)
 	if func then
 		--we can execute the command
 		local co = coroutine.create(func)
+		onPreCommand(cmd,usr)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
+		onPostCommand(cmd,usr)
 		if not s and s2 then
 			ircSendChatQ(channel,s2)
 		elseif s2 then
@@ -354,7 +367,7 @@ local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
-		onSendHooks = nil
+		onSendHooks = {}
 		ircSendChatQ(channel,r)
 	end
 end

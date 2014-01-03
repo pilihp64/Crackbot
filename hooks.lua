@@ -372,7 +372,7 @@ local function realchat(usr,channel,msg)
 			if channel:sub(1,1) == "#" then
 				ircSendRawQ("REMOVE "..channel.." "..usr.nick.." :You are banned from this bot")
 			end
-		elseif usr.nick == "Javert" or usr.nick == "TheBombMaker" then
+		elseif usr.nick == "Javert" or usr.nick == "TheBombMaker" or usr.nick == "Crackbot" or usr.nick == "jacobot" then
 
 		else
 			func,err=makeCMD(cmd,usr,channel,rest)
@@ -434,7 +434,7 @@ function consoleChat(msg)
 		conChannel = chan
 		return
 	end
-	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="jacob1!jacob1@Powder/Developer/jacob1"},conChannel,msg)
+	chat({nick="wolfy1339",host="botters/wolfy1339",fullhost="wolfy1339!ZNC@botters/wolfy1339"},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

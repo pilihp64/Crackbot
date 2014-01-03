@@ -27,11 +27,10 @@ local config={
 	},
 	--User info, set these to whatever you need
 	user = {
-		nick = "Crackbot",
-		username = "Meow",
-		realname = "moo",
-		
-		--account = "Crackbot",
+		nick = "wolfybot",
+		username = "wolfy1339",
+		realname = "Wolfy1339 Bot",
+		account = "BigWolfy1339",
 		--password = "password"
 	},
 	--Channels to join on start
@@ -39,7 +38,7 @@ local config={
 		--"##foo",
 	},
 	logchannel = "##foo",
-	prefix = "%./",
+	prefix = "%*",
 	suffix = "moo+"
 }
 

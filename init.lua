@@ -1,5 +1,6 @@
 if IRC_RUNNING then error("Already running") end
 IRC_RUNNING=true
+WINDOWS = package.config:sub(1,1) == "\\"
 dofile("derp.lua")
 dofile("irc/init.lua")
 
@@ -12,31 +13,37 @@ local socket = require"socket"
 local console=socket.tcp()
 console:settimeout(5)
 
---start my console line-in
-os.execute("xfce4-terminal -x lua consolein.lua")
+if not WINDOWS then
+	--start my console line-in
+	os.execute("mate-terminal -x lua consolein.lua")
+end
 shutdown = false
 user = config.user
 irc=irc.new(user)
 
 --support multiple networks sometime
-irc:connect(config.network.server,config.network.port)
+irc:connect(config.network.server,config.network.port,config.network.password)
+config.network.password = nil
 if config.user.password then
-	irc:sendChat("NickServ", "identify "..config.user.nick.." "..config.user.password)
-	print("Connected, sleeping for 6 seconds")
-	sleep(6)
+	irc:sendChat("NickServ", "identify "..config.user.account.." "..config.user.password)
+	config.user.password = nil
+	print("Connected, sleeping for 7 seconds")
+	sleep(7)
 else
 	print("Connected")
 end
 
 local connected=false
---connect to console thread
-function conConnect()
-	console:connect("localhost",1337)
-	console:settimeout(0)
-	console:setoption("keepalive",true)
-	connected=true
+if not WINDOWS then
+	--connect to console thread
+	function conConnect()
+		console:connect("localhost",1337)
+		console:settimeout(0)
+		console:setoption("keepalive",true)
+		connected=true
+	end
+	conConnect()
 end
-conConnect()
 
 dofile("hooks.lua")
 dofile("commands.lua")

@@ -103,7 +103,7 @@ function ircSendChatQ(chan,text,nofilter)
 		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false,["notice"]=false})
 		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
 	else
-		table.insert(buffer,{["channel"]=chan,["msg"]=text,["raw"]=false,["notice"]=false})
+		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,512),["raw"]=false,["notice"]=false})
 	end
 end
 function ircSendRawQ(text)
@@ -143,7 +143,7 @@ function ircSendOne()
 	end
 end
 
-local prefix = "%./"
+local prefix = config.prefix
 function setPrefix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		prefix=fix
@@ -151,7 +151,7 @@ function setPrefix(fix)
 		error("Not a string")
 	end
 end
-local suffix = "moo+"
+local suffix = config.suffix
 function setSuffix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		suffix=fix
@@ -284,10 +284,10 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
-		if permFullHost(usr.fullhost) >= commands[cmd].level then
+		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
 			return function()
-					if msg then
+					if msg and cmd ~= "alias" and cmd ~= "aa" then
 						--check for {` `} nested commands, ./echo {`echo test`}
 						msg,_ = nestify(msg,1,0,usr,channel)
 					end
@@ -306,6 +306,9 @@ function tryCommand(usr,channel,msg)
 	local _,_,ncmd,nrest = msg:find("([^%s]*)%s?(.*)$")
 	if ncmd then
 		local vf = makeCMD(ncmd,usr,channel,nrest)
+		if ncmd == "timer" or ncmd == "use" or ncmd == "bug" then
+			return "Error: this command cannot be nested"
+		end
 		if vf then
 			temps = (vf() or "")
 		end
@@ -353,9 +356,9 @@ end
 local function realchat(usr,channel,msg)
 	--if usr.host:find("c%-75%-70%-221%-236%.hsd1%.co%.comcast%.net") then return end
 	didSomething=true
-	if prefix~= '%./' then
-		panic,_ = msg:find("^%./fix")
-		if panic then prefix='%./' end
+	if prefix ~= config.prefix then
+		panic,_ = msg:find("^"..config.prefix.."fix")
+		if panic then prefix = config.prefix end
 	end
 	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
 	if not cmd then
@@ -394,14 +397,17 @@ local function realchat(usr,channel,msg)
 		else
 			ircSendChatQ(channel,resp)
 		end
+		--log to channel, to notice things faster
+		if config.logchannel and channel:sub(1,1) ~= "#" then
+			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
+		end
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
 		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
 	listen(usr,channel,msg)
-	if user.nick=="Crackbot" and channel=='#neotenic' and usr.host:find("192%.30%.252%.49$") then
-		--relay to ##powder-bots because i'm lazy
+	if user.nick=="jacobot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
@@ -418,17 +424,17 @@ end
 --console is read as messages from me
 local conChannel = "##powder-bots"
 function consoleChat(msg)
-	local _,_,chan = msg:find("^%./chan (.+)")
-	local isPrefix = msg:find("^%./")
+	local _,_,chan = msg:find("^"..config.prefix.."chan (.+)")
+	local isPrefix = msg:find("^"..config.prefix)
 	if not isPrefix then
-		msg = "./echo "..msg
+		msg = config.prefix:gsub("%%","").."echo "..msg
 	end
 	if chan then
 		print("Channel set to "..chan)
 		conChannel = chan
 		return
 	end
-	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="!jacob1@Powder/Developer/jacob1"},conChannel,msg)
+	chat({nick="jacob1",host="Powder/Developer/jacob1",fullhost="jacob1!jacob1@Powder/Developer/jacob1"},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

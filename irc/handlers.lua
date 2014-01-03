@@ -67,6 +67,10 @@ handlers["NICK"] = function(o, prefix, newnick)
 			local oldinfo = users[user.nick]
 			if oldinfo then
 				users[newnick] = oldinfo
+				users[newnick].nick = newnick
+				if users[newnick].fullhost then
+					users[newnick].fullhost = users[newnick].nick.."!"..users[newnick].username.."@"..users[newnick].host
+				end
 				users[user.nick] = nil
 				o:invoke("NickChange", user, newnick, channel)
 			end
@@ -78,11 +82,9 @@ end
 --WHO list
 handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, access1 ,something, something2)
 	if o.track_users then
-	    local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1)}
-	    --print(user.nick,user.host,user.ID,user.serv,user.access)
-		if o.channels[channel].users[user.nick] then
-			o.channels[channel].users[user.nick] = user
-		end
+		local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1), fullhost=name.."!"..name1.."@"..host}
+		--print(user.nick,user.host,user.ID,user.serv,user.access)
+		o.channels[channel].users[user.nick] = user
 	end
 end
 --NAMES list

@@ -4,7 +4,10 @@ local function lua(usr,chan,msg,args,luan)
 	--	return "Error: do this in a channel for now"
 	--end
 	if not msg then return "No code" end
-	luan = luan or "lua"
+	if msg:sub(1,1) =="\27" then
+		return "Error: bytecode (?)"
+	end
+	luan = luan or WINDOWS and "luasandbox" or "./luasandbox"
 	msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
 	local rf = io.popen(luan.." "..msg)
 	local r = rf:read("*a")
@@ -68,13 +71,16 @@ exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=Non
 	if r then r = r:gsub("[\r\n]"," "):sub(1,500) end
 	return r,true
 end
-add_cmd(python,"py",101,"Runs sandy python code, '/py <code>'",true)
+--add_cmd(python,"py",101,"Runs sandy python code, '/py <code>'",true)
 
 --BRAINFUCK
 local function BF(usr,chan,msg)
+	if WINDOWS then
+		return "Error: BF does not work on windows"
+	end
 	if not msg then return "No code" end
 	local sdump=""
-	luan = luan or "lua"
+	local luan = luan or WINDOWS and "lua5.1" or "lua"
 	--byte the string so you can't escape
 	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
 	
@@ -92,5 +98,5 @@ local function BF(usr,chan,msg)
 	if r then r = r:gsub("[\r\n]",""):sub(1,500) end
 	return r,true
 end
-add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})
+add_cmd(BF,"BF",100,"Runs BF code, '/bf <code>'",false,{"bf"})
 

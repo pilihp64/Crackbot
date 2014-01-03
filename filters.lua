@@ -56,7 +56,7 @@ function colorstrip(text)
 end
 add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
 --RAINBOW every letter is new color
-local function rainbow(text)
+function rainbow(text)
 	local newtext= ""
 	local rCount=1
 	for char in colorstrip(text):gmatch(".") do
@@ -349,10 +349,11 @@ local function luaFilt(text,args)
 		realtext=text or ""
 	end
 	
+	local luan = WINDOWS and "luasandbox" or "./luasandbox"
 	realtext = realtext:gsub(".",function(x)return("\\%03d"):format(x:byte())end)
 	local command = "return (function(...) "..msg.." end)('"..realtext.."')"
 	command = command:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
-	local rf = io.popen("lua "..command)
+	local rf = io.popen(luan.." "..command)
 	local r = rf:read("*a")
 	return r
 end
@@ -388,7 +389,7 @@ local function filter(usr,chan,msg,args)
 		end
 		return "Filters: "..table.concat(t,", ")
 	elseif msg=="lock" then
-		local perm = permFullHost(usr.fullhost)
+		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtLock(chan)
 			return "Locked "..chan
@@ -396,7 +397,7 @@ local function filter(usr,chan,msg,args)
 			return "No permissions to lock"
 		end
 	elseif msg=="unlock" then
-		local perm = permFullHost(usr.fullhost)
+		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtUnLock(chan)
 			return "Unlocked "..chan
@@ -435,7 +436,7 @@ end
 
 --BADWORD filter, hopefully always active, uses my terrible color table to re-add
 --possibly save this list to file
-local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-"}
+local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-", "^%&"}
 local function badWords(text)
 	if type(text)~="string" then return nil end
 	local t = tableColor(text)

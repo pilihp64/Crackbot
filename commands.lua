@@ -28,21 +28,17 @@ function add_cmd(f, name, lvl, help, shown, aliases)
 	end
 end
 
---Helper to return hostmask for a name
-function getBestHost(chan,msg,long)
-	local host = false
-	local besthost = nil
-	if msg:match("@") then host=true end
-	if not host then
-		for nick,v in pairs(irc.channels[chan].users) do
-			if (string.lower(nick))==(string.lower(msg)) then
-				if not long then besthost= "*!*@"..v.host
-				else besthost= "!"..v.username.."@"..v.host
+--Helper to return user object from a name
+function getUserFromNick(nick)
+	for k,v in pairs(irc.channels) do
+		if v and v.users then
+			for k2,v2 in pairs(v.users) do
+				if v2 and v2.nick == nick then
+					return v2
 				end
 			end
 		end
 	end
-	return besthost or msg
 end
 
 --Load mods here so it can use some functions
@@ -152,7 +148,7 @@ add_cmd(sneaky3,"moo",0,"No help for moo found!",false)
 local function reload(usr,chan,msg,args)
 	if not args[1] then args[1]="hooks" args[2]="commands"
 	else
-		if permFullHost(usr.fullhost)<101 then return "You can't use args" end
+		if getPerms(usr.host)<101 then return "You can't use args" end
 	end
 	local rmsg=""
 	for k,v in pairs(args) do
@@ -173,7 +169,7 @@ add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true)
 
 --LIST
 local function list(usr,chan,msg,args)
-	local perm = tonumber(args[1]) or permFullHost(usr.fullhost)
+	local perm = tonumber(args[1]) or getPerms(usr.host)
 	local t = {}
 	local cmdcount=0
 	for k,v in pairs(commands) do
@@ -190,9 +186,13 @@ add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/li
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
 	if not msg then return end
-	local perm = permFullHost(usr.fullhost)
+	local perm = getPerms(usr.host)
 	local setmax = perm-1
-	local host,level = getBestHost(chan,args[1],true):gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1"),args[2]
+	local user = getUserFromNick(args[1])
+	if not user then
+		return "Invalid User"
+	end
+	local host,level = user.host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1"),args[2]
 	if tonumber(level)~=tonumber(level) then
 		return "Bad num"
 	end
@@ -211,12 +211,14 @@ add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'
 local function getHost(usr,chan,msg,args)
 	if not msg then return usr.host end
 	local full = args[2]=="full"
-	local host = getBestHost(chan,args[1],full)
-	if host==args[1] then return "Invalid user or not online." end
-	if full then
-		return host:sub(2)
+	local user = getUserFromNick(args[1])
+	if not user then
+		return "Invalid user or not online."
 	end
-	return host:sub(5)
+	if full then
+		return user.fullhost
+	end
+	return user.host
 end
 add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
 

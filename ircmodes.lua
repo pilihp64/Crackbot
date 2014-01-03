@@ -27,7 +27,7 @@ local function mode(usr,chan,msg,args)
 		if chan:sub(1,1)~='#' then return "Need to specify channel in query" end
 		tochan=chan
 		rest = table.concat(args, " ", 2)
-	end
+	end if string.lower(rest):find("mniip") then tomode = tomode:gsub("%+","%-") rest = rest:gsub("%+","%-") end
 	
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
@@ -43,8 +43,8 @@ local function op(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end
-	setMode(chan,"+o",args[2] or msg)
+	end local nick = args[2] or msg if nick:find("mniip") then setMode(chan,"+o-v",nick.." "..nick) else
+	setMode(chan,"+o", nick) end
 end
 add_cmd(op,"op",30,"Op a user, '/op [<chan>] <username>'",true)
 --DEOP
@@ -72,10 +72,10 @@ local function voice(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end
-	setMode(chan,"+v",args[2] or msg)
+	end local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
+	setMode(chan,"+v", nick)
 end
-add_cmd(voice,"voice",10,"Voice a user, '/voice [<chan>] <username>'",true)
+add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)
 
 --DEVOICE
 local function devoice(usr,chan,msg,args)
@@ -95,42 +95,45 @@ add_cmd(devoice,"devoice",10,"DeVoice a user, '/devoice [<chan>] <username>'",tr
 --UNQUIET
 local function unquiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
+	local nick
 	local host
 	if args[1]:sub(1,1)=='#' then
-		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
 		chan=args[1]
+		if not args[2] then error("Missing target") end
+		nick = args[2]
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
+		host = getUserFromNick(args[1])
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"-q",host)
 end
-add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unqueit [<chan>] <host/username>'",true,{"unstab"})
+add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unquiet [<chan>] <host/username>'",true,{"unstab"})
 
 --QUIET
 local function quiet(usr,chan,msg,args)
 	if not args[1] then error("No args") end
 	local unbanTimer
-	local host
 	local nick
 	if args[1]:sub(1,1)=='#' then
+		chan=args[1]
 		if not args[2] then error("Missing target") end
 		nick = args[2]
-		host = getBestHost(chan, nick or msg)
 		unbanTimer = tonumber(args[3])
-		chan=args[1]
 	else
 		nick = args[1]
-		host = getBestHost(chan, nick or msg)
 		unbanTimer = tonumber(args[2])
 	end
+	local host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"+q",host)
 	if not unbanTimer then
 		unbanTimer = math.random(60,600)
 	end
 	if unbanTimer then
 		addTimer(setMode[chan]["-q"][host],unbanTimer,chan)
-		irc:sendNotice(usr.nick, nick.." has been quieted for "..unbanTimer.." seconds")
+		ircSendNoticeQ(usr.nick, nick.." has been quieted for "..unbanTimer.." seconds")
 	end
 end
 add_cmd(quiet,"quiet",20,"Quiet a user, '/quiet [<chan>] <host/username> [<time>]. If no time is specified, picks a random time between 60 and 600 seconds.'",true,{"stab"})
@@ -138,14 +141,17 @@ add_cmd(quiet,"quiet",20,"Quiet a user, '/quiet [<chan>] <host/username> [<time>
 --UNBAN
 local function unban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
+	local nick
 	local host
 	if args[1]:sub(1,1)=='#' then
+		chan = args[1]
 		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
-		chan=args[1]
+		nick = args[2]
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"-b",host)
 end
 add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
@@ -153,18 +159,20 @@ add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
 --BAN
 local function ban(usr,chan,msg,args)
 	if not args[1] then error("No args") end
-	local unbanTimer
-	--if not user.access:match("@") then error("Not Op") end
+	local nick
 	local host
+	local unbanTimer
 	if args[1]:sub(1,1)=='#' then
-		if not args[2] then error("Missing target") end
-		host = getBestHost(chan,args[2] or msg)
-		unbanTimer = tonumber(args[3])
 		chan=args[1]
+		if not args[2] then error("Missing target") end
+		nick = args[2]
+		unbanTimer = tonumber(args[3])
 	else
-		host = getBestHost(chan,args[1] or msg)
+		nick = args[1]
 		unbanTimer = tonumber(args[2])
 	end
+	host = getUserFromNick(nick)
+	host = host and host.host or nick
 	setMode(chan,"+b",host)
 	if unbanTimer then
 		addTimer(setMode[chan]["-b"][host],unbanTimer,chan)
@@ -187,8 +195,8 @@ local function kick(usr,chan,msg,args)
 		chan=args[1]
 	end
 	local nick = args[2] or msg
-	local user = irc:getUserFromNick(nick)
-	if nick ~= usr.nick and user and user.fullhost and permFullHost(user.fullhost) > 30 then
+	local user = getUserFromNick(nick)
+	if nick ~= usr.nick and user and user.host and getPerms(user.host) > 30 then
 		return "Error: You can't kick other ops"
 	elseif nick == irc.nick then
 		nick = usr.nick

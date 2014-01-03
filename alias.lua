@@ -16,6 +16,9 @@ local function mkAliasFunc(t,aArgs)
 				end
 			end
 			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
+			if t.cmd == "use" or t.cmd == "timer" or t.cmd == "bug" then
+				error("You can't alias to that")
+			end
 			aliasDepth = aliasDepth+1
 			local something = makeCMD(t.cmd,nusr,nchan,sendMsg,sendArgs)
 			if not something then return "" end
@@ -43,9 +46,13 @@ local function alias(usr,chan,msg,args)
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
 		local name,cmd,aArgs = args[2],args[3],{}
 		if not commands[cmd] then return cmd.." doesn't exist!" end
+		if cmd == "timer" or cmd == "use" or cmd == "bug" then
+			return "Error: You can't alias to that"
+		end
 		if allCommands[name] then return name.." already exists!" end
-		if permFullHost(usr.fullhost) < commands[cmd].level then return "You can't alias that!" end
+		if getPerms(usr.host) < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
+		if name:find("[\128-\255]") then return "Ascii aliases only" end
 		if #args > 50 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
@@ -55,6 +62,9 @@ local function alias(usr,chan,msg,args)
 
 		table.insert(aliasList,alis)
 		table.save(aliasList,"AliasList.txt")
+		if config.logchannel then
+			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." added alias "..name.." to "..cmd.." "..aMsg)
+		end
 		return "Added alias"
 	elseif args[1]=="rem" or args[1]=="remove" then
 		if not args[2] then return "Usage: '/alias rem <name>'" end
@@ -79,7 +89,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="lock" then
 		--Lock an alias so other users can't remove it
 		if not args[2] then return "'/alias lock <name>'" end
-		if permFullHost(usr.fullhost) < 101 then return "No permission to lock!" end
+		if getPerms(usr.host) < 101 then return "No permission to lock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then
@@ -91,7 +101,7 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	elseif args[1]=="unlock" then
 		if not args[2] then return "'/alias unlock <name>'" end
-		if permFullHost(usr.fullhost) < 101 then return "No permission to unlock!" end
+		if getPerms(usr.host) < 101 then return "No permission to unlock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then

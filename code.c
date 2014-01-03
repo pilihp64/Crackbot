@@ -1,11 +1,17 @@
+#ifdef WIN32
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <windows.h>
+#else
+#include <lua5.1/lua.h>
+#include <lua5.1/lualib.h>
+#include <lua5.1/lauxlib.h>
+#endif
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
 #define MEMLIMIT 5000000 //20MB
 
 static int memused = 0;
@@ -88,12 +94,13 @@ int main(int argc, char *argv[])
 	l = lua_newstate(&alloc, NULL);
 	lua_atpanic(l, &panic);
 	luaL_openlibs(l);
-	luaL_dostring(l,"dofile('tableSave.lua')\n\
-					cashList = table.load('userData.txt')\n\
-					table.load, table.save = nil\n\
-					math.randomseed(os.time())\n\
-					debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
-					io={write=io.write}\n\
+	luaL_dostring(l,"math.randomseed(os.time())\n\
+			 dofile('derp.lua')\n\
+			 dofile('tableSave.lua')\n\
+			 cashList = table.load('userData.txt')\n\
+			 table.load, table.save = nil\n\
+			 debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
+			 io={write=io.write}\n\
 		");
 	const char *h = argv[1];
 	char *code = (char*)malloc(strlen(h)/2)+1;
@@ -110,7 +117,11 @@ int main(int argc, char *argv[])
 	}
 	pthread_t th;
 	pthread_create(&th, NULL, &thread, NULL);
+#ifdef WIN32
 	Sleep(500);
+#else
+	sleep(1);
+#endif
 	pthread_cancel(th);
 	printf("time limit exceeded\n");
 }

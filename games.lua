@@ -5,7 +5,7 @@ local function loadUsers()
 end
 gameUsers = gameUsers or loadUsers()
 
-local storeInventory={
+storeInventory={
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
 ["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
@@ -83,7 +83,7 @@ local function changeCash(usr,amt)
 		end
 		if total > 0 then
 			if gameUsers[usr.host].cash < -total then
-				gameUsers[usr.host].cash = -total
+				gameUsers[usr.host].cash = -total+1
 			end
 			return " You went bankrupt, sell items for money"
 		end
@@ -130,6 +130,76 @@ end
 
 --Uses for items, with /use
 local itemUses = {
+	["chips"] = function(usr)
+		local rnd = math.random(1,150)
+		if rnd <= 3 then
+			remInv(usr,"chips",1)
+			return "You got lead poisoning. You sued the chip company and made $"..(rnd*100000)..changeCash(usr,rnd*100000)
+		elseif rnd < 30 then
+			remInv(usr,"chips",1)
+			return "You finished the bag of chips (-1 chips)"
+		else
+			return "You ate a chip"..((rnd%3 == 1) and ". It needs more salt" or "")
+		end
+	end,
+	["shoe"]=function(usr)
+		if gameUsers[usr.host].inventory["shoe"].amount > 1 then
+			remInv(usr,"shoe",2)
+			local rnd = math.random(1,200000)
+			if rnd < 10000 then
+				return "You put on another pair of shoes. Why do they always go missing ... (-2 shoes)"
+			else
+				return "You sold your designer pair of shoes for $"..rnd..changeCash(usr,rnd*100)
+			end
+		end
+		if math.random(1,20) == 1 then
+			remInv(usr,"shoe",1)
+			return "Your shoe gets worn out (-1 shoe)"
+		else
+			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,50000))
+		end
+	end,
+	["iPad"] = function(usr)
+		local rnd = math.random(1,5)
+		if rnd == 1 then
+			remInv(usr,"iPad",1)
+			if math.random(1,5) == 5 then
+				return "Your iPad was incinerated (-1 iPad)"
+			else
+				return "Your iPad broke (-1 iPad)"
+			end
+		end
+		local info = gameUsers[usr.host].inventory["iPad"].status
+		if info and os.time() < info then
+			return "Please wait "..(info-os.time()).." seconds for the eBay app update to finish downloading"
+		end
+		local name
+		for k,v in pairs(storeInventory) do
+			if math.random(1,7) < 2 then
+				name = k
+				break
+			end
+		end
+		if name == nil then
+			return "You play Angry birds."
+		elseif storeInventory[name].instock then
+			local cost = math.floor(storeInventory[name].cost*(math.random()+.3))
+			--if cost > 1000000000 then
+			--	return "Nobody sells "..name.."s on Ebay"
+			if cost < gameUsers[usr.host].cash then
+				addInv(usr, storeInventory[name], 1)
+				--if usr.nick == "cracker64" then
+				--	addInv(usr, storeInventory["iPad"], math.random(1,3))
+				--end
+				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
+				return "You bought a "..name.." on Ebay for "..cost..changeCash(usr,-cost)
+			else
+				return "You couldn't afford to buy "..name
+			end
+		else
+			return "You couldn't find "..name.." on Ebay"
+		end
+	end,
 	["lamp"]=function(usr)
 		local rnd = math.random(1,100)
 		if rnd<50 then
@@ -141,7 +211,192 @@ local itemUses = {
 			return "You sold lamp on Ebay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
 		end
 	end,
+	["penguin"]=function(usr)
+		local rnd = math.random(1,10)
+		if usr.nick:find("iam") then
+			return "Error: You can't use yourself"..changeCash(usr,1)
+		end
+		remInv(usr,"penguin",1)
+		if rnd < 3 then
+			return "Your pet penguin caught a plane back to Antarctica (-1 penguin)"
+		elseif rnd < 4 then
+			return "You were fined $10000 for having an illegal pet"..changeCash(usr,-10000)
+		end
+		return "You sold your pet penguin for $5000000. You feel bad for selling such a rare species"..changeCash(usr,5000000)
+	end,
+	["nothing"]=function(usr)
+		local rnd = math.random(1,10)
+		if rnd < 2 then
+			remInv(usr,"nothing",1)
+			return "Your nothing was confiscated by the universal oversight comittee for breaking the laws of the universe. You are given a $50000 fine"..changeCash(usr,-50000)
+		elseif rnd < 3 then
+			remInv(usr,"nothing",1)
+			return "You look inside your nothing and get sucked inside to an alternate universe where you didn't have it (-1 nothing)"
+		elseif rnd < 8 then
+			addInv(usr,storeInventory["nothing"],1)
+			return "You look inside your nothing and find nothing inside (+1 nothing)"
+		else
+			return "You can't use nothin'"
+		end
+	end,
+	["doll"]=function(usr)
+		remInv(usr,"doll",1)
+		if string.lower(usr.nick):find("mitch") then
+			ircSendRawQ("KICK ##powder-bots "..usr.nick)
+			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
+		end
+		local rnd = math.random(1,100)
+		if rnd <= 50 then
+			return "You find out the doll was gay and throw it away (-1 doll)"
+		elseif rnd == 51 then
+			ircSendRawQ("KICK ##powder-bots wolfmitchell")
+			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
+		else
+			return "The doll looks so ugly that you burn it (-1 doll)"
+		end
+	end,
+	["derp"]=function(usr)
+		remInv(usr,"derp",1)
+		local count = 0
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			count = count + v.amount
+		end
+		if count == 0 then
+			return "You are a derp"
+		end
+		local item,rnd,count = nil,math.random(count),0
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			count = count + v.amount
+			if count >= rnd then
+				item = v
+				break
+			end
+		end
+		if not item then
+			return "jacob1 is a derp"
+		end
+		rnd = math.random()
+		if rnd < .5 then
+			addInv(usr,item,1)
+			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
+		else
+			remInv(usr,item.name,1)
+			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
+		end
+	end,
+	["water"]=function(usr)
+		local rnd = math.random(1,10)
+		remInv(usr,"water",1)
+		if rnd < 3 then
+			return "You drink the holy water. Nothing happens (-1 water)"
+		elseif rnd < 5 then
+			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
+		else
+			local amt = ((rnd-5)^3)*100000+1
+			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
+		end
+	end,
+	["vroom"]=function(usr)
+		--maybe have this do something later
+		remInv(usr,"vroom",1)
+		return "You use vroom! A cloud of smoke appears (-1 vroom)"
+	end,
+	["potato"]=function(usr)
+		if usr.nick == "jacob1" then
+			return "You are a potato"..changeCash(usr,1000)
+		end
+		local rnd = math.random(0,99)
+		if rnd < 20 then
+			return "I'm a potato"
+		elseif rnd < 30 then
+			addInv(usr,storeInventory["potato"],1)
+			return "You are turned into a potato (+1 potato)"
+		elseif rnd < 50 then
+			return "You stare at the potato. You determine it is a potato"
+		elseif rnd < 60 then
+			remInv(usr,"potato",1)
+			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 60000000)
+		else
+			local str
+			if rnd < 70 then
+				str = "You plant the potato in the ground"
+			elseif rnd < 80 then
+				str = "You run over the potato with a steamroller to make mashed potatoes"
+			elseif rnd < 90 then
+				str = "You peel the potato"
+			elseif rnd < 100 then
+				str = "You fry the potato and make french fries"
+			end
+			if rnd%2 == 1 then
+				str = str..". The potato attacks you"..changeCash(usr,-10000000)
+				ircSendRawQ("KICK ##powder-bots "..usr.nick.." :"..str)
+				str = ""
+			end
+			remInv(usr,"potato",1)
+			return str
+		end
+	end,
+	["cow"]=function(moo)
+		local cowCount = gameUsers[moo.host].inventory["cow"].amount
+		local rnd = math.random(1,100)
+		local info = gameUsers[moo.host].inventory["cow"].status
+		if info and os.time() < info then
+			return "Please wait "..(info-os.time()).." seconds before spamming this again"
+		end
+		gameUsers[moo.host].inventory["cow"].status = os.time()+4
+		if cowCount > 2 then
+			if rnd%5 == 1 then
+				local amountgained = math.ceil(cowCount/24)
+				addInv(moo,storeInventory["cow"], amountgained )
+				return "Your cows moo and "..amountgained.." baby cow"..(amountgained==1 and " is" or "s are").." born"
+			end
+			if cowCount > 10 then
+				if rnd%5 == 2 then
+					local amountLost = math.ceil(cowCount*math.random()/2)
+					remInv(moo, "cow", amountLost)
+					return "Your cows stampede and many escape (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
+				end
+				if cowCount > 20 and rnd%5 == 3 then
+					local amountLost = math.ceil(rnd/5)
+					local amountgained = (math.floor(math.random(1,10))*4+1)*25000000
+					remInv(moo, "cow", amountLost)
+					return "You start a cow farm and make an expensive enchantment table factory (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..") (+$"..amountgained..")"..changeCash(moo, amountgained)
+				end
+			end
+		end
+		if rnd <= 15 then
+			remInv(moo, "cow", 1)
+			return "You have a fancy steak dinner (-1 cow)"
+		elseif rnd <= 25 then
+			addInv(moo,storeInventory["cow"],1)
+			return "Your cow breeds asexually (+1 cow)"
+		elseif rnd <= 30 then
+			addInv(moo,storeInventory["cow"], cowCount)
+			return "Your cows all breed asexually (+"..cowCount.." cows)"
+		elseif rnd <= 45 then
+			return "The cow tries to moo but is unable to because you never feed it"
+		elseif rnd <= 55 then
+			return "You feed your cow"
+		elseif rnd <= 85 then
+			addInv(moo,storeInventory["moo"],cowCount)
+			return "Your cows all moo (+"..cowCount.." moos)"
+		elseif rnd <= 88 then
+			local amountLost = math.ceil(cowCount*math.random())
+			remInv(moo, "cow", amountLost)
+			addInv(moo,storeInventory["moo2"],1)
+			return "Your cow moos. This cow was special though, it moos so hard that it makes a moo2 appear! Some of the other cows can't handle such a special moo and die (+1 moo2) (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
+		else
+			return rainbow("mo".."o"*math.random(1,75))
+		end
+	end
 }
+--powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
+--potato
+--gold, diamond, cow, house, cube, cracker, estate, moo2, billion, company, country, 
+--world, god
+--- computer ($99) Who would use this piece of junk from your grandmother
+--- iMac ($2999) Glorious master race
+--- MacPro ($999999) A bit expensive but does have an apple logo!
 local function useItem(usr,chan,msg,args)
 	if not args[1] then
 		return "Need to specify an item! '/use <item>'"
@@ -201,15 +456,17 @@ local function odoor(usr,door)
 	if gameUsers[usr.host].cash <= 0 then
 		return "You are broke, you can't afford to open doors"
 	end
+	--[[if usr.nick == "JZTech101" then
+		return "You forgot how to open doors"
+	end]]
 	
 	door = door[1] or "" --do something with more args later?
 	local isNumber=false
 	local randMon = 50
 	local divideFactor = 2
 	if door:find("moo") then divideFactor=2.5 end
-	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or os.time())
+	local adjust =  os.time()-(gameUsers[usr.host].lastDoor or (os.time()-1))
 	randMon = (randMon+adjust*5)^1.15--get higher for waiting longer
-	gameUsers[usr.host].lastDoor = os.time()
 
 	if tonumber(door) then
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50)^1.15 divideFactor=6 end
@@ -221,14 +478,17 @@ local function odoor(usr,door)
 	--if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
 
 	--some other weird functions to change money
-
+	
 	--randomly find items
 	local fitem = math.random(9)
 	if fitem==1 then fitem=true else fitem=false end
 	randMon = math.floor(randMon)
 	local minimum = math.floor(randMon/divideFactor)
-	local randomnes = math.random(randMon)-minimum
+	local randomnes = math.ceil(randMon*math.random())-minimum
 	local rstring=""
+	--reset last door time
+	gameUsers[usr.host].lastDoor = os.time()
+	
 	if fitem and randomnes>0 then
 		--find an item of approximate value
 		local item = findClosestItem(randomnes)
@@ -276,38 +536,22 @@ local function giveMon(usr,chan,msg,args)
 		amt= math.floor(tonumber(args[3]) or 1)
 		item=args[2]
 	end
-	if chan:sub(1,1)~='#' then
-		if args[1]:sub(1,1)=='#' then
-			if string.lower(args[2])==string.lower(usr.nick) then return "You can't give to yourself..." end
-			toHost = getBestHost(args[1],args[2])
-			if toHost~=args[2] then toHost=toHost:sub(5)
-			else return "Invalid user, or not online"
-			end
-			if tonumber(args[3]) then
-				amt = math.floor(tonumber(args[3]))
-				item=nil
-			else
-				amt= math.floor(tonumber(args[4]) or 1)
-				item=args[3]
-			end
-		else
-			return "Channel required in query, '/give <chan> <username> <amount>'"
-		end
-	else
-		toHost = getBestHost(chan,args[1])
-		if string.lower(args[1])==string.lower(usr.nick) then return "You can't give to yourself..." end
-		if toHost~=args[1] then toHost=toHost:sub(5)
-		else return "Invalid user, or not online"
-		end
+	if string.lower(args[1]) == string.lower(usr.nick) then
+		return "You can't give to yourself..."
 	end
+	toHost = getUserFromNick(args[1])
+	if not toHost then
+		return "Invalid user, or not online"
+	end
+	toHost = toHost.host
 	
 	if toHost == "unaffiliated/jacob1/bot/jacobot" then
 		return "Please do not give to the bot"
 	end
 	if amt and not item then
-		if toHost == "Powder/Developer/jacob1" and amt < 1000000 then
-			return "Donations to jacob1 must be at least 1 million"
-		end
+		--if toHost == "Powder/Developer/jacob1" and amt < 50 then
+		--	return "Donations to jacob1 must be at least 1 million"
+		--end
 		if amt>0 and amt==amt then
 			return give(usr.host,toHost,amt)
 		else
@@ -328,7 +572,7 @@ local function giveMon(usr,chan,msg,args)
 	
 	
 end
-add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 100k to give.",true)
+add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 10k to give.",true)
 --reload cashtext
 local function loadCash(usr,chan,msg,args)
 	return loadUsersCMD()
@@ -473,7 +717,7 @@ q= function() --Count a letter in string, with some other simple math
 	end
 	local intro="Count the number of"
 	if extraNumber then
-		local randMod = math.random(40)
+		local randMod = math.random(43)
 		if randMod<=15 then --subtract
 			intro="What is "..mknumscramb(extraNumber).." minus the number of"
 			answer = extraNumber-answer
@@ -497,19 +741,28 @@ q= function() --Count a letter in string, with some other simple math
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
 			extraNumber = extraNumber%1000
-			intro="Repeat \" "..extraNumber.." \" by the amount of"
+			intro="Repeat the string \" "..extraNumber.." \" by the amount of"
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
-		else --add
+		elseif randMod<=40 then --add
 			intro="What is "..mknumscramb(extraNumber).." plus the number of"
 			answer = answer+extraNumber
 			multiplier=0.85
+		else
+			local possibleAnswers = {"Ring-ding-ding-ding-dingeringeding", "Wa-pa-pa-pa-pa-pa-pow", "Hatee-hatee-hatee-ho", "Joff-tchoff-tchoffo-tchoffo-tchoff", "Jacha-chacha-chacha-chow", "Fraka-kaka-kaka-kaka-kow", "A-hee-ahee ha-hee", "A-oo-oo-oo-ooo"}
+			answer = possibleAnswers[math.random(#possibleAnswers)]
+			multiplier = 2
+			return "What does the fox say?", answer, timeout, multiplier
 		end
 	end
-	return intro.." '"..countChar.."' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
+	return intro.." ' "..countChar.." ' in: "..table.concat(t,""),tostring(answer),timeout,multiplier
 end,
 isPossible= function(s) --this question only accepts number answers
 	if tonumber(s) then return true end
+	local possibleAnswers = {"Ring-ding-ding-ding-dingeringeding", "Wa-pa-pa-pa-pa-pa-pow", "Hatee-hatee-hatee-ho", "Joff-tchoff-tchoffo-tchoffo-tchoff", "Jacha-chacha-chacha-chow", "Fraka-kaka-kaka-kaka-kow", "A-hee-ahee ha-hee", "A-oo-oo-oo-ooo"}
+	for k,v in pairs(possibleAnswers) do
+		if s == k then return true end
+	end
 	return false
 end})
 local allColors = {white='00', black='01', blue='02', green='03', red='04', brown='05', purple='06', orange='07', yellow='08', lightgreen='09', turquoise='10', cyan='11', skyblue='12', pink='13', gray='14', grey='14'}
@@ -612,11 +865,32 @@ local function quiz(usr,chan,msg,args)
 	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
 		return "You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
-	if not msg or not tonumber(args[1]) then return "Start a question for the channel, '/quiz <bet>'" end
+	if chan == config.logchannel then
+		return "What is ten tsunoahd and setnveeen plus one hdnerud and frotuy fvie times times the number of 'b' in: OOgOOOgbbOggOgO&gO&@&gO&&OOg&&g&&gO&gO&@&gO&&OOg&&g&&ggObO@@&"
+	end
+	if not msg or not tonumber(args[1]) then
+		return "Start a question for the channel, '/quiz <bet>'"
+	end
+	
 	local qName = chan.."quiz"
-	if activeQuiz[qName] then return "There is already an active quiz here!" end
+	if activeQuiz[qName] then return
+		"There is already an active quiz here!"
+	end
+	
 	local bet= math.floor(tonumber(args[1]))
-	if chan:sub(1,1)~='#' then if bet>10000 then return "Quiz in query has 10k max bid" end end
+	if chan:sub(1,1)~='#' then
+		if bet>10000 then
+			return "Quiz in query has 10k max bid"
+		end
+	end
+	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="unaffiliated/mniip" then
+		if bet > 13333337 then
+			return "You cannot bet this high!"
+		end
+	elseif bet > 10000000000 then
+		return "You cannot bet more than 10 billion"
+	end
+	
 	local gusr = gameUsers[usr.host]
 	if bet~=bet or bet<1000 then
 		return "Must bet at least 1000!"
@@ -634,7 +908,10 @@ local function quiz(usr,chan,msg,args)
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
 		--blacklist of people
-		if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
+		--if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
+		--if nusr.host=="unaffiliated/mniip/bot/xsbot" then return end
+		--if nusr.host=="178.219.36.155" then return end
+		--if nusr.host=="unaffiliated/mniip" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime[qName]-1
@@ -670,6 +947,9 @@ local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
 	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> <question> <mainAnswer> [<altAns...>]' No prize, It will help to put \" around the question and answer." end
 	local toChan = args[1]
+	if toChan and toChan:sub(1,1) ~= "#" then
+		return "Error, you must ask questions to a channel"
+	end
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end
 	local rstring,answer,timer = "Question from "..usr.nick..": "..args[2],args[3],30

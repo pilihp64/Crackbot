@@ -226,6 +226,14 @@ local function invite(usr,chan,msg,args)
 end
 add_cmd(invite,"invite",50,"Invite someone to the channel, '/invite <user>'",true)
 
+local function nickname(usr,chan,msg,args)
+	if not args[1] then error("No nickname")
+	else
+		nickname=args[1]
+	end
+	ircSendRawQ("NICK "..nickname)
+end
+
 --JOIN a channel
 local function join(usr,chan,msg,args)
 	if not args[1] then error("No args") end

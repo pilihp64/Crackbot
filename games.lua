@@ -184,11 +184,12 @@ local itemUses = {
 			return "You attempt to dispose of your junk, but are caught and fined $50000 for illegal dumping"..changeCash(usr,-50000)
 		elseif rnd <= 80 then
 			local junk = (gameUsers[usr.host].inventory.junk or {amount=1}).amount
+			junk = junk>1000000 and 1000000 or junk
 			addInv(usr, storeInventory["junk"], junk)
 			return "You donate the junk to charity, but they refuse your offer and give you just as much. (+".. junk .." junk)"
 		elseif rnd <= 90 then
 			local t = {}
-			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 then table.insert(t,v) end end
+			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 and v.cost>0 then table.insert(t,v) end end
 			local nom = t[math.random(#t)]
 			remInv(usr, nom.name, 1)
 			return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
@@ -352,6 +353,7 @@ local itemUses = {
 			addInv(usr,item,1)
 			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
 		else
+			if item.cost < -1000 then return "QninneeeqnionsJjo....Sd.safosahojwnbox...awdoh982dh9raknasd" end
 			remInv(usr,item.name,1)
 			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
 		end

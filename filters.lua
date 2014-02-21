@@ -12,7 +12,7 @@ local function chatFilter(chan,text)
 	local oldtext, status = colorstrip(text), true
 	for k,v in pairs(activeFilters[chan].t) do
 		status, text = pcall(v.f,text,v.args,true)
-		if text then text = text:sub(1,445) end
+		if text then text = text:sub(1,4450) end
 	end
 	if not status then
 		text = "Error in filter: "..text

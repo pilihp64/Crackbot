@@ -18,6 +18,9 @@ local macroCMDs = {
 	["cash"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return gameUsers[nusr.host].cash
 	end,
+	["price%[(%w-)%]"] = function(nusr,nchan,nmsg,nargs,usedArgs,item)
+		return (storeInventory[item] or {cost=0}).cost
+	end,
 	["ping"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return "pong"
 	end,
@@ -34,16 +37,17 @@ local macroCMDs = {
 --Return a helper function to insert new args correctly
 local aliasDepth = 0
 local function mkAliasFunc(t,aArgs)
-	local temp={}
+	local tempPerm={}
 	preCommands[t.name] = function(nusr)
-		temp[nusr.host] = permissions[nusr.host]
-		local curlevel = (t.usrlvl or getPerms(nusr.host))
-		if curlevel < getPerms(nusr.host) or t.suid then
-			permissions[nusr.host] = curlevel
+		local curPerm = getPerms(nusr.host)
+		local curLevel = t.usrlvl or curPerm
+		if curLevel < curPerm or t.suid then
+			tempPerm[nusr.host] = curPerm
+			permissions[nusr.host] = curLevel
 		end
 	end
 	postCommands[t.name] = function(nusr)
-		if temp[nusr.host] then permissions[nusr.host] = temp[nusr.host] end
+		if tempPerm[nusr.host] then permissions[nusr.host] = tempPerm[nusr.host] end
 	end
 	return function(nusr,nchan,nmsg,nargs)
 			--TODO: FIX DEPTH CHECK
@@ -51,7 +55,7 @@ local function mkAliasFunc(t,aArgs)
 			if not commands[t.cmd] then aliasDepth=0 error("Alias destination for "..t.name.." doesn't exist!") end
 			--A few blacklists
 			if t.cmd == "use" or t.cmd == "timer" or t.cmd == "bug" then
-				error("You can't alias to that")
+				aliasDepth=0 error("You can't alias to that")
 			end
 			--Replace for numbered macros first
 			local usedArgs = {}

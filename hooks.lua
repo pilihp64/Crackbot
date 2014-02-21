@@ -32,11 +32,12 @@ function ircSendChatQ(chan,text,nohook)
 		end
 	end
 	text = text:gsub("[\r\n]"," ")
-	host = ""
+	local host = ""
+	if not chan then chan=config.logchannel end
 	if irc.channels["##jacob1"] and irc.channels["##jacob1"].users[irc.nick] then
-		host = irc.channels["##jacob1"].users[irc.nick].host
+		host = irc.channels["##jacob1"].users[irc.nick].fullhost
 	end
-	byteLimit = 499 - #irc.nick - #chan - #host
+	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
 		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false,["notice"]=false})
 		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
@@ -166,7 +167,7 @@ function timerCheck()
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener
-local chatListeners = {}
+chatListeners = {}
 function addListener(name,f)
 	if type(f)=="function" then
 		chatListeners[name]=f
@@ -232,9 +233,10 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
+		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
 		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
-			--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
+			
 			return function()
 				if msg and cmd ~= "alias" and cmd ~= "aa" then
 					--check for nested commands, ./echo {`echo test`}
@@ -327,7 +329,7 @@ local function realchat(usr,channel,msg)
 			func,err=makeCMD(cmd,usr,channel,rest)
 		end
 	end
-
+	listen(usr,channel,msg)
 	if func then
 		--we can execute the command
 		local co = coroutine.create(func)
@@ -355,11 +357,19 @@ local function realchat(usr,channel,msg)
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
-		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
+		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
-	listen(usr,channel,msg)
+
 	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
+	end
+	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "distro2.pwc-networks.com"or usr.host == "74.208.15.252") then
+		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
+		--print(nusr.." AND "..nmsg)
+		if nmsg and nmsg~="" then 
+			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))
+			return
+		end
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
@@ -426,3 +436,16 @@ local function partCheck(usr,chan,reason)
 end
 pcall(irc.unhook,irc,"OnPart","partCheck")
 irc:hook("OnPart","partCheck",partCheck)
+
+
+local function onNotice(usr,channel,msg)
+	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+	local s,r = pcall(realchat,usr,channel,msg)
+	if not s and r then
+		onSendHooks = {}
+		ircSendChatQ(channel,r)
+	end
+	print("[NOTICE "..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+end
+pcall(irc.unhook,irc,"OnNotice","notice1")
+irc:hook("OnNotice","notice1",onNotice)

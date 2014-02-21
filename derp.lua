@@ -57,3 +57,19 @@ math.random = function(...)
 	if first then math.randomseed(os.time()) first=false for i=0,20 do _rand() end end
 	return _rand(...)
 end
+function getArgs(msg)
+	if not msg then return {} end
+	local args = {}
+	local index=1
+	while index<=#msg do
+		local s2,e2,word2 = msg:find("\"([^\"]-)\"",index)
+		local s,e,word = msg:find("([^%s]+)",index)
+		if s2 and s2<=s then
+			word=word2
+			e=e2
+		end
+		table.insert(args,word)
+		index = e+1 or #msg+1
+	end
+	return args
+end

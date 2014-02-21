@@ -1,6 +1,6 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","alias.lua"}
+local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}
@@ -134,16 +134,16 @@ add_cmd(methis,"me",0,"Performs an action, '/me <text>'",true)
 local function sneaky(usr,chan,msg)
 	return "You found me!"
 end
-add_cmd(sneaky,"./",0,"No help for ./ found!",false)
+add_cmd(sneaky,"./",0,nil,false)
 local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil
 end
-add_cmd(sneaky2,"./moo",0,"No help for ./moo found!",false)
+add_cmd(sneaky2,"./moo",0,nil,false)
 local function sneaky3(usr,chan,msg)
 	return "MooOoOoooOooo"
 end
-add_cmd(sneaky3,"moo",0,"No help for moo found!",false)
+add_cmd(sneaky3,"moo",0,nil,false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)

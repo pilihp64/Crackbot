@@ -77,9 +77,9 @@ local function getRec()
 	return t
 end
 
-local recName = {[0]="name",[1]="current",[2]="last",[3]="elite",[4]="best",[5]="player"}
+local recName = {[0]="name",[1]="current",[2]="last",[3]="twelve",[4]="elite",[5]="player"}
 records = {}
-setmetatable(records,{__index=function(t,k) t[k]={name="???",current="???",last="???",elite="???",best="???",player="???"} return t[k] end})
+setmetatable(records,{__index=function(t,k) t[k]={name="???",current="???",last="???",twelve="???",elite="???",player="???"} return t[k] end})
 local function buildRecs()
 	local r,c,h = http.request("http://pwc-gaming.com/webbtimes/")
 	if not r or c~=200 then return c end
@@ -177,7 +177,8 @@ local function findRec(usr,chan,msg,args)
 	end
 	if #t==1 then
 		ircSendChatQ(chan,t[1].name.." || Best Time in 2014 is "..t[1].current.." ||")
-		ircSendChatQ(chan,"|| Best Time in 2013 is "..t[1].last.." ||")
+		ircSendChatQ(chan,"|| 2013 time is "..t[1].last.." ||")
+		ircSendChatQ(chan,"|| 2012 time is "..t[1].twelve.." ||")
 		ircSendChatQ(chan,"|| Elite time is "..t[1].elite.." ||")
 		return "|| Overall best(adj.) is by "..t[1].player.." ||",true
 	elseif #t>25 then

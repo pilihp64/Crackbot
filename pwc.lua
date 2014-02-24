@@ -67,11 +67,13 @@ local function getRec()
 	if not r or c~=200 then return {c} end
 	local t = {}
 	r = r:gsub("(.-)%+%+%+",function(str)
+		str = str:gsub("\027....","")
 		table.insert(t,str)
 		return ""
 	end)
 	if r~="" then --Leftover from +++ split
 		if r=="Error Finding the Map ID" then r="This map has no 2013 record!" end
+		r = r:gsub("\027....","")
 		table.insert(t,r)
 	end
 	return t

@@ -1,5 +1,5 @@
 if IRC_RUNNING then error("Can't load that from here") end
-print("Line input to IRC bot! "..config.prefix:gsub("%%","").."chan to change who gets message")
+print("Line input to IRC bot! ./chan to change who gets message")
 local socket = require"socket"
 local s = socket.bind("localhost",1337)
 s:settimeout(30)

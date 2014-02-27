@@ -50,8 +50,8 @@ dofile("commands.lua")
 if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
 for k,v in pairs(config.autojoin) do
 	irc:join(v)
-	irc:sendChat(v, "moo")
 end
+irc:sendChat("##powder-bots", "moo")
 
 local function consoleThink()
 	if not connected then return end

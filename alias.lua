@@ -110,20 +110,21 @@ end
 --ALIAS, add an alias for a command
 local function alias(usr,chan,msg,args)
 	args = getArgsOld(msg)
-	if not msg or not args[1] then return "Usage: '/alias add/rem/list <name> <cmd> [<args>]'" end
+	if not msg or not args[1] then return "Usage: '/alias add/rem/list/lock/unlock/suid/restrict <name> <cmd> [<args>]'" end
 	if args[1]=="add" then
 		if not args[2] then return "Usage: '/alias add <name> <cmd> [<args>]'" end
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
 		local name,cmd,aArgs = args[2],args[3],{}
 		if not commands[cmd] then return cmd.." doesn't exist!" end
 		if cmd == "timer" or cmd == "use" or cmd == "bug" then
-			return "Error: You can't alias to that"
+			return "You can't alias that!"
 		end
 		if allCommands[name] then return name.." already exists!" end
 		local userlevel = getPerms(usr.host)
 		if userlevel < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
-		if name:find("[\128-\255]") then return "Ascii aliases only" end
+		if name:find("[\128-\255]") then return "Ascii aliases only!" end
+		if #name > 30 then return "Alias name too long!" end
 		if #args > 60 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
@@ -213,4 +214,4 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	end
 end
-add_cmd(alias,"alias",0,"Add another name to execute a command, '/alias add/rem/list <newName> <cmd> [<args>]'.",true)
+add_cmd(alias,"alias",0,"Add another name to execute a command, '/alias add/rem/list/lock/unlock/suid/restrict <newName> <cmd> [<args>]'.",true)

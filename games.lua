@@ -35,6 +35,7 @@ storeInventory={
 ["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
 ["billion"]={name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
 ["company"]={name="company",cost=25000000000,info="A successful company that makes money (doesn't give you any yet).",amount=1,instock=true},
+["antiPad"]={name="antiPad",cost=100000000000,info=".daPi wen A, For the rich, made from antimatter.",amount=1,instock=true},
 ["country"]={name="country",cost=1000000000000,info="You own a country and everything in it.",amount=1,instock=true},
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
 ["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
@@ -122,19 +123,23 @@ local function remInv(usr,name,amt)
 	end
 end
 
+local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
+
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
 	--now we are parsing items in inventories for updates
 	for host,usr in pairs(gameUsers) do
 		for k,v in pairs(usr.inventory or {}) do
 			if k=="loan" then
-				v.cost = math.floor(v.cost*1.0002)
+				v.cost = math.floor(v.cost*1.002)
 			elseif k=="blackhole" then
 				v.cost = math.floor(v.cost*1.02)
 			elseif k=="paradox" then
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
 				addInv({host=host},storeInventory["moo"],1)
+			elseif k=="antiPad" and math.random()>.99 then
+				addInv({host=host},storeInventory[antiPadList[math.random(#antiPadList)]],1)
 			end
 		end
 	end
@@ -505,6 +510,9 @@ local itemUses = {
 			end
 		end
 		return "You are just happy you have the billion"
+	end,
+	['antiPad'] = function(usr,args)
+		return "You play Angry Birds."
 	end,
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 

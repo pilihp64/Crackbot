@@ -101,7 +101,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..gameUsers[usr.host].cash.." now)"
+	return " ($"..gameUsers[usr.host].cash.." now)"
 end
 
 --add item to inventory, creating if not exists

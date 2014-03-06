@@ -101,7 +101,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..gameUsers[usr.host].cash.." now)"
+	return " ($"..gameUsers[usr.host].cash.." now)"
 end
 
 --add item to inventory, creating if not exists
@@ -388,6 +388,38 @@ local itemUses = {
 			return "Ye ye vroom vroom +$1500000"..changeCash(usr,1500000)
 		end	
 	end,
+	["moo"]=function(usr, args)
+		local other = getUserFromNick(args[2])
+		if other and other.nick ~= usr.nick then
+			if (other.nick == "jacob1" or other.nick == "cracker64") and math.random() < .5 then
+				addInv(usr,storeInventory["moo"],1)
+				return "You moo at "..other.nick..". "..other.nick.." moos back (+1 moo)"
+			end
+			remInv(usr, "moo", 1)
+			addInv(other,storeInventory["moo"],1)
+			return "You moo at "..args[2].." (-1 moo)"
+		end
+		local moo = math.random(1,24)
+		if moo < 10 then
+			return "moo"
+		elseif moo < 11 then
+			remInv(usr, "moo", 1)
+			addInv(usr,storeInventory["cow"],1)
+			return "The moo turns into a baby cow! (-1 moo, +1 cow)"
+		elseif moo < 21 then
+			remInv(usr, "moo", 1)
+			return "You sell your moo for $1500000"..changeCash(usr,1500000)
+		else
+			if gameUsers[usr.host].inventory["cow"] and gameUsers[usr.host].inventory["cow"].amount > 0 then
+				remInv(usr, "moo", 1)
+				remInv(usr, "cow", 1)
+				return "The moo accidentally hits a baby cow and it dies (-1 moo, -1 cow)"
+			end
+			local mooCount = gameUsers[usr.host].inventory["moo"].amount
+			remInv(usr, "moo", mooCount)
+			return "You realize you didn't actually have any moos (-"..mooCount.." moo"..(mooCount > 1 and "s" or "")..")"
+		end
+	end,
 	["potato"]=function(usr)
 		if usr.nick == "jacob1" then
 			return "You are a potato"..changeCash(usr,1000)
@@ -430,7 +462,7 @@ local itemUses = {
 		if info and os.time() < info then
 			return "Please wait "..(info-os.time()).." seconds before spamming this again"
 		end
-		gameUsers[moo.host].inventory["cow"].status = os.time()+4
+		gameUsers[moo.host].inventory["cow"].status = os.time()+3
 		if cowCount > 2 then
 			if rnd%5 == 1 then
 				local amountgained = math.ceil(cowCount/24)

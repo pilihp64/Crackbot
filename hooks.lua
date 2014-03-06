@@ -243,7 +243,10 @@ function makeCMD(cmd,usr,channel,msg)
 					msg,_ = nestify(msg,1,0,usr,channel)
 				end
 				if msg=="" then msg=nil end
-				return commands[cmd].f(usr,channel,msg,getArgs(msg))
+				coroutine.yield(false,0)
+				local s,r,e = commands[cmd].f(usr,channel,msg,getArgs(msg))
+				if type(s)=="string" then s = s:sub(1,5000) end
+				return s,r,e
 			end
 		else
 			return false,usr.nick..": No permission for "..cmd

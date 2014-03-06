@@ -232,7 +232,9 @@ local function patFSane(args,filt)
 	return true
 end
 add_filt(patF,"pattern",patFSane,"Performs a gsub on text, '/pattern <patt> <repl> <text>'")
-
+if args.pat == ")" then 
+	return "This bot is no longer crashable via this exploit. Find another one!"
+end
 --BRAINFUCK filter
 function toBF(str)
 	return str

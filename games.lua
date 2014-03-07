@@ -534,7 +534,7 @@ local itemUses = {
 				local otheritem = t[math.random(#t)]
 				if otheritem.instock or otheritem.cost<0 then
 					remInv(other, otheritem.name, 1)
-					addInv(other, otheritem,1)
+					addInv(usr, otheritem,1)
 					return "You threw your billion at "..other.nick..", they are thankful and give you a " .. otheritem.name .. " in return without thinking."
 				else
 					return "You dropped the billion down a drain. "..other.nick.." lives in the sewers and found it."
@@ -718,6 +718,8 @@ local function giveMon(usr,chan,msg,args)
 	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
+		if i.name == "antiPad" then return "X7f67x^r?Ht2\UeWr*t5${-vz\~Q&{Z+6g$^d5yPlx+WR#^:qU" end
+		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
 		end
@@ -812,6 +814,7 @@ local function store(usr,chan,msg,args)
 			if amt==amt and amt>0 then
 				local v = gameUsers[usr.host].inventory[item]
 				if v and v.amount>=amt then
+					if v.cost<0 and gameUsers[usr.host].cash < -v.cost then return "You can't afford that!" end
 					changeCash(usr,v.cost*amt)
 					remInv(usr,item,amt)
 					rstring = rstring..amt.." "..v.name..", "

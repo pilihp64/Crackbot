@@ -1,9 +1,5 @@
 local buffer = {}
-local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
-local activeFilters = {}
-local badWordFilts = nil
-waitingCommands = {}
-setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
+local waitingCommands = {}
 --make print log everything to file as well
 _print = _print or print
 print = function(...)
@@ -16,89 +12,32 @@ print = function(...)
 	frqq:close()
 end
 
-function getkeys(table)
-	if type(table) ~= "table" then
-		return "Not a table"
+local onSendHooks = {}
+function addSendHook(hook,key)
+	if type(hook)=="function" then
+		onSendHooks[key] = onSendHooks[key] or hook
 	end
-	local str = ""
-	for k,v in pairs(table) do
-		str = str..type(v).." "..k.." | "
-	end
-	return str
+end
+function remSendHook(key)
+	onSendHooks[key] = nil
 end
 
-local function chatFilter(chan,text)
-	if bannedChans[chan:lower()] then error("Bad chan") end
-	local oldtext = colorstrip(text)
-	for k,v in pairs(activeFilters[chan].t) do
-		text = v.f(text,v.args,true):sub(1,445)
-	end
-	if #colorstrip(text) > 100 and #colorstrip(text) > 2*#oldtext then
-		text = "Error, filter too long"
-		table.remove(activeFilters[chan].t)
-	end
-	--don't censor query
-	if badWordFilts and chan:sub(1,1)=='#' then text = badWordFilts(text) end
-	return chan,text
-end
---show active filters
-function getFilts(chan)
-	local t={}
-	for k,v in pairs(activeFilters[chan].t) do
-		table.insert(t, v.name .. " " .. table.concat(v.args," ") )
-	end
-	local text = table.concat(t,"> ") or ""
-	print(text)
-	return "in > "..text .. "> out"
-end
---add new filter
-function addFilter(chan,filt,name,args)
-	if type(filt)=='function' then
-		if not activeFilters[chan].lock then
-			table.insert(activeFilters[chan].t,{['f']=filt,['name']=name,['args']=args})
-			return true
-		else
-			return false
-		end
-	end
-end
-function setBadWordFilter(f)
-	badWordFilts  = f
-end
---clear filter
-function clearFilter(chan)
-   	if not activeFilters[chan].lock then
-		activeFilters[chan].t={}
-		return true
-	else
-		return false
-	end
-end
---kill all filters, for errors
-function clearAllFilts()
-	for k,v in pairs(activeFilters) do
-		v.t = {}
-	end
-end
-function filtLock(chan)
-	activeFilters[chan].lock = true
-end
-function filtUnLock(chan)
-	activeFilters[chan].lock = false
-end
 --chat queue, needs to prevent excess flood eventually
-function ircSendChatQ(chan,text,nofilter)
+function ircSendChatQ(chan,text,nohook)
 	--possibly keep rest of text to send later
 	if not text then return end
-	if not nofilter then
-		chan,text = chatFilter(chan,text)
+	if not nohook then
+		for k,v in pairs(onSendHooks) do
+			chan,text = v(chan,text)
+		end
 	end
 	text = text:gsub("[\r\n]"," ")
-	host = ""
+	local host = ""
+	if not chan then chan=config.logchannel end
 	if irc.channels["##jacob1"] and irc.channels["##jacob1"].users[irc.nick] then
-		host = irc.channels["##jacob1"].users[irc.nick].host
+		host = irc.channels["##jacob1"].users[irc.nick].fullhost
 	end
-	byteLimit = 499 - #irc.nick - #chan - #host
+	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
 		table.insert(buffer,{["channel"]=chan,["msg"]=text:sub(1,byteLimit),["raw"]=false,["notice"]=false})
 		ircSendChatQ(chan,string.sub(text,byteLimit+1),true)
@@ -114,7 +53,7 @@ function ircSendNoticeQ(channel, text)
 end
 
 --send a line of queue
-function ircSendOne()
+function ircSendOne(tick)
 	if tick%12==0 and #buffer then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
@@ -243,6 +182,16 @@ local function listen(usr,chan,msg)
 	end
 end
 
+--Something to run before/after specific commands
+preCommands = {}
+postCommands = {}
+local function onPreCommand(cmd,usr)
+	if preCommands[cmd] then preCommands[cmd](usr) end
+end
+local function onPostCommand(cmd,usr)
+	if postCommands[cmd] then postCommands[cmd](usr) end
+end
+
 --capture args into table that supports "test test" args
 function getArgs(msg)
 	if not msg then return {} end
@@ -269,7 +218,7 @@ function getArgsOld(msg)
     return args
 end
 
-nestify=nil
+local nestify=nil
 local nestBegin = "<<"
 local nestEnd = ">>"
 function setNest(nb,ne)
@@ -284,16 +233,21 @@ end
 function makeCMD(cmd,usr,channel,msg)
 	if commands[cmd] then
 		--command exists
+		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
 		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
+			
 			return function()
-					if msg and cmd ~= "alias" and cmd ~= "aa" then
-						--check for {` `} nested commands, ./echo {`echo test`}
-						msg,_ = nestify(msg,1,0,usr,channel)
-					end
-					if msg=="" then msg=nil end
-					return commands[cmd].f(usr,channel,msg,getArgs(msg))
+				if msg and cmd ~= "alias" and cmd ~= "aa" then
+					--check for nested commands, ./echo {`echo test`}
+					msg,_ = nestify(msg,1,0,usr,channel)
 				end
+				if msg=="" then msg=nil end
+				coroutine.yield(false,0)
+				local s,r,e = commands[cmd].f(usr,channel,msg,getArgs(msg))
+				if type(s)=="string" then s = s:sub(1,5000) end
+				return s,r,e
+			end
 		else
 			return false,usr.nick..": No permission for "..cmd
 		end
@@ -378,11 +332,13 @@ local function realchat(usr,channel,msg)
 			func,err=makeCMD(cmd,usr,channel,rest)
 		end
 	end
-
+	listen(usr,channel,msg)
 	if func then
 		--we can execute the command
 		local co = coroutine.create(func)
+		onPreCommand(cmd,usr)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
+		onPostCommand(cmd,usr)
 		if not s and s2 then
 			ircSendChatQ(channel,s2)
 		elseif s2 then
@@ -404,11 +360,19 @@ local function realchat(usr,channel,msg)
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
-		if channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
+		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
 	end
-	listen(usr,channel,msg)
-	if user.nick=="jacobot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
+
+	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
+	end
+	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "distro2.pwc-networks.com"or usr.host == "74.208.15.252") then
+		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
+		--print(nusr.." AND "..nmsg)
+		if nmsg and nmsg~="" then 
+			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))
+			return
+		end
 	end
 	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
@@ -416,7 +380,7 @@ local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
-		clearAllFilts()
+		onSendHooks = {}
 		ircSendChatQ(channel,r)
 	end
 end
@@ -475,3 +439,16 @@ local function partCheck(usr,chan,reason)
 end
 pcall(irc.unhook,irc,"OnPart","partCheck")
 irc:hook("OnPart","partCheck",partCheck)
+
+
+local function onNotice(usr,channel,msg)
+	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+	local s,r = pcall(realchat,usr,channel,msg)
+	if not s and r then
+		onSendHooks = {}
+		ircSendChatQ(channel,r)
+	end
+	print("[NOTICE "..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+end
+pcall(irc.unhook,irc,"OnNotice","notice1")
+irc:hook("OnNotice","notice1",onNotice)

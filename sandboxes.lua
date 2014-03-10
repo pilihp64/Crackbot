@@ -7,11 +7,11 @@ local function lua(usr,chan,msg,args,luan)
 	if msg:sub(1,1) =="\27" then
 		return "Error: bytecode (?)"
 	end
-	luan = luan or WINDOWS and "luasandbox" or "./luasandbox"
+	luan = luan or WINDOWS and "luasandbox.exe" or "./luasandbox"
 	msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
 	local rf = io.popen(luan.." "..msg)
 	local r = rf:read("*a")
-	return r:sub(1,430)
+	return r:sub(1,1600)
 end
 local function lua52(usr,chan,msg,args)
 	return lua(usr,chan,msg,args,"lua5.2")
@@ -98,5 +98,5 @@ local function BF(usr,chan,msg)
 	if r then r = r:gsub("[\r\n]",""):sub(1,500) end
 	return r,true
 end
-add_cmd(BF,"BF",100,"Runs BF code, '/bf <code>'",false,{"bf"})
+--add_cmd(BF,"BF",100,"Runs BF code, '/bf <code>'",false,{"bf"})
 

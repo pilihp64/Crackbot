@@ -1,7 +1,84 @@
-filters = {}
+local filters = {}
+local activeFilters = {}
+local badWordFilt = nil
+local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
+setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
 local function add_filt(f,name,sane,help)
 	filters[name] = { f=f, sanity=sane or function() return true end,helptext = help}
 end
+
+local function chatFilter(chan,text)
+	if bannedChans[chan:lower()] then error("Bad chan") end
+	local oldtext, status = colorstrip(text), true
+	for k,v in pairs(activeFilters[chan].t) do
+		status, text = pcall(v.f,text,v.args,true)
+		if text then text = text:sub(1,4450) end
+	end
+	if not status then
+		text = "Error in filter: "..text
+		table.remove(activeFilters[chan].t)
+	end
+	if #colorstrip(text) > 100 and #colorstrip(text) > 2*#oldtext then
+		text = "Error, filter too long"
+		table.remove(activeFilters[chan].t)
+	end
+	--don't censor query
+	if badWordFilt and chan:sub(1,1)=='#' then text = badWordFilt(text) end
+	return chan,text
+end
+remSendHook("filter")
+addSendHook(chatFilter,"filter")
+
+--show active filters
+local function getFilts(chan)
+	local t={}
+	for k,v in pairs(activeFilters[chan].t) do
+		table.insert(t, v.name .. " " .. table.concat(v.args," ") )
+	end
+	local text = table.concat(t,"> ") or ""
+	print(text)
+	return "in > "..text .. "> out"
+end
+--add new filter
+local function addFilter(chan,filt,name,args)
+	if type(filt)=='function' then
+		if not activeFilters[chan].lock then
+			table.insert(activeFilters[chan].t,{['f']=filt,['name']=name,['args']=args})
+			return true
+		end
+		return false
+	end
+end
+--clear filter
+local function clearFilter(chan)
+   	if not activeFilters[chan].lock then
+		activeFilters[chan].t={}
+		return true
+	end
+	return false
+end
+--remove last filter
+local function popFilter(chan)
+	local chanF = activeFilters[chan]
+	if not chanF.lock and #chanF.t>0 then
+		table.remove(chanF.t,#chanF.t)
+		return true
+	end
+	return false
+end
+--kill all filters, for errors
+local function clearAllFilts()
+	for k,v in pairs(activeFilters) do
+		v.t = {}
+	end
+end
+local function filtLock(chan)
+	activeFilters[chan].lock = true
+end
+local function filtUnLock(chan)
+	activeFilters[chan].lock = false
+end
+
 local allColors = {'01','02','03','04','05','06','07','08','09','10','11','12','13','14','15',white='00', black='01', blue='02', green='03', red='04', brown='05', purple='06', orange='07', yellow='08', lightgreen='09', turquoise='10', lightblue='11', skyblue='12', lightpurple='13', gray='14', lightgray='15'}
 allColors[0]='00'
 local rainbowOrder = {'04','07','08','03','02','12','06'}
@@ -406,6 +483,12 @@ local function filter(usr,chan,msg,args)
 		else
 			return "No permission to unlock"
 		end
+	elseif msg=="pop" then
+		if popFilter(chan) then
+			return "Removed last filter"
+		else
+			return "Can't pop! Locked or no filters"
+		end	
 	elseif not msg then
 		if clearFilter(chan) then
 			return "Cleared Filts"
@@ -438,8 +521,8 @@ end
 
 --BADWORD filter, hopefully always active, uses my terrible color table to re-add
 --possibly save this list to file
-local badlist= {"^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-", "^%&"}
-local function badWords(text)
+local badlist= {"\007","^%$","^!","^;","^%%","^@","^#","^%?","^%.","^<","^/","^\\","^`","^%+","^%-", "^%&","^%)","^%(","^%~"}
+badWordFilt = function(text)
 	if type(text)~="string" then return nil end
 	local t = tableColor(text)
 	local nocol = colorstrip(text)
@@ -490,7 +573,6 @@ local function remBadWord(text)
 	end
 	return "Bad word not found"
 end
-setBadWordFilter(badWords)
 
 --command hook for badword
 local function badWord(usr,chan,msg,args)

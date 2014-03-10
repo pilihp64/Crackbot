@@ -1,6 +1,6 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","alias.lua"}
+local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}
@@ -30,6 +30,7 @@ end
 
 --Helper to return user object from a name
 function getUserFromNick(nick)
+	if not nick then return end
 	for k,v in pairs(irc.channels) do
 		if v and v.users then
 			for k2,v2 in pairs(v.users) do
@@ -133,16 +134,16 @@ add_cmd(methis,"me",0,"Performs an action, '/me <text>'",true)
 local function sneaky(usr,chan,msg)
 	return "You found me!"
 end
-add_cmd(sneaky,"./",0,"No help for ./ found!",false)
+add_cmd(sneaky,"./",0,nil,false)
 local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil
 end
-add_cmd(sneaky2,"./moo",0,"No help for ./moo found!",false)
+add_cmd(sneaky2,"./moo",0,nil,false)
 local function sneaky3(usr,chan,msg)
 	return "MooOoOoooOooo"
 end
-add_cmd(sneaky3,"moo",0,"No help for moo found!",false)
+add_cmd(sneaky3,"moo",0,nil,false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)
@@ -208,19 +209,34 @@ end
 add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 --hostmask
-local function getHost(usr,chan,msg,args)
-	if not msg then return usr.host end
-	local full = args[2]=="full"
-	local user = getUserFromNick(args[1])
+local function getHost(usr,chan,msg,args,ofull)
+	local full,user = false,getUserFromNick(args[1])
 	if not user then
-		return "Invalid user or not online."
+		user = usr
+		full = args[1]=="full"
+	else
+		full = args[2]=="full"
 	end
-	if full then
-		return user.fullhost
-	end
-	return user.host
+	return ((ofull or full) and user.fullhost or user.host)
 end
-add_cmd(getHost,"hostmask",0,"The hostmask for a user, '/hostmask <name>'",false)
+add_cmd(getHost,"host",0,"The host for a user, '/host <name>' Use /hostmask for full hostmask",false)
+
+local function getHostmask(usr,chan,msg,args)
+	return getHost(usr,chan,msg,args,true)
+end
+add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '/hostmask <name>' Use /host for short host",false)
+
+--username, for nesting
+local function getName(usr,chan,msg,args)
+	return usr.nick
+end
+add_cmd(getName,"nick",0,"Your nick, '/nick'",false)
+
+--channel name, for nesting
+local function getChan(usr,chan,msg,args)
+	return chan
+end
+add_cmd(getChan,"chan",0,"The current channel, '/chan'",false)
 
 --LUA full access
 local function lua2(usr,chan,msg,args)
@@ -296,4 +312,4 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-add_cmd(rbug,"bug",0,"Report something to jacob1, '/bug <msg>'",true)
+add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)

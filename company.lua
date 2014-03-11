@@ -19,7 +19,7 @@ local function timedSave()
 	table.save(compData,"compData.txt")
 end
 remUpdate("compSave")
-addUpdate(timedSave,60,"cracker64","compSave")
+addUpdate(timedSave,60,"wolfy1339","compSave")
 local function nextProject(comp)
 	--30-90 second for a project
 	local time= math.random(30,90)
@@ -82,7 +82,7 @@ local function updateComps()
 	end
 end
 remUpdate("company")
-addUpdate(updateComps,1,"jacob1","company")
+addUpdate(updateComps,1,"wolfy1339","company")
 
 local function calcWork(comp)
 	return comp.workSpeed + comp.employees*comp.emplSpeed
@@ -117,7 +117,7 @@ local function projHelp(usr,chan,msg,args)
 	local rstring = "Current ProjectName:"..proj.name.." Progress:"..proj.work.."/"..proj.needed.."("..math.floor(proj.work/proj.needed*100).."%) Reward: "..proj.reward.." TimeGoal: "..proj.time
 	return rstring
 end
-add_cmd(projHelp,"proj",0,"Current company project information, '/proj [start]' to intiate it.",true)
+add_cmd(projHelp,"proj",0,"Current company project information, '*proj [start]' to intiate it.",true)
 
 local function hireEmp(usr,chan,msg,args)
 	local comp = compData[usr.host]

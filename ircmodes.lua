@@ -13,7 +13,7 @@ end
 
 --MODE
 local function mode(usr,chan,msg,args)
-	if not msg then return "Usage: '/mode [<chan>] <mode> [...]', if no chan given, will use current" end
+	if not msg then return "Usage: '*mode [<chan>] <mode> [...]', if no chan given, will use current" end
 	local tochan = ""
 	local tomode = ""
 	local rest = ""
@@ -31,7 +31,7 @@ local function mode(usr,chan,msg,args)
 	
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
-add_cmd(mode,"mode",40,"Set a mode, '/mode [<chan>] <mode> [...]', if no chan given, will use current",true)
+add_cmd(mode,"mode",40,"Set a mode, '*mode [<chan>] <mode> [...]', if no chan given, will use current",true)
 
 --OP
 local function op(usr,chan,msg,args)
@@ -46,7 +46,7 @@ local function op(usr,chan,msg,args)
 	end local nick = args[2] or msg if nick:find("mniip") then setMode(chan,"+o-v",nick.." "..nick) else
 	setMode(chan,"+o", nick) end
 end
-add_cmd(op,"op",30,"Op a user, '/op [<chan>] <username>'",true)
+add_cmd(op,"op",30,"Op a user, '*op [<chan>] <username>'",true)
 --DEOP
 local function deop(usr,chan,msg,args)
 	if not args[1] then msg=usr.nick end
@@ -60,7 +60,7 @@ local function deop(usr,chan,msg,args)
 	end
 	setMode(chan,"-o",args[2] or msg)
 end
-add_cmd(deop,"deop",30,"DeOp a user, '/deop [<chan>] <username>'",true)
+add_cmd(deop,"deop",30,"DeOp a user, '*deop [<chan>] <username>'",true)
 
 --VOICE
 local function voice(usr,chan,msg,args)
@@ -75,7 +75,7 @@ local function voice(usr,chan,msg,args)
 	end local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
 	setMode(chan,"+v", nick)
 end
-add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)
+add_cmd(voice,"voice",15,"Voice a user, '*voice [<chan>] <username>'",true)
 
 --DEVOICE
 local function devoice(usr,chan,msg,args)
@@ -90,7 +90,7 @@ local function devoice(usr,chan,msg,args)
 	end
 	setMode(chan,"-v",args[2] or msg)
 end
-add_cmd(devoice,"devoice",10,"DeVoice a user, '/devoice [<chan>] <username>'",true)
+add_cmd(devoice,"devoice",10,"DeVoice a user, '*devoice [<chan>] <username>'",true)
 
 --UNQUIET
 local function unquiet(usr,chan,msg,args)
@@ -109,7 +109,7 @@ local function unquiet(usr,chan,msg,args)
 	host = host and host.host or nick
 	setMode(chan,"-q",host)
 end
-add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unquiet [<chan>] <host/username>'",true,{"unstab"})
+add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '*unquiet [<chan>] <host/username>'",true,{"unstab"})
 
 --QUIET
 local function quiet(usr,chan,msg,args)
@@ -136,7 +136,7 @@ local function quiet(usr,chan,msg,args)
 		ircSendNoticeQ(usr.nick, nick.." has been quieted for "..unbanTimer.." seconds")
 	end
 end
-add_cmd(quiet,"quiet",20,"Quiet a user, '/quiet [<chan>] <host/username> [<time>]. If no time is specified, picks a random time between 60 and 600 seconds.'",true,{"stab"})
+add_cmd(quiet,"quiet",20,"Quiet a user, '*quiet [<chan>] <host/username> [<time>]. If no time is specified, picks a random time between 60 and 600 seconds.'",true,{"stab"})
 
 --UNBAN
 local function unban(usr,chan,msg,args)
@@ -154,7 +154,7 @@ local function unban(usr,chan,msg,args)
 	host = host and host.host or nick
 	setMode(chan,"-b",host)
 end
-add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
+add_cmd(unban,"unban",20,"Unban a user, '*unban [<chan>] <host/username>'",true)
 
 --BAN
 local function ban(usr,chan,msg,args)
@@ -178,7 +178,7 @@ local function ban(usr,chan,msg,args)
 		addTimer(setMode[chan]["-b"][host],unbanTimer,chan)
 	end
 end
-add_cmd(ban,"ban",25,"Ban a user, '/ban [<chan>] <username> [<time>]'",true)
+add_cmd(ban,"ban",25,"Ban a user, '*ban [<chan>] <username> [<time>]'",true)
 
 --KICK
 local function kick(usr,chan,msg,args)
@@ -203,14 +203,14 @@ local function kick(usr,chan,msg,args)
 	end
 	ircSendRawQ("KICK "..chan.." "..nick.." :"..reason)
 end
-add_cmd(kick,"kick",10,"Kick a user, '/kick [<chan>] <username> [<reason>]'",true)
+add_cmd(kick,"kick",10,"Kick a user, '*kick [<chan>] <username> [<reason>]'",true)
 
 --KBAN
 local function kickban(usr,chan,msg,args)
 	ban(usr,chan,msg,args)
 	kick(usr,chan,msg,args)
 end
-add_cmd(kickban,"kban",30,"Kick and ban user, '/kban [<chan>] <username> [<time>] [<reason>]'",true)
+add_cmd(kickban,"kban",30,"Kick and ban user, '*kban [<chan>] <username> [<time>] [<reason>]'",true)
 
 --INVITE
 local function invite(usr,chan,msg,args)
@@ -224,15 +224,16 @@ local function invite(usr,chan,msg,args)
 	end
 	ircSendRawQ("INVITE "..args[1].." "..chan)
 end
-add_cmd(invite,"invite",50,"Invite someone to the channel, '/invite <user>'",true)
+add_cmd(invite,"invite",50,"Invite someone to the channel, '*invite <user>'",true)
 
-local function nickname(usr,chan,msg,args)
-	if not args[1] then error("No nickname")
+local function nick(usr,chan,msg,args)
+	if not args[1] then error("No nickname entered")
 	else
 		nickname=args[1]
 	end
 	ircSendRawQ("NICK "..nickname)
 end
+add_cmd(nick,"nick",101,"Make bot change nick, '*nick <nickname>",true,{"nickname"})
 
 --JOIN a channel
 local function join(usr,chan,msg,args)
@@ -244,7 +245,7 @@ local function join(usr,chan,msg,args)
 	end
 	ircSendRawQ("JOIN "..chan)
 end
-add_cmd(join,"join",101,"Make bot join a channel, '/join <chan>'",true)
+add_cmd(join,"join",101,"Make bot join a channel, '*join <chan>'",true)
 
 --PART a channel
 local function part(usr,chan,msg,args)
@@ -258,7 +259,7 @@ local function part(usr,chan,msg,args)
 	expectedPart=chan
 	ircSendRawQ("PART "..chan)
 end
-add_cmd(part,"part",101,"Make bot part a channel, '/part <chan>'",true)
+add_cmd(part,"part",101,"Make bot part a channel, '*part <chan>'",true)
 
 --CYCLE a channel
 local function cycle(usr,chan,msg,args)
@@ -273,4 +274,4 @@ local function cycle(usr,chan,msg,args)
 	ircSendRawQ("PART "..chan)
 	ircSendRawQ("JOIN "..chan)
 end
-add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '/cycle <chan>'",true)
+add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)

@@ -1,6 +1,6 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","alias.lua"}
+local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}
@@ -64,7 +64,7 @@ add_cmd(userstatus,"userinfo",101,"Test info about someone",false)
 
 --DISABLE a command for the bot
 local function disable(usr,chan,msg,args)
-	if not msg then return "Usage: '/disable <cmd> [<cmd2> ...]'" end
+	if not msg then return "Usage: '*disable <cmd> [<cmd2> ...]'" end
 	if args[1]=="all" then
 		for k,v in pairs(commands) do
 			if k~="enable" then commands[k]=nil end
@@ -82,11 +82,11 @@ local function disable(usr,chan,msg,args)
 		return "Disabled: "..table.concat(t," ")
 	end
 end
-add_cmd(disable,"disable",100,"Disable a command for the bot, '/disable <cmd> [<cmd2> ...]'",true)
+add_cmd(disable,"disable",100,"Disable a command for the bot, '*disable <cmd> [<cmd2> ...]'",true)
 
 --ENABLE a command previously disabled
 local function enable(usr,chan,msg,args)
-	if not msg then return "Usage: '/enable <cmd> [<cmd2> ...]'" end
+	if not msg then return "Usage: '*enable <cmd> [<cmd2> ...]'" end
 	if args[1]=="all" then
 		for k,v in pairs(allCommands) do
 			if not commands[k] then commands[k]=v end
@@ -104,7 +104,7 @@ local function enable(usr,chan,msg,args)
 		return "Enabled: "..table.concat(t," ")
 	end
 end
-add_cmd(enable,"enable",100,"Enables a command previously disabled, '/enable <cmd> [<cmd2> ...]'",true)
+add_cmd(enable,"enable",100,"Enables a command previously disabled, '*enable <cmd> [<cmd2> ...]'",true)
 
 --QUIT
 local function suicide(usr,chan,msg)
@@ -123,12 +123,12 @@ add_cmd(ping,"ping",0,"pong",true)
 local function dothis(usr,chan,msg) --fix DO and ME with filters
 	if msg then return "\001ACTION does "..msg.."\001",true end
 end
-add_cmd(dothis,"do",0,"Performs an action, '/do <text>'",true)
+add_cmd(dothis,"do",0,"Performs an action, '*do <text>'",true)
 --ME
 local function methis(usr,chan,msg)
 	if msg then return "\001ACTION "..msg.."\001",true end
 end
-add_cmd(methis,"me",0,"Performs an action, '/me <text>'",true)
+add_cmd(methis,"me",0,"Performs an action, '*me <text>'",true)
 
 --SNEAAK
 local function sneaky(usr,chan,msg)
@@ -160,13 +160,13 @@ local function reload(usr,chan,msg,args)
 	end
 	return rmsg
 end
-add_cmd(reload,"load",100,"Loads file(s), '/load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
+add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
 
 --ECHO
 local function echo(usr,chan,msg)
 	return msg,true
 end
-add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true)
+add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true)
 
 --LIST
 local function list(usr,chan,msg,args)
@@ -182,7 +182,7 @@ local function list(usr,chan,msg,args)
 	table.sort(t,function(x,y)return x<y end)
 	return "Commands("..perm.."): " .. table.concat(t,", ")
 end
-add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/list [<level>]'",true,{"ls"})
+add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '*list [<level>]'",true,{"ls"})
 
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
@@ -206,7 +206,7 @@ local function chmod(usr,chan,msg,args)
 	permissions[host] = tonumber(level)
 	return "perm['"..host.."'] = "..level
 end
-add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
+add_cmd(chmod,"chmod",40,"Changes a hostmask level, '*chmod <name/host> <level>'",true)
 
 --hostmask
 local function getHost(usr,chan,msg,args,ofull)
@@ -219,24 +219,24 @@ local function getHost(usr,chan,msg,args,ofull)
 	end
 	return ((ofull or full) and user.fullhost or user.host)
 end
-add_cmd(getHost,"host",0,"The host for a user, '/host <name>' Use /hostmask for full hostmask",false)
+add_cmd(getHost,"host",0,"The host for a user, '*host <name>' Use *hostmask for full hostmask",false)
 
 local function getHostmask(usr,chan,msg,args)
 	return getHost(usr,chan,msg,args,true)
 end
-add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '/hostmask <name>' Use /host for short host",false)
+add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '*hostmask <name>' Use *host for short host",false)
 
 --username, for nesting
 local function getName(usr,chan,msg,args)
 	return usr.nick
 end
-add_cmd(getName,"nick",0,"Your nick, '/nick'",false)
+add_cmd(getName,"nick",0,"Your nick, '*nick'",false)
 
 --channel name, for nesting
 local function getChan(usr,chan,msg,args)
 	return chan
 end
-add_cmd(getChan,"chan",0,"The current channel, '/chan'",false)
+add_cmd(getChan,"chan",0,"The current channel, '*chan'",false)
 
 --LUA full access
 local function lua2(usr,chan,msg,args)
@@ -256,7 +256,7 @@ local function lua2(usr,chan,msg,args)
 	end
 	return "ERROR: " .. err
 end
-add_cmd(lua2,"..",101,"Runs full lua code, '/lua <code>'",false)
+add_cmd(lua2,"..",101,"Runs full lua code, '*lua <code>'",false)
 
 --HELP
 local function help(usr,chan,msg)
@@ -268,7 +268,7 @@ local function help(usr,chan,msg)
 	end
 	return "No help for "..msg.." found!"
 end
-add_cmd(help,"help",0,"Returns hopefully helpful information, '/help <cmd>'",true)
+add_cmd(help,"help",0,"Returns hopefully helpful information, '*help <cmd>'",true)
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
@@ -283,7 +283,7 @@ local function unhelp(usr,chan,msg)
 	end
 	return "No help for "..msg.." found!"
 end
-add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu/' ,noitamrofni lufplehnu yllufepoh snruteR",true)
+add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu*' ,noitamrofni lufplehnu yllufepoh snruteR",true)
 
 --TIMER
 local function timer(usr,chan,msg,args)
@@ -302,7 +302,7 @@ local function timer(usr,chan,msg,args)
 		return "Bad timer"
 	end
 end
-add_cmd(timer,"timer",0,"Time until a print is done, '/timer <time(seconds)> <text>'",true)
+add_cmd(timer,"timer",0,"Time until a print is done, '*timer <time(seconds)> <text>'",true)
 
 --BUG, report something to me in a file
 local function rbug(usr,chan,msg,args)
@@ -312,4 +312,4 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)
+add_cmd(rbug,"bug",0,"Report something to cracker, '*bug <msg>'",true)

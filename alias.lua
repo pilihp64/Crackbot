@@ -214,4 +214,4 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	end
 end
-add_cmd(alias,"alias",0,"Add another name to execute a command, '/alias add/rem/list/lock/unlock/suid/restrict <newName> <cmd> [<args>]'.",true)
+add_cmd(alias,"alias",0,"Add another name to execute a command, '*alias add/rem/list/lock/unlock/suid/restrict <newName> <cmd> [<args>]'.",true)

@@ -1,6 +1,5 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","tptmp.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}
@@ -43,7 +42,7 @@ function getUserFromNick(nick)
 end
 
 --Load mods here so it can use some functions
-for k,v in pairs(modList) do
+for k,v in pairs(config.modList) do
 	local s,r = pcall(dofile,v)
 	if not s then print(r) end
 end
@@ -312,4 +311,4 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-add_cmd(rbug,"bug",0,"Report something to cracker, '/bug <msg>'",true)
+add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '/bug <msg>'",true)

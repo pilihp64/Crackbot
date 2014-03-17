@@ -5,7 +5,15 @@ dofile("derp.lua")
 dofile("irc/init.lua")
 
 local s,r = pcall(dofile,"config.lua")
-if not s then print("Config not found, copying template") os.execute("cp configtemplate.lua config.lua") r=dofile("config.lua") end
+if not s then
+	if r:find("No such file or directory") then
+		print("Config not found, copying template")
+		os.execute("cp configtemplate.lua config.lua")
+		r=dofile("config.lua")
+	else
+		error(r)
+	end
+end
 config = r
 
 local sleep=require "socket".sleep
@@ -13,7 +21,7 @@ local socket = require"socket"
 local console=socket.tcp()
 console:settimeout(5)
 
-if not WINDOWS then
+if not WINDOWS and config.terminalinput then
 	--start my console line-in
 	os.execute("mate-terminal -x lua consolein.lua")
 end
@@ -51,7 +59,14 @@ if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") e
 for k,v in pairs(config.autojoin) do
 	irc:join(v)
 end
-irc:sendChat("##powder-bots", "moo"*#config.autojoin)
+--join extra config channels if they for some reason aren't in the autojoin
+if config.primarychannel then
+	irc:join(config.primarychannel)
+end
+if config.logchannel then
+	irc:join(config.logchannel)
+end
+irc:sendChat(config.primarychannel, "moo"*#config.autojoin)
 
 local function consoleThink()
 	if not connected then return end

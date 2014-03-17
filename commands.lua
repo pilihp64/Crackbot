@@ -1,6 +1,6 @@
 --List of files to load
 dofile("tableSave.lua")
-local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","alias.lua"}
+local modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","pwc.lua","tptmp.lua","alias.lua"}
 math.randomseed(os.time())
 commands = {}
 allCommands = {}

@@ -19,7 +19,7 @@ local function timedSave()
 	table.save(compData,"compData.txt")
 end
 remUpdate("compSave")
-addUpdate(timedSave,60,"wolfy1339","compSave")
+addUpdate(timedSave,60,config.owner.nick,"compSave")
 local function nextProject(comp)
 	--30-90 second for a project
 	local time= math.random(30,90)

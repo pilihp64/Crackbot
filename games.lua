@@ -146,7 +146,7 @@ local function timedSave()
 	table.save(gameUsers,"userData.txt")
 end
 remUpdate("gameSave")
-addUpdate(timedSave,60,"cracker64","gameSave")
+addUpdate(timedSave,60,config.owner.nick,"gameSave")
 
 --Find closest item value
 local function findClosestItem(amt)
@@ -320,14 +320,14 @@ local itemUses = {
 	["doll"]=function(usr)
 		remInv(usr,"doll",1)
 		if string.lower(usr.nick):find("mitch") then
-			ircSendRawQ("KICK ##powder-bots "..usr.nick)
+			ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
 			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
 		end
 		local rnd = math.random(1,100)
 		if rnd <= 50 then
 			return "You find out the doll was gay and throw it away (-1 doll)"
 		elseif rnd == 51 then
-			ircSendRawQ("KICK ##powder-bots wolfmitchell")
+			ircSendRawQ("KICK "..config.primarychannel.." wolfmitchell")
 			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
 		else
 			return "The doll looks so ugly that you burn it (-1 doll)"
@@ -448,7 +448,7 @@ local itemUses = {
 			end
 			if rnd%2 == 1 then
 				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK ##powder-bots "..usr.nick.." :"..str)
+				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick.." :"..str)
 				str = ""
 			end
 			remInv(usr,"potato",1)
@@ -696,15 +696,15 @@ local function giveMon(usr,chan,msg,args)
 	if string.lower(args[1]) == string.lower(usr.nick) then
 		return "You can't give to yourself..."
 	end
+	if string.lower(args[1]) == string.lower(config.user.nick) then
+		return "Please do not give to the bot"
+	end
 	toHost = getUserFromNick(args[1])
 	if not toHost then
 		return "Invalid user, or not online"
 	end
 	toHost = toHost.host
 	
-	if toHost == "unaffiliated/jacob1/bot/jacobot" then
-		return "Please do not give to the bot"
-	end
 	if amt and not item then
 		--if toHost == "Powder/Developer/jacob1" and amt < 50 then
 		--	return "Donations to jacob1 must be at least 1 million"

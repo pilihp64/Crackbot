@@ -34,8 +34,8 @@ function ircSendChatQ(chan,text,nohook)
 	text = text:gsub("[\r\n]"," ")
 	local host = ""
 	if not chan then chan=config.logchannel end
-	if irc.channels["##jacob1"] and irc.channels["##jacob1"].users[irc.nick] then
-		host = irc.channels["##jacob1"].users[irc.nick].fullhost
+	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then
+		host = irc.channels[config.primarychannel].users[irc.nick].fullhost
 	end
 	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
@@ -386,7 +386,7 @@ local function chat(usr,channel,msg)
 end
 
 --console is read as messages from me
-local conChannel = "##powder-bots"
+local conChannel = config.primarychannel
 function consoleChat(msg)
 	local _,_,chan = msg:find("^"..config.prefix.."chan (.+)")
 	local isPrefix = msg:find("^"..config.prefix)
@@ -398,7 +398,7 @@ function consoleChat(msg)
 		conChannel = chan
 		return
 	end
-	chat({nick="wolfy1339",host="botters/wolfy1339",fullhost="wolfy1339!ZNC@botters/wolfy1339"},conChannel,msg)
+	chat({nick=config.owner.nick,host=config.owner.host,fullhost=config.owner.fullhost},conChannel,msg)
 end
 --remove old hook for reloading
 pcall(irc.unhook,irc,"OnChat","chat1")

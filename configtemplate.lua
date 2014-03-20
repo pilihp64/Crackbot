@@ -49,7 +49,7 @@ local config = {
 	primarychannel = "##powder-bots",
 	--logs all commands done in pm, and added aliases
 	logchannel = "##foo",
-	prefix = "%./",
+	prefix = "%*",
 	suffix = "moo+",
 	
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal

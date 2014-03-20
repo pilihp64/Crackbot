@@ -26,19 +26,21 @@ function meta_preconnect.__index(o, k)
 	local v = rawget(meta_preconnect, k)
 
 	if not v and meta[k] then
-		error("field '"..k.."' is not accessible before connecting", 2)
+		error(("field '%s' is not accessible before connecting"):format(k), 2)
 	end
 	return v
 end
 
-function new(user)
+function new(data)
 	local o = {
-		nick = assert(user.nick, "Field 'nick' is required");
-		username = user.username or "lua";
-		realname = user.realname or "Lua owns";
+		nick = assert(data.nick, "Field 'nick' is required");
+		username = data.username or "lua";
+		realname = data.realname or "Lua owns";
+		nickGenerator = data.nickGenerator or defaultNickGenerator;
 		hooks = {};
 		track_users = true;
 	}
+	assert(checkNick(o.nick), "Erroneous nickname passed to irc.new")
 	return setmetatable(o, meta_preconnect)
 end
 
@@ -118,6 +120,11 @@ function meta_preconnect:connect(_host, _port, _password)
 	self.socket = s
 	setmetatable(self, meta)
 
+	self:send("CAP REQ multi-prefix")
+
+	self:invoke("PreRegister", self)
+	self:send("CAP END")
+
 	if password then
 		self:send("PASS %s", password)
 	end
@@ -131,6 +138,7 @@ function meta_preconnect:connect(_host, _port, _password)
 
 	repeat
 		self:think()
+		socket.select(nil, nil, 0.1) -- Sleep so that we don't eat CPU
 	until self.authed
 end
 
@@ -223,3 +231,4 @@ end
 function meta:topic(channel)
 	self:send("TOPIC %s", channel)
 end
+

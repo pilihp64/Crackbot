@@ -1,12 +1,9 @@
 local setmetatable = setmetatable
-local sub = string.sub
-local byte = string.byte
 local char = string.char
 local table = table
 local assert = assert
 local tostring = tostring
 local type = type
-local random = math.random
 
 module "irc"
 
@@ -50,29 +47,20 @@ function parse(line)
 	return prefix, cmd, params
 end
 
+function parseWhoAccess(acs)
+    return acs:match("([%+@]?)$")
+end
 function parseNick(nick)
-	local access, name = nick:match("^([%+@]*)(.+)$")
-	return parseAccess(access or ""), name
+    return nick:match("^([%+@]?)(.+)$")
 end
 
 function parsePrefix(prefix)
 	local user = {}
 	if prefix then
-		user.access, user.nick, user.username, user.host = prefix:match("^([%+@]*)(.+)!(.+)@(.+)$")
+		user.access, user.nick, user.username, user.host = prefix:match("^([%+@]?)(.+)!(.+)@(.+)$")
+		user.fullhost = prefix
 	end
-	user.access = parseAccess(user.access or "")
 	return user
-end
-
-function parseAccess(accessString)
-	local access = {op = false, halfop = false, voice = false}
-	for c in accessString:gmatch(".") do
-		if     c == "@" then access.op = true
-		elseif c == "%" then access.halfop = true
-		elseif c == "+" then access.voice = true
-		end
-	end
-	return access
 end
 
 --mIRC markup scheme (de-facto standard)
@@ -110,27 +98,3 @@ local underlineByte = char(31)
 function underline(text)
 	return underlineByte..text..underlineByte
 end
-
-function checkNick(nick)
-	return nick:find("^[a-zA-Z_%-%[|%]%^{|}`][a-zA-Z0-9_%-%[|%]%^{|}`]*$") ~= nil
-end
-
-function defaultNickGenerator(nick)
-	-- LuaBot -> LuaCot -> LuaCou -> ...
-	-- We change a random charachter rather than appending to the
-	-- nickname as otherwise the new nick could exceed the ircd's
-	-- maximum nickname length.
-	local randindex = random(1, #nick)
-	local randchar = sub(nick, randindex, randindex)
-	local b = byte(randchar)
-	b = b + 1
-	if b < 65 or b > 125 then
-		b = 65
-	end
-	-- Get the halves before and after the changed character
-	local first = sub(nick, 1, randindex - 1)
-	local last = sub(nick, randindex + 1, #nick)
-	nick = first..char(b)..last  -- Insert the new charachter
-	return nick
-end
-

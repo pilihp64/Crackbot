@@ -1,7 +1,7 @@
 local pairs = pairs
 local error = error
 local tonumber = tonumber
-local table = table
+local print=print
 
 module "irc"
 
@@ -67,6 +67,10 @@ handlers["NICK"] = function(o, prefix, newnick)
 			local oldinfo = users[user.nick]
 			if oldinfo then
 				users[newnick] = oldinfo
+				users[newnick].nick = newnick
+				if users[newnick].fullhost then
+					users[newnick].fullhost = users[newnick].nick.."!"..users[newnick].username.."@"..users[newnick].host
+				end
 				users[user.nick] = nil
 				o:invoke("NickChange", user, newnick, channel)
 			end
@@ -74,22 +78,15 @@ handlers["NICK"] = function(o, prefix, newnick)
 	else
 		o:invoke("NickChange", user, newnick)
 	end
-	if user.nick == o.nick then
-		o.nick = newnick
+end
+--WHO list
+handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, access1 ,something, something2)
+	if o.track_users then
+		local user = {nick=name, host=host, username=name1, serv=serv, access=parseWhoAccess(access1), fullhost=name.."!"..name1.."@"..host}
+		--print(user.nick,user.host,user.ID,user.serv,user.access)
+		o.channels[channel].users[user.nick] = user
 	end
 end
-
-local function needNewNick(o, prefix, target, badnick)
-	local newnick = o.nickGenerator(badnick)
-	o:send("NICK %s", newnick)
-end
-
--- ERR_ERRONEUSNICKNAME (Misspelt but remains for historical reasons)
-handlers["432"] = needNewNick
-
--- ERR_NICKNAMEINUSE
-handlers["433"] = needNewNick
-
 --NAMES list
 handlers["353"] = function(o, prefix, me, chanType, channel, names)
 	if o.track_users then
@@ -98,7 +95,7 @@ handlers["353"] = function(o, prefix, me, chanType, channel, names)
 		local users = o.channels[channel].users
 		for nick in names:gmatch("(%S+)") do
 			local access, name = parseNick(nick)
-			users[name] = {access = access}
+			users[name] = {type = access}
 		end
 	end
 end
@@ -145,24 +142,11 @@ handlers["324"] = function(o, prefix, user, channel, modes)
 	o:invoke("OnChannelMode", channel, modes)
 end
 
-handlers["MODE"] = function(o, prefix, target, modes, ...)
-	if o.track_users and target ~= o.nick then
-		local add = true
-		local optList = {...}
-		for c in modes:gmatch(".") do
-			if     c == "+" then add = true
-			elseif c == "-" then add = false
-			elseif c == "o" then
-				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.op = add
-			elseif c == "h" then
-				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.halfop = add
-			elseif c == "v" then
-				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.voice = add
-			end
-		end
+handlers["MODE"] = function(o, prefix, targetchan, modes, ...)
+	print(prefix,target,modes, ...)
+	if o.track_users then
+	--TODO: track user access changes.
+	
 	end
 	o:invoke("OnModeChange", parsePrefix(prefix), target, modes, ...)
 end

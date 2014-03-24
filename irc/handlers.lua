@@ -166,13 +166,15 @@ handlers["MODE"] = function(o, prefix, target, modes, ...)
 			elseif c == "-" then add = false
 			elseif c == "o" then
 				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.op = add
+				if user and o.channels[target].users[user] then o.channels[target].users[user].access.op = add end
 			elseif c == "h" then
 				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.halfop = add
+				if user then o.channels[target].users[user].access.halfop = add end
 			elseif c == "v" then
 				local user = table.remove(optList, 1)
-				o.channels[target].users[user].access.voice = add
+				if user then o.channels[target].users[user].access.voice = add end
+			elseif c == "b" or c == "q" then
+				table.remove(optList, 1)
 			end
 		end
 	end

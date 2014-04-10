@@ -23,6 +23,7 @@ function meta:send(msg, ...)
 end
 
 local function verify(str, errLevel)
+	if not str or not errLevel then return end
 	if str:find("^:") or str:find("%s%z") then
 		error(("malformed parameter '%s' to irc command"):format(str), errLevel)
 	end
@@ -31,6 +32,7 @@ local function verify(str, errLevel)
 end
 
 function meta:sendChat(target, msg)
+	if not target or not msg then return end
 	-- Split the message into segments if it includes newlines.
 	for line in msg:gmatch("([^\r\n]+)") do
 		self:send("PRIVMSG %s :%s", verify(target, 3), line)

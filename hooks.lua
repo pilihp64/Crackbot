@@ -35,7 +35,7 @@ function ircSendChatQ(chan,text,nohook)
 	local host = ""
 	if not chan then chan=config.logchannel end
 	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then
-		host = irc.channels[config.primarychannel].users[irc.nick].fullhost
+		host = irc.channels[config.primarychannel].users[irc.nick].fullhost or ""
 	end
 	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
@@ -120,6 +120,7 @@ end
 function remUpdate(name)
 	for k,v in pairs(updates) do
 		if v.name==name then
+			v.f=nil
 			updates[k]=nil
 		end
 	end
@@ -366,7 +367,7 @@ local function realchat(usr,channel,msg)
 	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
-	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "distro2.pwc-networks.com"or usr.host == "74.208.15.252") then
+	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "74.208.15.252") then
 		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
 		--print(nusr.." AND "..nmsg)
 		if nmsg and nmsg~="" then 
@@ -378,6 +379,7 @@ local function realchat(usr,channel,msg)
 end
 local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+	if not usr.nick then return end
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
 		onSendHooks = {}
@@ -442,12 +444,6 @@ irc:hook("OnPart","partCheck",partCheck)
 
 
 local function onNotice(usr,channel,msg)
-	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
-	local s,r = pcall(realchat,usr,channel,msg)
-	if not s and r then
-		onSendHooks = {}
-		ircSendChatQ(channel,r)
-	end
 	print("[NOTICE "..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 pcall(irc.unhook,irc,"OnNotice","notice1")

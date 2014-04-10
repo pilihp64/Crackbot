@@ -17,7 +17,12 @@ handlers["001"] = function(o, prefix, me)
 end
 
 handlers["PRIVMSG"] = function(o, prefix, channel, message)
-	o:invoke("OnChat", parsePrefix(prefix), channel, message)
+	if message:sub(1,1) == "\001" then
+		local space = message:find(" ") or #message
+		o:invoke("OnCTCP", parsePrefix(prefix), channel, message:sub(2, space-1):upper(), message:sub(space+1,#message-1))
+	else
+		o:invoke("OnChat", parsePrefix(prefix), channel, message)
+	end
 end
 
 handlers["NOTICE"] = function(o, prefix, channel, message)

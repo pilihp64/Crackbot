@@ -457,7 +457,6 @@ local function onCTCP(usr,channel,type,msg)
 		response = "https://github.com/cracker64/Crackbot"
 	end
 	if response then
-		onSendHooks = {}
 		ircSendNoticeQ(usr.nick,"\001"..type.." "..response.."\001")
 	end
 	if type == "ACTION" then

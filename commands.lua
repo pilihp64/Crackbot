@@ -41,10 +41,21 @@ function getUserFromNick(nick)
 	end
 end
 
---Load mods here so it can use some functions
-for k,v in pairs(config.modList) do
-	local s,r = pcall(dofile,v)
-	if not s then print(r) end
+--Load all plugins in plugins/ here
+local listcmd = WINDOWS and "dir /b" or "ls"
+local pluginList = io.popen(listcmd.." \"plugins\"")
+for file in pluginList:lines() do
+	if file:sub(#file-3,#file) == ".lua" then
+		local s,e = pcall(dofile, "plugins/"..file)
+		if not s then
+			if config.logchannel then
+				ircSendChatQ(config.logchannel, e)
+			end
+			print("Error loading plugins/"..file..": "..e)
+		else
+			print("Loaded plugins/"..file)
+		end
+	end
 end
 
 --CORE FUNCTIONS HERE
@@ -153,8 +164,15 @@ local function reload(usr,chan,msg,args)
 	local rmsg=""
 	for k,v in pairs(args) do
 		local s,r = pcall(dofile,v..".lua")
-		if s then rmsg = rmsg .. "Loaded: "..v.." "
-		else rmsg = rmsg .. r .. " "
+		if s then
+			rmsg = rmsg .. "Loaded: "..v.." "
+		else
+			s,r = pcall(dofile,"plugins/"..v..".lua")
+			if s then
+				rmsg = rmsg .. "Loaded: "..v.." "
+			else
+				rmsg = rmsg .. r .. " "
+			end
 		end
 	end
 	return rmsg

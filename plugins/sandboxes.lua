@@ -1,3 +1,5 @@
+module("sandboxes", package.seeall)
+
 --LUA sandbox
 local function lua(usr,chan,msg,args,luan)
 	--if chan:sub(1,1) ~= "#" then
@@ -7,7 +9,7 @@ local function lua(usr,chan,msg,args,luan)
 	if msg:sub(1,1) =="\27" then
 		return "Error: bytecode (?)"
 	end
-	luan = luan or WINDOWS and "luasandbox.exe" or "./luasandbox"
+	luan = luan or WINDOWS and "plugins/sandbox/luasandbox.exe" or "plugins/sandbox/luasandbox"
 	msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
 	local rf = io.popen(luan.." "..msg)
 	local r = rf:read("*a")

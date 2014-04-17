@@ -1,5 +1,7 @@
+module("alias", package.seeall)
+
 --Contains data needed to create command
-aliasList = table.load("AliasList.txt") or {}
+aliasList = table.load("plugins/AliasList.txt") or {}
 local macroCMDs = {
 	["me"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return nusr.nick
@@ -16,16 +18,16 @@ local macroCMDs = {
 		return nusr.host..right
 	end,
 	["cash"] = function(nusr,nchan,nmsg,nargs,usedArgs)
-		return gameUsers[nusr.host].cash
+		return games.gameUsers[nusr.host].cash
 	end,
 	["price%[(%w-)%]"] = function(nusr,nchan,nmsg,nargs,usedArgs,item)
-		return (storeInventory[item] or {cost=0}).cost
+		return (games.storeInventory[item] or {cost=0}).cost
 	end,
 	["ping"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return "pong"
 	end,
 	["inv%[(%w-)%]"] = function(nusr,nchan,nmsg,nargs,usedArgs,item)
-		return tostring((gameUsers[nusr.host].inventory[item] or {amount=0}).amount)
+		return tostring((games.gameUsers[nusr.host].inventory[item] or {amount=0}).amount)
 	end,
 	["USER"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return "crackbot"
@@ -132,7 +134,7 @@ local function alias(usr,chan,msg,args)
 		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level,usrlvl = userlevel,suid=false}
 		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"(lvl="..userlevel..",req="..commands[cmd].level..") Alias for "..cmd.." "..aMsg,false)
 		table.insert(aliasList,alis)
-		table.save(aliasList,"AliasList.txt")
+		table.save(aliasList,"plugins/AliasList.txt")
 		if config.logchannel then
 			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." added alias "..name.." to "..cmd.." "..aMsg)
 		end
@@ -146,7 +148,7 @@ local function alias(usr,chan,msg,args)
 				aliasList[k]=nil
 				commands[name]=nil
 				allCommands[name]=nil
-				table.save(aliasList,"AliasList.txt")
+				table.save(aliasList,"plugins/AliasList.txt")
 				return "Removed alias"
 			end
 		end
@@ -165,7 +167,7 @@ local function alias(usr,chan,msg,args)
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.lock = "*" --bool doesn't save right now
-				table.save(aliasList,"AliasList.txt")
+				table.save(aliasList,"plugins/AliasList.txt")
 				return "Locked alias"
 			end
 		end
@@ -177,7 +179,7 @@ local function alias(usr,chan,msg,args)
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.lock = nil
-				table.save(aliasList,"AliasList.txt")
+				table.save(aliasList,"plugins/AliasList.txt")
 				return "Unlocked alias"
 			end
 		end
@@ -189,7 +191,7 @@ local function alias(usr,chan,msg,args)
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.usrlvl,v.suid = (level or v.usrlvl),(level and 1 or nil)
-				table.save(aliasList,"AliasList.txt")
+				table.save(aliasList,"plugins/AliasList.txt")
 				commands[name]=nil
 				allCommands[name]=nil
 				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
@@ -205,7 +207,7 @@ local function alias(usr,chan,msg,args)
 			if name==v.name then
 				v.level = level
 				commands[name].level = level
-				table.save(aliasList,"AliasList.txt")
+				table.save(aliasList,"plugins/AliasList.txt")
 				commands[name]=nil
 				allCommands[name]=nil
 				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)				return "Set restrict to "..level

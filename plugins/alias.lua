@@ -1,7 +1,7 @@
 module("alias", package.seeall)
 
 --Contains data needed to create command
-aliasList = table.load("plugins/AliasList.txt") or {}
+aliasList = alias.aliasList or (table.load("plugins/AliasList.txt") or {})
 local macroCMDs = {
 	["me"] = function(nusr,nchan,nmsg,nargs,usedArgs)
 		return nusr.nick
@@ -155,9 +155,20 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	elseif args[1]=="list" then
 		local t={}
-		for k,v in pairs(aliasList) do
-			table.insert(t,v.name.."\15"..(v.lock or ""))
+		local locked,unlocked = true,true
+		if args[2] then
+			if args[2] == "locked" then unlocked = false
+			elseif args[2] == "unlocked" then locked = false
+			end
 		end
+		for k,v in pairs(aliasList) do
+			if v.lock and locked then
+				table.insert(t,v.name.."\15"..(unlocked and v.lock or ""))
+			elseif not v.lock and unlocked then
+				table.insert(t,v.name.."\15")
+			end
+		end
+		table.sort(t)
 		return "Aliases: "..table.concat(t,", ")
 	elseif args[1]=="lock" then
 		--Lock an alias so other users can't remove it

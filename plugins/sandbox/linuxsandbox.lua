@@ -14,9 +14,9 @@ function luagetArgs(msg)
 	end
 	return args
 end
-dofile("fakefs.lua")
+dofile("plugins/sandbox/fakefs.lua")
 dofile("tableSave.lua")
-local userData = table.load("userData.txt")
+local userData = table.load("plugins/gameUsers.txt")
 for k,v in pairs(userData) do
 	--v.lastDoor=nil
 end

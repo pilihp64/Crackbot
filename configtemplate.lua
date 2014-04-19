@@ -20,7 +20,6 @@ end
 
 --This has server specific data
 local config = {
-	modList = {"sandboxes.lua","filters.lua","games.lua","ircmodes.lua","company.lua","alias.lua"},
 	--Network to connect to, change to whatever network you use
 	network = {
 		server = "irc.freenode.net",

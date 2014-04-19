@@ -1,5 +1,7 @@
+module("ircModes", package.seeall)
+
 --IRC MODE STUFF
-local function setMode(chan,mode,tar)
+function setMode(chan,mode,tar)
 	if not tar then return end
 	if chan:sub(1,1)=='#' then
 		ircSendRawQ("MODE "..chan.." "..mode.." "..tar)

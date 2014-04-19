@@ -35,7 +35,7 @@ function ircSendChatQ(chan,text,nohook)
 	local host = ""
 	if not chan then chan=config.logchannel end
 	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then
-		host = irc.channels[config.primarychannel].users[irc.nick].fullhost
+		host = irc.channels[config.primarychannel].users[irc.nick].fullhost or ""
 	end
 	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
@@ -120,6 +120,7 @@ end
 function remUpdate(name)
 	for k,v in pairs(updates) do
 		if v.name==name then
+			v.f=nil
 			updates[k]=nil
 		end
 	end
@@ -236,7 +237,7 @@ function makeCMD(cmd,usr,channel,msg)
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
 		if getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
-			
+
 			return function()
 				if msg and cmd ~= "alias" and cmd ~= "aa" then
 					--check for nested commands, ./echo {`echo test`}
@@ -322,15 +323,7 @@ local function realchat(usr,channel,msg)
 
 	local func,err
 	if cmd then
-		if usr.host:find("incredible") then
-			if channel:sub(1,1) == "#" then
-				ircSendRawQ("REMOVE "..channel.." "..usr.nick.." :You are banned from this bot")
-			end
-		elseif usr.nick == "Javert" or usr.nick == "TheBombMaker" or usr.nick == "Crackbot" or usr.nick == "jacobot" then
-
-		else
-			func,err=makeCMD(cmd,usr,channel,rest)
-		end
+		func,err=makeCMD(cmd,usr,channel,rest)
 	end
 	listen(usr,channel,msg)
 	if func then
@@ -354,7 +347,7 @@ local function realchat(usr,channel,msg)
 			ircSendChatQ(channel,resp)
 		end
 		--log to channel, to notice things faster
-		if config.logchannel and channel:sub(1,1) ~= "#" then
+		if config.logchannel and channel:sub(1,1):match("%a") then
 			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
 		end
 	else
@@ -366,7 +359,7 @@ local function realchat(usr,channel,msg)
 	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##powder-bots",msg)
 	end
-	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "distro2.pwc-networks.com"or usr.host == "74.208.15.252") then
+	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "74.208.15.252") then
 		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
 		--print(nusr.." AND "..nmsg)
 		if nmsg and nmsg~="" then 
@@ -378,6 +371,7 @@ local function realchat(usr,channel,msg)
 end
 local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+	if not usr.nick then return end
 	local s,r = pcall(realchat,usr,channel,msg)
 	if not s and r then
 		onSendHooks = {}
@@ -442,13 +436,34 @@ irc:hook("OnPart","partCheck",partCheck)
 
 
 local function onNotice(usr,channel,msg)
-	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
-	local s,r = pcall(realchat,usr,channel,msg)
-	if not s and r then
-		onSendHooks = {}
-		ircSendChatQ(channel,r)
-	end
 	print("[NOTICE "..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 end
 pcall(irc.unhook,irc,"OnNotice","notice1")
 irc:hook("OnNotice","notice1",onNotice)
+
+local function onCTCP(usr,channel,type,msg)
+	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
+	local response = nil
+	if type == "VERSION" then
+		local cmd = io.popen(WINDOWS and "ver" or "uname -a")
+		local version = cmd:read("*a")
+		cmd:close()
+		response = "Crackbot, the best IRC bot. Running on "..version
+	elseif type == "TIME" then
+		response = os.date()
+	elseif type == "PING" then
+		response = msg
+	elseif type == "SOURCE" then
+		response = "https://github.com/cracker64/Crackbot"
+	end
+	if response then
+		ircSendNoticeQ(usr.nick,"\001"..type.." "..response.."\001")
+	end
+	if type == "ACTION" then
+		print("["..tostring(channel).."] * "..tostring(usr.nick).." "..tostring(msg))
+	else
+		print("Recieved a CTCP "..tostring(type)..(msg~="" and " " or "")..tostring(msg).. " from "..tostring(usr.nick))
+	end
+end
+pcall(irc.unhook,irc,"OnCTCP","ctcp1")
+irc:hook("OnCTCP","ctcp1",onCTCP)

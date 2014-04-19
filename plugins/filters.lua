@@ -1,3 +1,5 @@
+module("filters", package.seeall)
+
 local filters = {}
 local activeFilters = {}
 local badWordFilt = nil

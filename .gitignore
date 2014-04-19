@@ -4,7 +4,6 @@
 *.dll
 *.sh
 code2.c
-config.lua
 ltn12.lua
 mime.lua
 socket.lua
@@ -12,3 +11,4 @@ lua/*
 mime/*
 socket/*
 config*.lua
+plugins/*

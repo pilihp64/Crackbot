@@ -1,7 +1,9 @@
+module("company", package.seeall)
+
 local defaultVars = {cash=0,employees=0,workSpeed=1,emplSpeed=1,loyalty=65,currentProject={},completedProjects=0,lastNick="",}
 local defaultPVars = {name="Project0",work=0,needed=60,reward=150,time=70,timespent=0}
 local function loadUsers()
-	return table.load("compData.txt") or {}
+	return table.load("plugins/compData.txt") or {}
 end
 compData = compData or loadUsers()
 local function metafy(t)
@@ -16,7 +18,7 @@ for k,v in pairs(compData) do
 end
 local activeProjects = {}
 local function timedSave()
-	table.save(compData,"compData.txt")
+	table.save(compData,"plugins/compData.txt")
 end
 remUpdate("compSave")
 addUpdate(timedSave,60,config.owner.nick,"compSave")

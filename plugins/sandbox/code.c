@@ -1,7 +1,7 @@
 #ifdef WIN32
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
+#include <lua5.1/lua.h>
+#include <lua5.1/lualib.h>
+#include <lua5.1/lauxlib.h>
 #include <windows.h>
 #else
 #include <lua5.1/lua.h>
@@ -97,13 +97,13 @@ int main(int argc, char *argv[])
 	luaL_dostring(l,"math.randomseed(os.time())\n\
 			 dofile('derp.lua')\n\
 			 dofile('tableSave.lua')\n\
-			 cashList = table.load('userData.txt')\n\
+			 cashList = table.load('plugins/gameUsers.txt')\n\
 			 table.load, table.save = nil\n\
 			 debug,loadfile,module,require,dofile,package,os.remove,os.tmpname,os.rename,os.execute,os.getenv,string.dump=nil\n\
 			 io={write=io.write}\n\
 		");
 	const char *h = argv[1];
-	char *code = (char*)malloc(strlen(h)/2)+1;
+	char *code = (char*)malloc(strlen(h+1)/2);
 	char *c = code;
 	for(;*h && h[1];h+=2)
 	{

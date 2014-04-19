@@ -1,5 +1,7 @@
+module("games", package.seeall)
+
 local function loadUsers()
-	local t= table.load("userData.txt") or {}
+	local t= table.load("plugins/gameUsers.txt") or {}
 	setmetatable(t,{__index=function(t,k) t[k]={cash=1000, lastDoor=os.time(), winStreak=0, loseStreak=0, maxWinStreak=1, maxLoseStreak=1, lastGameWon=nil, inventory={}} return t[k] end})
 	return t
 end
@@ -143,7 +145,7 @@ local function timedSave()
 			end
 		end
 	end
-	table.save(gameUsers,"userData.txt")
+	table.save(gameUsers,"plugins/gameUsers.txt")
 end
 remUpdate("gameSave")
 addUpdate(timedSave,60,config.owner.nick,"gameSave")
@@ -513,7 +515,7 @@ local itemUses = {
 			addInv(moo,storeInventory["moo2"],1)
 			return "Your cow moos. This cow was special though, it moos so hard that it makes a moo2 appear! Some of the other cows can't handle such a special moo and die (+1 moo2) (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
 		else
-			return rainbow("mo".."o"*math.random(1,75))
+			return filters and filters.rainbow("mo".."o"*math.random(1,75)) or "mo".."o"*math.random(1,75)
 		end
 	end,
 	["billion"] = function(usr,args)

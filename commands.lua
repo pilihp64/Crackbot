@@ -329,8 +329,5 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-<<<<<<< HEAD
-add_cmd(rbug,"bug",0,"Report something to cracker, '*bug <msg>'",true)
-=======
-add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '/bug <msg>'",true)
->>>>>>> a095fda7a07b8c2db6234f56c3fb5c2057f9ec22
+add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '*bug <msg>'",true)
+

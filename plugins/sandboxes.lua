@@ -31,7 +31,7 @@ end
 local function lua52(usr,chan,msg,args)
 	return lua(usr,chan,msg,args,"lua5.2")
 end
-add_cmd(lua,"lua",0,"Runs sandbox lua code, '/lua <code>'",true)
+add_cmd(lua,"lua",0,"Runs sandbox lua code, '*lua <code>'",true)
 if not WINDOWS then
 	add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
 end
@@ -95,7 +95,7 @@ exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=Non
 	return r,true
 end
 if not WINDOWS then
-	add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
+	add_cmd(python,"py",0,"Runs sandy python code, '*py <code>'",true)
 end
 
 --BRAINFUCK
@@ -124,6 +124,6 @@ local function BF(usr,chan,msg)
 	return r,true
 end
 if not WINDOWS then
-	add_cmd(BF,"BF",0,"Runs BF code, '/bf <code>'",false,{"bf"})
+	add_cmd(BF,"BF",0,"Runs BF code, '*bf <code>'",false,{"bf"})
 end
 

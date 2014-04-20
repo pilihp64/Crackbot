@@ -9,7 +9,7 @@ gameUsers = gameUsers or loadUsers()
 
 storeInventory={
 ["paradox"]=	{name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=false},
-["blackhole"]=	{name="blackhole",	cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=false},
+["blackhole"]=	{name="blackhole",cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=false},
 ["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=false},
 ["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=false},
 ["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=false},

@@ -138,4 +138,4 @@ local function hireEmp(usr,chan,msg,args)
 		return "Bad amount"
 	end
 end
-add_cmd(hireEmp,"hire",0,"Hire workers to work on projects faster '/hire [amt]' Note: Employees may leave your company at any time during a project",true)
+add_cmd(hireEmp,"hire",0,"Hire workers to work on projects faster '*hire [amt]' Note: Employees may leave your company at any time during a project",true)

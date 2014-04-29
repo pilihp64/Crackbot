@@ -149,9 +149,9 @@ local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil
 end
-add_cmd(sneaky2,"./moo",0,nil,false)
+add_cmd(sneaky2,"./woof",0,nil,false)
 local function sneaky3(usr,chan,msg)
-	return "MooOoOoooOooo"
+	return "WooOoOoooOoof"
 end
 add_cmd(sneaky3,"moo",0,nil,false)
 

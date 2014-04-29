@@ -10,6 +10,7 @@ script:
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox
   - gcc code.c -o luasandbox -llua5.1 -pthread 
   # Validate lua files
+after_script:
   - cd $TRAVIS_BUILD_DIR
   - (LUA_FAILURE=0; for file in `find plugins -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
   - (LUA_FAILURE=0; for file in `find -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)

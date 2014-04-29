@@ -1,0 +1,13 @@
+language: c
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install lua5.1 luarocks gcc build-essential liblua5.1-0-dev
+  - sudo luarocks install lpeg
+  - sudo luarocks install luafilesystem
+script:
+  # Build Sandbox
+  - cd $TRAVIS_BUILD_DIR/plugins/sandbox
+  - gcc -llua5.1 -lpthread code.c
+  # Validate lua files
+  - cd $TRAVIS_BUILD_DIR
+  - (LUA_FAILURE=0; for file in `find CorsixTH -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)

@@ -1,5 +1,5 @@
 CC :=gcc
-SOURCE := $(wildcard code.c)
+SOURCE := code.c
 
 FLAGS := -pthread -llua5.1
 LFLAGS := -o luasandbox

@@ -33,7 +33,7 @@ local function lua52(usr,chan,msg,args)
 end
 add_cmd(lua,"lua",0,"Runs sandbox lua code, '*lua <code>'",true)
 if not WINDOWS then
-	add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '/lua <code>'",false)
+	add_cmd(lua52,"5.2",0,"Runs sandbox lua5.2 code, '*lua <code>'",false)
 end
 
 -- ./py print [x for x in (1).__class__.__base__.__subclasses__() if x.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('ls /cygdrive/c/')

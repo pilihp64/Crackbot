@@ -10,5 +10,5 @@ socket.lua
 lua/*
 mime/*
 socket/*
-config*.lua
+config.lua
 plugins/*

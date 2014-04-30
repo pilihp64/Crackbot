@@ -66,7 +66,6 @@ end
 if config.logchannel then
 	irc:join(config.logchannel)
 end
-irc:sendChat(config.primarychannel, "moo"*#config.autojoin)
 
 local function consoleThink()
 	if not connected then return end

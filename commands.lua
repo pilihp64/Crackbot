@@ -116,9 +116,14 @@ local function enable(usr,chan,msg,args)
 end
 add_cmd(enable,"enable",100,"Enables a command previously disabled, '*enable <cmd> [<cmd2> ...]'",true)
 
+--NICK
+--[[local funtion nickname(usr,chan,msg)
+	args[1] = nickname
+	ircSendRawQ("NICK "..nickname)]]
+
 --QUIT
 local function suicide(usr,chan,msg)
-	ircSendRawQ("QUIT :moo")
+	ircSendRawQ("QUIT :woof")
 	shutdown = true;
 end
 add_cmd(suicide,"suicide",101,"Quits the bot",true,{"quit"})
@@ -153,7 +158,7 @@ add_cmd(sneaky2,"./woof",0,nil,false)
 local function sneaky3(usr,chan,msg)
 	return "WooOoOoooOoof"
 end
-add_cmd(sneaky3,"moo",0,nil,false)
+add_cmd(sneaky3,"woof",0,nil,false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)

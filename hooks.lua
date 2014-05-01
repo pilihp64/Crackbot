@@ -448,13 +448,13 @@ local function onCTCP(usr,channel,type,msg)
 		local cmd = io.popen(WINDOWS and "ver" or "uname -a")
 		local version = cmd:read("*a")
 		cmd:close()
-		response = "Crackbot, the best IRC bot. Running on "..version
+		response = "WolfyBot, the best IRC bot. Running on "..version
 	elseif type == "TIME" then
 		response = os.date()
 	elseif type == "PING" then
-		response = msg
+		response = "PONG!"
 	elseif type == "SOURCE" then
-		response = "https://github.com/cracker64/Crackbot"
+		response = "https://github.com/wolfy1339/WolfyBot"
 	end
 	if response then
 		ircSendNoticeQ(usr.nick,"\001"..type.." "..response.."\001")

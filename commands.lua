@@ -116,11 +116,6 @@ local function enable(usr,chan,msg,args)
 end
 add_cmd(enable,"enable",100,"Enables a command previously disabled, '*enable <cmd> [<cmd2> ...]'",true)
 
---NICK
---[[local funtion nickname(usr,chan,msg)
-	args[1] = nickname
-	ircSendRawQ("NICK "..nickname)]]
-
 --QUIT
 local function suicide(usr,chan,msg)
 	ircSendRawQ("QUIT :woof")
@@ -145,11 +140,17 @@ local function methis(usr,chan,msg)
 end
 add_cmd(methis,"me",0,"Performs an action, '*me <text>'",true)
 
+--DATE
+local function date(usr,chan,msg)
+	return os.date()
+end
+add_cmd(date,"date",0,"Returns the current date, '*date'",true)
+
 --SNEAAK
 local function sneaky(usr,chan,msg)
 	return "You found me!"
 end
-add_cmd(sneaky,"./",0,nil,false)
+add_cmd(sneaky,"*",0,nil,false)
 local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil

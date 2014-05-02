@@ -428,7 +428,7 @@ local function luaFilt(text,args)
 		realtext=text or ""
 	end
 	
-	local luan = WINDOWS and "luasandbox" or "./luasandbox"
+	local luan = WINDOWS and "plugins/sandbox/luasandbox.exe" or "./plugins/sandbox/luasandbox"
 	realtext = realtext:gsub(".",function(x)return("\\%03d"):format(x:byte())end)
 	local command = "return (function(...) "..msg.." end)('"..realtext.."')"
 	command = command:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)

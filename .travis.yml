@@ -2,9 +2,11 @@
 language: c
 install:
   - sudo apt-get -qq update
-  - sudo apt-get -qq install lua5.1 luarocks gcc build-essential liblua5.1-0-dev lua-socket
+  - sudo apt-get -qq install lua5.1 luarocks gcc build-essential liblua5.1-0-dev #lua-socket
   - sudo luarocks install lpeg
   - sudo luarocks install luafilesystem
+  - wget http://mirrors.kernel.org/ubuntu/pool/universe/l/luasocket/lua-socket_2.0.2-8_amd64.deb
+  - sudo dpkg -i lua-socket_2.0.2-8_amd64.deb
 script:
   # Build Sandbox
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox
@@ -14,4 +16,5 @@ after_script:
   - cd $TRAVIS_BUILD_DIR
   - (LUA_FAILURE=0; for file in `find plugins -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
   - (LUA_FAILURE=0; for file in `find -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
-  - timeout -k 30 lua5.1 init.lua
+#  - timeout -k 30 lua5.1 init.lua
+  - lsb_release -a

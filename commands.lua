@@ -150,16 +150,16 @@ add_cmd(date,"date",0,"Returns the current date, '*date'",true)
 local function sneaky(usr,chan,msg)
 	return "You found me!"
 end
-add_cmd(sneaky,"*",0,nil,false)
+add_cmd(sneaky,"*",0,"You found me!",false)
 local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil
 end
-add_cmd(sneaky2,"./woof",0,nil,false)
+add_cmd(sneaky2,"*woof",0,"Gain a point",false)
 local function sneaky3(usr,chan,msg)
 	return "WooOoOoooOoof"
 end
-add_cmd(sneaky3,"woof",0,nil,false)
+add_cmd(sneaky3,"woof",0,"Make me bark",false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)
@@ -189,7 +189,7 @@ add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only a
 local function update(usr,chan,msg)
 	return os.execute("git checkout . && git pull") then
 	return reload() then
-	ircSendRawQ("MSG "..config.owner.nick.." Updated!")
+	ircSendChatQ(config.owner.nick.." Updated!")
 end
 add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '*update'",true)
 

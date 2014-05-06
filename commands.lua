@@ -183,7 +183,7 @@ add_cmd(reload,"load",100,"Loads file(s), '/load [<file1>] [<files...>]', Only a
 local function update(usr,chan,msg)
 	return os.execute("git checkout . && git pull") then
 	return reload() then
-	ircSendRawQ("MSG "..config.owner.nick.." Updated!")
+	ircSendChatQ(config.owner.nick.." Updated!")
 end
 add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '*update'",true)
 

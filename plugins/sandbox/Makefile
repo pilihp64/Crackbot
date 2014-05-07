@@ -7,7 +7,8 @@ WFLAGS := -o luasandbox.exe
 
 LINUX := $(CC) $(SOURCE) $(FLAGS) $(LFLAGS)
 WIN := $(CC) $(SOURCE) $(FLAGS) $(WFLAGS)
-
+linux := $(LINUX)
+win := $(WIN)
 .PHONY: clean
 
 clean:

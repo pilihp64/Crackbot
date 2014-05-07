@@ -185,7 +185,7 @@ local function update(usr,chan,msg)
 	reload()
 	ircSendRawQ(usr.nick.." Updated!")
 end
-add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '*update'",true)
+add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '/update'",true)
 
 --ECHO
 local function echo(usr,chan,msg)

@@ -10,7 +10,8 @@ install:
 script:
   # Build Sandbox
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox
-  - gcc code.c -o luasandbox -llua5.1 -pthread 
+#   - gcc code.c -o luasandbox -llua5.1 -pthread
+  - make linux
 after_script:
   # Validate lua files
   - cd $TRAVIS_BUILD_DIR

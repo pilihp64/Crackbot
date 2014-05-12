@@ -143,6 +143,17 @@ local function timedSave()
 			elseif k=="antiPad" and math.random()>.99 then
 				addInv({host=host},storeInventory[antiPadList[math.random(#antiPadList)]],1)
 			end
+			if v.cost < -1e300 then
+				local total = usr.cash
+				for k,v in pairs(usr.inventory) do
+					if v.cost > 1e-300 then
+						total = total + v.amount*v.cost
+					end
+				end
+				usr.inventory = {}
+				usr.cash = 1000
+				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..total,amt=1,instock=false},1)
+			end
 		end
 	end
 	table.save(gameUsers,"plugins/gameUsers.txt")

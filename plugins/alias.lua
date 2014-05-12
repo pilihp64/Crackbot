@@ -106,13 +106,13 @@ for k,v in pairs(aliasList) do
 		add_cmd( mkAliasFunc(v,aArgs) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..(v.usrlvl or 0)..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
 	else
 		--name already exists, hide alias
-		aliasList[k]=nil
+		--aliasList[k]=nil
 	end
 end
 --ALIAS, add an alias for a command
 local function alias(usr,chan,msg,args)
 	args = getArgsOld(msg)
-	if not msg or not args[1] then return "Usage: '/alias add/rem/list/lock/unlock/suid/restrict <name> <cmd> [<args>]'" end
+	if not msg or not args[1] then return "Usage: '/alias add/rem/list/lock/unlock/hide/unhide/suid/restrict <name> <cmd> [<args>]'" end
 	if args[1]=="add" then
 		if not args[2] then return "Usage: '/alias add <name> <cmd> [<args>]'" end
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
@@ -131,7 +131,7 @@ local function alias(usr,chan,msg,args)
 		for i=4,#args do table.insert(aArgs,args[i]) end
 		local aMsg = table.concat(aArgs," ")
 		if #aMsg > 550 then return "Alias too complex!" end
-		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level,usrlvl = userlevel,suid=false}
+		local alis = {name=name,cmd=cmd,aMsg=aMsg,level=commands[cmd].level,usrlvl = userlevel,suid=false,shown=true}
 		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"(lvl="..userlevel..",req="..commands[cmd].level..") Alias for "..cmd.." "..aMsg,false)
 		table.insert(aliasList,alis)
 		table.save(aliasList,"plugins/AliasList.txt")
@@ -155,17 +155,21 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	elseif args[1]=="list" then
 		local t={}
-		local locked,unlocked = true,true
+		local locked,unlocked,hidden = true,true,false
 		if args[2] then
 			if args[2] == "locked" then unlocked = false
 			elseif args[2] == "unlocked" then locked = false
+			elseif args[2] == "hidden" then hidden = true
 			end
 		end
 		for k,v in pairs(aliasList) do
-			if v.lock and locked then
-				table.insert(t,v.name.."\15"..(unlocked and v.lock or ""))
-			elseif not v.lock and unlocked then
-				table.insert(t,v.name.."\15")
+			if v.shown == nil then v.shown = true end
+			if v.shown ~= hidden then
+				if v.lock and locked then
+					table.insert(t,v.name.."\15"..(unlocked and v.lock or ""))
+				elseif not v.lock and unlocked then
+					table.insert(t,v.name.."\15")
+				end
 			end
 		end
 		table.sort(t)
@@ -221,7 +225,24 @@ local function alias(usr,chan,msg,args)
 				table.save(aliasList,"plugins/AliasList.txt")
 				commands[name]=nil
 				allCommands[name]=nil
-				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)				return "Set restrict to "..level
+				add_cmd( mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
+				return "Set restrict to "..level
+			end
+		end
+		return "Alias not found"
+	elseif args[1]=="hide" or args[1]=="unhide" then
+		if not args[2] then return "'/alias "..args[1].." <name>'" end
+		if getPerms(usr.host) < 100 then return "No permission to "..args[1].."!" end
+		local shown = args[1] == "unhide"
+		local name = args[2]
+		for k,v in pairs(aliasList) do
+			if name==v.name then
+				v.shown = shown
+				table.save(aliasList,"plugins/AliasList.txt")
+				commands[name]=nil
+				allCommands[name]=nil
+				add_cmd(mkAliasFunc(v,getArgs(v.aMsg)) ,v.name,v.level,"("..(v.suid and "set" or "").."lvl="..v.usrlvl..",req="..v.level..") Alias for "..v.cmd.." "..v.aMsg,false)
+				return name.." is now "..(shown and "unhidden" or "hidden")
 			end
 		end
 		return "Alias not found"

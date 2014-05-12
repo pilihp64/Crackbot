@@ -70,6 +70,8 @@ do
 							file:write( str..exportstring( v )..","..charE )
 						elseif stype == "number" then
 							file:write( str..tostring( v )..","..charE )
+						elseif stype == "boolean" then
+							file:write( str..tostring( v )..","..charE )
 						end
 					end
 				end

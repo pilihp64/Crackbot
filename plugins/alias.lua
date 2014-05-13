@@ -159,7 +159,7 @@ local function alias(usr,chan,msg,args)
 		if args[2] then
 			if args[2] == "locked" then unlocked = false
 			elseif args[2] == "unlocked" then locked = false
-			elseif args[2] == "hidden" then hidden = true
+			elseif args[2] == "hidden" and getPerms(usr.host) >= 100 then hidden = true
 			end
 		end
 		for k,v in pairs(aliasList) do
@@ -177,7 +177,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="lock" then
 		--Lock an alias so other users can't remove it
 		if not args[2] then return "'/alias lock <name>'" end
-		if getPerms(usr.host) < 101 then return "No permission to lock!" end
+		if getPerms(usr.host) < 100 then return "No permission to lock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then
@@ -189,7 +189,7 @@ local function alias(usr,chan,msg,args)
 		return "Alias not found"
 	elseif args[1]=="unlock" then
 		if not args[2] then return "'/alias unlock <name>'" end
-		if getPerms(usr.host) < 101 then return "No permission to unlock!" end
+		if getPerms(usr.host) < 100 then return "No permission to unlock!" end
 		local name = args[2]
 		for k,v in pairs(aliasList) do
 			if name==v.name then

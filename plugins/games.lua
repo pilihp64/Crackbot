@@ -143,6 +143,17 @@ local function timedSave()
 			elseif k=="antiPad" and math.random()>.99 then
 				addInv({host=host},storeInventory[antiPadList[math.random(#antiPadList)]],1)
 			end
+			if v.cost < -1e300 then
+				local total = usr.cash
+				for k,v in pairs(usr.inventory) do
+					if v.cost > 1e-300 then
+						total = total + v.amount*v.cost
+					end
+				end
+				usr.inventory = {}
+				usr.cash = 1000
+				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..total,amt=1,instock=false},1)
+			end
 		end
 	end
 	table.save(gameUsers,"plugins/gameUsers.txt")
@@ -339,17 +350,21 @@ local itemUses = {
 		remInv(usr,"derp",1)
 		local count = 0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			count = count + v.amount
+			if v.cost >= -1000 then
+				count = count + v.amount
+			end
 		end
 		if count == 0 then
 			return "You are a derp"
 		end
 		local item,rnd,count = nil,math.random(count),0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			count = count + v.amount
-			if count >= rnd then
-				item = v
-				break
+			if v.cost >= -1000 then
+				count = count + v.amount
+				if count >= rnd then
+					item = v
+					break
+				end
 			end
 		end
 		if not item then
@@ -360,7 +375,6 @@ local itemUses = {
 			addInv(usr,item,1)
 			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
 		else
-			if item.cost < -1000 then return "QninneeeqnionsJjo....Sd.safosahojwnbox...awdoh982dh9raknasd" end
 			remInv(usr,item.name,1)
 			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
 		end
@@ -720,7 +734,7 @@ local function giveMon(usr,chan,msg,args)
 	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
-		if i.name == "antiPad" then return "X7f67x^r?Ht2\UeWr*t5${-vz\~Q&{Z+6g$^d5yPlx+WR#^:qU" end
+		if i.name == "antiPad" then return "You can't give that!" end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
@@ -816,7 +830,7 @@ local function store(usr,chan,msg,args)
 			if amt==amt and amt>0 then
 				local v = gameUsers[usr.host].inventory[item]
 				if v and v.amount>=amt then
-					if v.cost<0 and gameUsers[usr.host].cash < -v.cost then return "You can't afford that!" end
+					if v.cost<0 and gameUsers[usr.host].cash < -v.cost*amt then return "You can't afford that!" end
 					changeCash(usr,v.cost*amt)
 					remInv(usr,item,amt)
 					rstring = rstring..amt.." "..v.name..", "
@@ -1105,7 +1119,7 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '*quiz <bet>' First to 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
-	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer." end
+	if not msg or not args[3] then return commands["ask"].helptext end
 	local toChan = args[1]
 	if toChan and toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
@@ -1113,11 +1127,12 @@ local function ask(usr,chan,msg,args)
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end
 	local prize, argA = args[2]:match("(%d+)"), 0
-	if prize then 
-		if gameUsers[usr.host].cash-prize<0 then return "You don't have that much money for the prize!" end
+	if prize then
+		if not args[4] then return commands["ask"].helptext end
+		if gameUsers[usr.host].cash-prize<0 then return "You don't have enough money for the prize!" end
 		argA=1
 	end
-	local rstring,answer,timer = "Question from "..usr.nick.." ($"..(prize or 0).."): "..args[2+argA],args[3+argA],30
+	local rstring,answer,timer = "Question from "..usr.nick..(prize and (" ($"..prize.."): ") or ": ")..args[2+argA],args[3+argA],30
 	local answers= {}
 	for i=3+argA,#args do
 		answers[args[i]]=true

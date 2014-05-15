@@ -1,86 +1,22 @@
-# ============
-# SCons script
-# ============
-
-import SCons.Util
-
-import os
-import sys
-import subprocess
-import time
-
-# .. : Fix for long command line - http://scons.org/wiki/LongCmdLinesOnWin32
-
-# because of an implementation detail commandlines are limited to 10000 characters on windows using mingw. the following fix was copied from
-# http://scons.org/wiki/LongCmdLinesOnWin32 and circumvents this issue.
-
-class ourSpawn:
-	def ourspawn(self, sh, escape, cmd, args, env):
-		newargs = ' '.join(args[1:])
-		cmdline = cmd + " " + newargs
-		startupinfo = subprocess.STARTUPINFO()
-		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-		proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-			stderr=subprocess.PIPE, startupinfo=startupinfo, shell = False, env = env)
-		data, err = proc.communicate()
-		rv = proc.wait()
-		if rv:
-			print "====="
-			print err
-			print "====="
-		return rv
-
-def SetupSpawn( env ):
-	if sys.platform == 'win32':
-		buf = ourSpawn()
-		buf.ourenv = env
-		env['SPAWN'] = buf.ourspawn
-
-# commandline options
-
 AddOption('--64bit',dest="_64bit",action='store_true',default=False,help="64-bit platform target")
 AddOption('--32bit',dest="_32bit",action='store_true',default=False,help="32-bit platform target")
-AddOption('--static',dest="static",action="store_true",default=False,help="Static linking, reduces external library dependancies but increased file size")
-AddOption('--pthreadw32-static',dest="ptw32-static",action="store_true",default=False,help="Use PTW32_STATIC_LIB for pthreadw32 headers")
-AddOption('--lua-dir',dest="lua-dir",default=False,help="Directory for lua includes")
-AddOption('--tool',dest="toolprefix",default=False,help="Prefix")
+
 AddOption('--sse',dest="sse",action='store_true',default=False,help="Enable SSE optimisations")
 AddOption('--sse2',dest="sse2",action='store_true',default=False,help="Enable SSE2 optimisations")
 AddOption('--sse3',dest="sse3",action='store_true',default=False,help="Enable SSE3 optimisations")
-AddOption('--x86',dest="x86",action='store_true',default=False,help="Target Intel x86 platform")
-
-AddOption('--aao', dest="everythingAtOnce", action='store_true', default=False, help="Compile the whole game without generating intermediate objects (very slow), enable this when using compilers like clang or mscc that don't support -fkeep-inline-functions")
-
-AddOption('--fullclean',dest="justwork",action='store_true',default=False,help="for when nothing else works. Deletes all sconscript temporary files.") 
-AddOption('--copy-env',dest="copy_env",action='store_true',default=False,help="copy some common enviroment variables from the parent enviroment.") 
-
-# using one of these commandline options is compulsory
-
+AddOption('--sse4',dest="sse4",action='store_true',default=False,help="Enable SSE4 optimisations")
+AddOption('--sse5',dest="sse5",action='store_true',default=False,help="Enable SSE4 optimisations")
 AddOption('--win',dest="win",action='store_true',default=False,help="Windows platform target.")
 AddOption('--lin',dest="lin",action='store_true',default=False,help="Linux platform target")
 AddOption('--macosx',dest="macosx",action='store_true',default=False,help="Mac OS X platform target")
 AddOption('--rpi',dest="rpi",action='store_true',default=False,help="Raspbain platform target")
-
-# the gist of the compiling rules are defined here
-
-
-if(GetOption("justwork")):
-	import shutil
-	try:
-		shutil.rmtree("../.sconf_temp/")
-	except:
-		print "couldn't remove .sconf_temp"
-	try:
-		os.remove("../.sconsign.dblite")
-	except:
-		print "couldn't remove .sconsign.dblite"
 
 
 if((not GetOption('lin')) and (not GetOption('win')) and (not GetOption('rpi')) and (not GetOption('macosx'))):
 	print "You must specify a platform to target"
 	raise SystemExit(1)
 
-if((not GetOption('_64bit')) and (not GetOption('_32bit')) and (not GetOption('x86'))):
+if not (GetOption('_64bit') or GetOption('_32bit')):
 	print "You must select an architecture"
 	raise SystemExit(1)
 
@@ -91,40 +27,8 @@ if(GetOption('win')):
 else:
 	env = Environment(tools = ['default'], ENV = os.environ)
 
-if(GetOption("copy_env")):
-    singlevar=["CC","CXX","LD","LIBPATH"]
-    multivar=["CFLAGS","CCFLAGS","LINKFLAGS"] # variables containing several space separated things
-    for var in singlevar:
-        if var in os.environ:
-            env[var] = os.environ[var]
-            print "WARNING: copying enviroment variable {}={!r}".format(var,os.environ[var])
-    for var in multivar:
-        if var in os.environ:
-            env[var] += SCons.Util.CLVar(os.environ[var])
-            print "WARNING: copying enviroment variable {}={!r}".format(var,os.environ[var])
-
-
-# generic enviroment settings
-# +++++++++++++++++++++++++++
-
-# check if a tool prefix is set, and if it is select the propper tools for building.
-
-if GetOption("toolprefix"):
-	env['CC'] = GetOption("toolprefix")+env['CC']
-	env['CXX'] = GetOption("toolprefix")+env['CXX']
-	if GetOption('win'):
-		env['RC'] = GetOption("toolprefix")+env['RC']
-
-# make sure the compiler can find the source data and generated files. enable warnings, set C++ flavor, and keep inline functions
-
 env.Append(CFLAGS=['-pthread -llua5.1'])
 env.Append(LIBS=['pthread', 'lua'])
-
-# set the warnings we want, treat all warnings as errors, and ignore all "offsetof" warnings
-
-env.Append(CFLAGS=['-Wno-invalid-offsetof']);
-if GetOption('warnings_as_errors'):
-	env.Append(CFLAGS=['-Werror']);
 
 
 # windows specific enviroment settings
@@ -132,43 +36,18 @@ if GetOption('warnings_as_errors'):
 
 # check if we're compiling for windows, if we are include windows specific libraries and defines.
 
-if(GetOption('win')):
+if GetOption('win'):
 	env.Prepend(LIBS=['mingw32', 'ws2_32'])
 	env.Append(LIBS=['winmm', 'gdi32'])
 	env.Append(LINKFLAGS=['-mwindows'])
-	if(GetOption('_64bit')):
-		env.Append(CPPDEFINES=['__CRT__NO_INLINE'])
-		env.Append(LINKFLAGS=['-Wl,--stack=16777216'])
 
-# linux specific enviroment settings
-# ++++++++++++++++++++++++++++++++++++
-
-# check if we're compiling for linux, if we are include linux specific libraries and defines.
-
-if(GetOption('lin')):
-	if GetOption('_64bit'):
-		env.Append(LINKFLAGS=['-m64'])
-		env.Append(CFLAGS=['-m64'])
-	elif GetOption('_32bit'):
-		env.Append(LINKFLAGS=['-m32'])
-		env.Append(CFLAGS=['-m32'])
-
-# macosx specific enviroment settings
-# ++++++++++++++++++++++++++++++++++++
 
 # check if we're compiling for macosx, if we are include macosx specific libraries and defines.
 
-if(GetOption('macosx')):
+if GetOption('macosx'):
 	env.Append(CFLAGS=['-I/Library/Frameworks/Lua.framework/Headers'])
 	env.Append(LINKFLAGS=['-framework'])
 	env.Append(LINKFLAGS=['Lua'])
-	if GetOption('_64bit'):
-		env.Append(LINKFLAGS=['-m64'])
-		env.Append(CFLAGS=['-m64'])
-	elif GetOption('_32bit'):
-		env.Append(LINKFLAGS=['-m32'])
-		env.Append(CFLAGS=['-m32'])
-
 # defines
 # =======
 
@@ -176,37 +55,25 @@ if(GetOption('macosx')):
 
 if GetOption('_64bit'):
 	env.Append(CPPDEFINES=["_64BIT"])
+	env.Append(LINKFLAGS=['-m64'])
+	env.Append(CFLAGS=['-m64'])
 if GetOption('_32bit'):
-	env.Append(CPPDEFINES=["_32BIT"])
+	env.Append(CDEFINES=["_32BIT"])
+	env.Append(CFlAGS=['-m32'])
+	env.Append(LINKFLAGS=['-m64'])
 
-if(GetOption('x86')):
-	env.Append(CPPDEFINES='X86')
-
-if(GetOption('sse')):
+if GetOption('sse'):
 	env.Append(CCFLAGS='-msse')
-	env.Append(CPPDEFINES='X86_SSE')
-
-if(GetOption('sse2')):
+if GetOption('sse2'):
 	env.Append(CFLAGS='-msse2')
+if GetOption('sse3'):
+	env.Append(CFLAGS='-msse3')
+if GetOption('sse4'):
+	env.Append(CFLAGS='-msse4')
+if GetOption('sse5'):
+	env.Append(CFLAGS='-msse5'
 
-if(GetOption('sse3')):
-	env.Append(CCFLAGS='-msse3')
-
-if(GetOption('sse4')
-
-# compiling
-# =========
-
-# sources
-# +++++++
 sources=Glob("code.c")
-
-# apply `long commandlines`_ fix
-# ==============================
-
-# apply the commandline fix
-
-SetupSpawn(env)
 
 
 # use some settings to detect what name to use for the executable
@@ -214,23 +81,14 @@ SetupSpawn(env)
 programName = "luasandbox"
 
 
-if(not (GetOption('sse2') or GetOption('sse3') or GetOption('sse4') or GetOption('sse5'))):
+if not (GetOption('sse2') or GetOption('sse3') or GetOption('sse4') or GetOption('sse5')):
 	programName += "-legacy"
 
-if(GetOption('macosx')):
+if GetOption('macosx'):
 	programName += "-x"
 
-if(GetOption('win')):
+if GetOption('win'):
 	programName += ".exe"
-
-
-
-# final settings
-# ==============
-
-# make a MD5 checksum decide wether or not a file changed. we had some problems with using the modification date for this purpose.
-
-env.Decider('MD5')
 
 # set a default target
 

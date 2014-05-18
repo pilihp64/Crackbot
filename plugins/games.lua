@@ -80,6 +80,10 @@ local function streak(usr,win)
 	end
 end
 
+local function nicenum(number)
+	if filters and filters.nicenum then print("moo") return filters.nicenum(tostring(number)) else return number end
+end
+
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
 	if amt ~= amt then
@@ -103,7 +107,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..gameUsers[usr.host].cash.." now)"
+	return " ($"..nicenum(gameUsers[usr.host].cash).." now)"
 end
 
 --add item to inventory, creating if not exists
@@ -152,7 +156,7 @@ local function timedSave()
 				end
 				usr.inventory = {}
 				usr.cash = 1000
-				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..total,amt=1,instock=false},1)
+				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
 			end
 		end
 	end
@@ -593,7 +597,7 @@ local function myCash(usr,all)
 		end
 		return "You have $"..cash.." including items."
 	end
-	return "You have $"..gameUsers[usr.host].cash
+	return "You have $"..nicenum(gameUsers[usr.host].cash)
 end
 --give money
 local function give(fromHost,toHost,amt)
@@ -657,31 +661,31 @@ local function odoor(usr,door)
 	if fitem==1 then fitem=true else fitem=false end
 	randMon = math.floor(randMon)
 	local minimum = math.floor(randMon/divideFactor)
-	local randomnes = math.ceil(randMon*math.random())-minimum
+	local randomness = math.ceil(randMon*math.random())-minimum
 	local rstring=""
 	--reset last door time
 	gameUsers[usr.host].lastDoor = os.time()
 	
-	if fitem and randomnes>0 then
+	if fitem and randomness>0 then
 		--find an item of approximate value
-		local item = findClosestItem(randomnes)
+		local item = findClosestItem(randomness)
 		rstring = "You found a "..item.name.."! Added to inventory, see the store to sell"
 		addInv(usr,item,1)
 	else
 		fitem=false
-		rstring = changeCash(usr,randomnes)
+		rstring = changeCash(usr,randomness)
 	end
 	if fitem then
 		streak(usr,true)
 		return rstring
-	elseif randomnes<0 then
+	elseif randomness<0 then
 		streak(usr,false)
-		return "You lost $" .. -randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
-	elseif randomnes==0 then
+		return "You lost $" .. nicenum(-randomness) .. " (-"..nicenum(minimum).." to "..nicenum(randMon-minimum)..")!"..rstring
+	elseif randomness==0 then
 		return "The door is broken, try again"
 	end
 	streak(usr,true)
-	return "You found $" .. randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
+	return "You found $" .. nicenum(randomness) .. " (-"..nicenum(minimum).." to "..nicenum(randMon-minimum)..")!"..rstring
 end
 
 --GAME command hooks
@@ -778,7 +782,7 @@ local function store(usr,chan,msg,args)
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
-			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
+			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..nicenum(v.cost)..")") end
 		end
 		return table.concat(t," ")
 	end
@@ -786,10 +790,10 @@ local function store(usr,chan,msg,args)
 		if not args[2] then return "Need an item! 'info <item>'" end
 		local item = args[2]
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
 		end
 		for k,v in pairs(storeInventory) do
-			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
 		end
 		return "Item not found"
 	end
@@ -803,7 +807,7 @@ local function store(usr,chan,msg,args)
 					if gameUsers[usr.host].cash-v.cost*amt>=0 then
 						changeCash(usr,-(v.cost*amt))
 						addInv(usr,v,amt)
-						return "You bought "..amt.." "..k
+						return "You bought "..nicenum(amt).." "..k
 					else
 						return "Not enough money!"
 					end
@@ -833,7 +837,7 @@ local function store(usr,chan,msg,args)
 					if v.cost<0 and gameUsers[usr.host].cash < -v.cost*amt then return "You can't afford that!" end
 					changeCash(usr,v.cost*amt)
 					remInv(usr,item,amt)
-					rstring = rstring..amt.." "..v.name..", "
+					rstring = rstring..nicenum(amt).." "..v.name..", "
 					totalSold = totalSold + (v.cost*amt)
 					sold=true
 				end
@@ -1039,9 +1043,6 @@ local function quiz(usr,chan,msg,args)
 	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
 		return "You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
-	if chan == config.logchannel then
-		return "What is ten tsunoahd and setnveeen plus one hdnerud and frotuy fvie times times the number of 'b' in: OOgOOOgbbOggOgO&gO&@&gO&&OOg&&g&&gO&gO&@&gO&&OOg&&g&&ggObO@@&"
-	end
 	if not msg or not tonumber(args[1]) then
 		return "Start a question for the channel, '/quiz <bet>'"
 	end
@@ -1057,7 +1058,7 @@ local function quiz(usr,chan,msg,args)
 			return "Quiz in query has 10k max bid"
 		end
 	end
-	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="unaffiliated/mniip" then
+	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="april-fools/2014/third/mniip" then
 		if bet > 13333337 then
 			return "You cannot bet this high!"
 		end

@@ -80,6 +80,10 @@ local function streak(usr,win)
 	end
 end
 
+local function nicenum(number)
+	if filters and filters.nicenum then print("moo") return filters.nicenum(tostring(number)) else return number end
+end
+
 --change cash, that resets if 0 or below
 local function changeCash(usr,amt)
 	if amt ~= amt then
@@ -103,7 +107,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..gameUsers[usr.host].cash.." now)"
+	return " ($"..nicenum(gameUsers[usr.host].cash).." now)"
 end
 
 --add item to inventory, creating if not exists
@@ -142,6 +146,17 @@ local function timedSave()
 				addInv({host=host},storeInventory["moo"],1)
 			elseif k=="antiPad" and math.random()>.99 then
 				addInv({host=host},storeInventory[antiPadList[math.random(#antiPadList)]],1)
+			end
+			if v.cost < -1e300 then
+				local total = usr.cash
+				for k,v in pairs(usr.inventory) do
+					if v.cost > 1e-300 then
+						total = total + v.amount*v.cost
+					end
+				end
+				usr.inventory = {}
+				usr.cash = 1000
+				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
 			end
 		end
 	end
@@ -339,17 +354,21 @@ local itemUses = {
 		remInv(usr,"derp",1)
 		local count = 0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			count = count + v.amount
+			if v.cost >= -1000 then
+				count = count + v.amount
+			end
 		end
 		if count == 0 then
 			return "You are a derp"
 		end
 		local item,rnd,count = nil,math.random(count),0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			count = count + v.amount
-			if count >= rnd then
-				item = v
-				break
+			if v.cost >= -1000 then
+				count = count + v.amount
+				if count >= rnd then
+					item = v
+					break
+				end
 			end
 		end
 		if not item then
@@ -360,7 +379,6 @@ local itemUses = {
 			addInv(usr,item,1)
 			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
 		else
-			if item.cost < -1000 then return "QninneeeqnionsJjo....Sd.safosahojwnbox...awdoh982dh9raknasd" end
 			remInv(usr,item.name,1)
 			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
 		end
@@ -579,7 +597,7 @@ local function myCash(usr,all)
 		end
 		return "You have $"..cash.." including items."
 	end
-	return "You have $"..gameUsers[usr.host].cash
+	return "You have $"..nicenum(gameUsers[usr.host].cash)
 end
 --give money
 local function give(fromHost,toHost,amt)
@@ -643,31 +661,31 @@ local function odoor(usr,door)
 	if fitem==1 then fitem=true else fitem=false end
 	randMon = math.floor(randMon)
 	local minimum = math.floor(randMon/divideFactor)
-	local randomnes = math.ceil(randMon*math.random())-minimum
+	local randomness = math.ceil(randMon*math.random())-minimum
 	local rstring=""
 	--reset last door time
 	gameUsers[usr.host].lastDoor = os.time()
 	
-	if fitem and randomnes>0 then
+	if fitem and randomness>0 then
 		--find an item of approximate value
-		local item = findClosestItem(randomnes)
+		local item = findClosestItem(randomness)
 		rstring = "You found a "..item.name.."! Added to inventory, see the store to sell"
 		addInv(usr,item,1)
 	else
 		fitem=false
-		rstring = changeCash(usr,randomnes)
+		rstring = changeCash(usr,randomness)
 	end
 	if fitem then
 		streak(usr,true)
 		return rstring
-	elseif randomnes<0 then
+	elseif randomness<0 then
 		streak(usr,false)
-		return "You lost $" .. -randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
-	elseif randomnes==0 then
+		return "You lost $" .. nicenum(-randomness) .. " (-"..nicenum(minimum).." to "..nicenum(randMon-minimum)..")!"..rstring
+	elseif randomness==0 then
 		return "The door is broken, try again"
 	end
 	streak(usr,true)
-	return "You found $" .. randomnes .. " (-"..minimum.." to "..(randMon-minimum)..")!"..rstring
+	return "You found $" .. nicenum(randomness) .. " (-"..nicenum(minimum).." to "..nicenum(randMon-minimum)..")!"..rstring
 end
 
 --GAME command hooks
@@ -720,7 +738,7 @@ local function giveMon(usr,chan,msg,args)
 	if item and amt>0 and gameUsers[usr.host].inventory[item] and gameUsers[usr.host].inventory[item].amount>=amt then
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
-		if i.name == "antiPad" then return "X7f67x^r?Ht2\UeWr*t5${-vz\~Q&{Z+6g$^d5yPlx+WR#^:qU" end
+		if i.name == "antiPad" then return "You can't give that!" end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
@@ -764,7 +782,7 @@ local function store(usr,chan,msg,args)
 	if args[1]=="list" then
 		local t={}
 		for k,v in pairs(storeInventory) do
-			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..v.cost..")") end
+			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..nicenum(v.cost)..")") end
 		end
 		return table.concat(t," ")
 	end
@@ -772,10 +790,10 @@ local function store(usr,chan,msg,args)
 		if not args[2] then return "Need an item! 'info <item>'" end
 		local item = args[2]
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
 		end
 		for k,v in pairs(storeInventory) do
-			if k==item then return "Item: "..k.." Cost: $"..v.cost.." Info: "..v.info end
+			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
 		end
 		return "Item not found"
 	end
@@ -789,7 +807,7 @@ local function store(usr,chan,msg,args)
 					if gameUsers[usr.host].cash-v.cost*amt>=0 then
 						changeCash(usr,-(v.cost*amt))
 						addInv(usr,v,amt)
-						return "You bought "..amt.." "..k
+						return "You bought "..nicenum(amt).." "..k
 					else
 						return "Not enough money!"
 					end
@@ -816,10 +834,10 @@ local function store(usr,chan,msg,args)
 			if amt==amt and amt>0 then
 				local v = gameUsers[usr.host].inventory[item]
 				if v and v.amount>=amt then
-					if v.cost<0 and gameUsers[usr.host].cash < -v.cost then return "You can't afford that!" end
+					if v.cost<0 and gameUsers[usr.host].cash < -v.cost*amt then return "You can't afford that!" end
 					changeCash(usr,v.cost*amt)
 					remInv(usr,item,amt)
-					rstring = rstring..amt.." "..v.name..", "
+					rstring = rstring..nicenum(amt).." "..v.name..", "
 					totalSold = totalSold + (v.cost*amt)
 					sold=true
 				end
@@ -1025,9 +1043,6 @@ local function quiz(usr,chan,msg,args)
 	if os.time() < (gameUsers[usr.host].nextQuiz or 0) then
 		return "You must wait "..(gameUsers[usr.host].nextQuiz-os.time()).." seconds before you can quiz!."
 	end
-	if chan == config.logchannel then
-		return "What is ten tsunoahd and setnveeen plus one hdnerud and frotuy fvie times times the number of 'b' in: OOgOOOgbbOggOgO&gO&@&gO&&OOg&&g&&gO&gO&@&gO&&OOg&&g&&ggObO@@&"
-	end
 	if not msg or not tonumber(args[1]) then
 		return "Start a question for the channel, '/quiz <bet>'"
 	end
@@ -1043,7 +1058,7 @@ local function quiz(usr,chan,msg,args)
 			return "Quiz in query has 10k max bid"
 		end
 	end
-	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="unaffiliated/mniip" then
+	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="april-fools/2014/third/mniip" then
 		if bet > 13333337 then
 			return "You cannot bet this high!"
 		end
@@ -1105,7 +1120,7 @@ add_cmd(quiz,"quiz",0,"Start a question for the channel, '*quiz <bet>' First to 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
-	if not msg or not args[3] then return "Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer." end
+	if not msg or not args[3] then return commands["ask"].helptext end
 	local toChan = args[1]
 	if toChan and toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
@@ -1113,11 +1128,12 @@ local function ask(usr,chan,msg,args)
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end
 	local prize, argA = args[2]:match("(%d+)"), 0
-	if prize then 
-		if gameUsers[usr.host].cash-prize<0 then return "You don't have that much money for the prize!" end
+	if prize then
+		if not args[4] then return commands["ask"].helptext end
+		if gameUsers[usr.host].cash-prize<0 then return "You don't have enough money for the prize!" end
 		argA=1
 	end
-	local rstring,answer,timer = "Question from "..usr.nick.." ($"..(prize or 0).."): "..args[2+argA],args[3+argA],30
+	local rstring,answer,timer = "Question from "..usr.nick..(prize and (" ($"..prize.."): ") or ": ")..args[2+argA],args[3+argA],30
 	local answers= {}
 	for i=3+argA,#args do
 		answers[args[i]]=true

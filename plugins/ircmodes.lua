@@ -293,4 +293,3 @@ local function remove(usr,chan,msg,args)
 	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end
 add_cmd(remove,"remove",50,"Forefully remove a user from a channel, '/remove [<chan>] <user> [<reason>]'",true, {"ninja"})
->>>>>>> b576c731dfc0403cdde2f4ba9069c593e033199b

@@ -353,7 +353,7 @@ local function realchat(usr,channel,msg)
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
 		--Last said
-		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = msg end
+		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = {["msg"]=msg, ["time"]=os.time()} end
 	end
 
 	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then

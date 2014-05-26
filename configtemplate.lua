@@ -1,4 +1,6 @@
 permissions = {}
+if host:find("/bot/") then return -1 end
+--if nick:find("bot") then return -1 end
 --insert host into permissions here
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101

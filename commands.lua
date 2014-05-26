@@ -189,9 +189,9 @@ add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only a
 
 --UPDATE the bot's source, WIP
 local function update(usr,chan,msg)
-	os.execute("git checkout . && git pull")
-	reload()
-	ircSendRawQ(usr.nick.." Updated!")
+	os.execute("git checkout . && git pull") then
+		reload()
+	ircSendRawQ("PRIVMSG "..congig.logchannel.." :"..config.owner.nick.." Updated!")
 end
 add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '*update'",true)
 

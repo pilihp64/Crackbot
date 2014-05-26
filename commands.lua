@@ -172,13 +172,15 @@ local function reload(usr,chan,msg,args)
 		local s,r = pcall(dofile,v..".lua")
 		if s then
 			rmsg = rmsg .. "Loaded: "..v.." "
-		else
+		elseif r:find("No such file or directory") then
 			s,r = pcall(dofile,"plugins/"..v..".lua")
 			if s then
 				rmsg = rmsg .. "Loaded: "..v.." "
 			else
 				rmsg = rmsg .. r .. " "
 			end
+		else
+			rmsg = rmsg .. r .. " "
 		end
 	end
 	return rmsg
@@ -345,3 +347,31 @@ local function rbug(usr,chan,msg,args)
 end
 add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '*bug <msg>'",true)
 
+--SEEN, display last message by a user
+local function seen(usr,chan,msg,args)
+	if not args[1] then return commands["seen"].helptext end
+	local nick = args[1]
+	if args[1]:sub(1,1) == "#" then
+		if not args[2] then return commands["seen"].helptext end
+		chan, nick = args[1], args[2]
+	end
+	if not irc.channels[chan] then
+		return "not a channel: "..chan
+	elseif not irc.channels[chan].users[nick] or not irc.channels[chan].users[nick].lastSaid then
+		return "I have not seen "..nick
+	end
+	
+	local sssss = function(moo) return moo == 1 and "" or "s" end
+	local difference = os.difftime(os.time(), irc.channels[chan].users[nick].lastSaid.time) or 0
+	local time = os.date("!*t", difference)
+	local msg = time.sec.." second"..sssss(time.sec).." ago"
+	if time.min ~= 0 or difference > 86400 then msg = time.min.." minute"..sssss(time.min).." and "..msg end
+	if time.hour ~= 0 or difference > 86400 then msg = time.hour.." hour"..sssss(time.hour)..", "..msg end
+	time.day = time.day - 1
+	if time.day ~= 0 then msg = (time.day%7).." day"..sssss(time.day%7)..", "..msg end
+	if time.day >= 7 then msg = math.floor(time.day/7).." week"..sssss(time.day/7)..", "..msg end
+	if time.year-1970 ~= 0 then msg = (time.year-1970).." year"..sssss(time.year-1970)..", "..msg end
+	msg = nick.." was last seen in "..chan.." "..msg..": <"..nick.."> "..irc.channels[chan].users[nick].lastSaid.msg
+	return msg
+end
+add_cmd(seen,"seen",0,"Display a last seen message '*seen [<chan>] <nick>'",true)

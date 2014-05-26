@@ -108,7 +108,7 @@ local function BF(usr,chan,msg)
 	--byte the string so you can't escape
 	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
 	
-	local input = irc.channels[chan].users[usr.nick].lastSaid or ""
+	local input = irc.channels[chan].users[usr.nick].lastSaid.msg or ""
 	local inputdump=""
 	for char in input:gmatch(".") do inputdump = inputdump .. "\\"..char:byte() end
 	-----------

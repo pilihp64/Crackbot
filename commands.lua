@@ -189,7 +189,6 @@ add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only a
 
 --UPDATE the bot's source, WIP
 local function pull(usr,chan,msg)
-	if not args[1] then args[1]=""
 	os.execute("git checkout . && git pull")
 	--[[Needs Flags to reload
 	reload("")]]

@@ -188,12 +188,13 @@ end
 add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
 
 --UPDATE the bot's source, WIP
-local function update(usr,chan,msg)
+local function pull(usr,chan,msg)
 	os.execute("git checkout . && git pull")
-	reload()
-	ircSendRawQ(usr.nick.." Updated!")
+	--[[Needs Flags to reload
+	reload("")]]
+	ircSendRawQ("PRIVMSG "..config.logchannel.." :"..config.owner.nick.." Updated!")
 end
-add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '*update'",true)
+add_cmd(pull,"pull",100,"Updates the bot to the latest Git Version, '*pull'",true)
 
 --ECHO
 local function echo(usr,chan,msg)

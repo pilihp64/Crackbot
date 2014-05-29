@@ -151,8 +151,14 @@ function timerCheck()
 			elseif s2 then
 				--coroutine was success
 				if resp then
-					if not noNickPrefix then resp=v.usr.nick..": "..resp end
-					ircSendChatQ(v.channel,resp)
+					if type(resp)=="table" then
+						for kk,vv in pairs(resp) do
+							ircSendChatQ(v.channel,vv)
+						end
+					else
+						if not noNickPrefix then resp=v.usr.nick..": "..resp end
+						ircSendChatQ(v.channel,resp)	
+					end
 					table.remove(waitingCommands,k)
 				elseif resp==false then
 					--wait this amount of time to resume
@@ -165,6 +171,7 @@ function timerCheck()
 			end
 		end
 	end
+	filters.multiLine=false
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener

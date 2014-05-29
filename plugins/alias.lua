@@ -77,7 +77,7 @@ local function mkAliasFunc(t,aArgs)
 					end
 				end
 				return table.concat(t," ")
-			end,1)
+			end)
 			--An alias of 'alias add $*' should skip macro evaluate to properly insert macros
 			if not (t.cmd=="alias" and aArgs[1]=="add")then
 				--Replace custom macros now
@@ -89,7 +89,7 @@ local function mkAliasFunc(t,aArgs)
 			--TODO: Fix coroutine to actually make nested alias loops not block
 			--coroutine.yield(false,0)
 			if getPerms(nusr.host) < t.level then
-				return "NoO permission for "..t.name --this is never displayed anyway
+				return "No permission for "..t.name --this is never displayed anyway
 			end
 			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
 			local f = makeCMD(t.cmd,nusr,nchan,nmsg,getArgs(nmsg))

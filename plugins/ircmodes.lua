@@ -29,7 +29,7 @@ local function mode(usr,chan,msg,args)
 		if chan:sub(1,1)~='#' then return "Need to specify channel in query" end
 		tochan=chan
 		rest = table.concat(args, " ", 2)
-	end if string.lower(rest):find("mniip") then tomode = tomode:gsub("%+","%-") rest = rest:gsub("%+","%-") end
+	end if string.lower(rest):find("mniip") then tomode = "-"..tomode:gsub("%+","%-") rest = rest:gsub("%+","%-") end
 	
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
@@ -210,6 +210,9 @@ add_cmd(kick,"kick",10,"Kick a user, '*kick [<chan>] <username> [<reason>]'",tru
 --KBAN
 local function kickban(usr,chan,msg,args)
 	ban(usr,chan,msg,args)
+	local timercheck = 2
+	if args[1]:sub(1,1)=='#' then timercheck = 3 end
+	if tonumber(timercheck) then table.remove(args, timercheck) end
 	kick(usr,chan,msg,args)
 end
 add_cmd(kickban,"kban",30,"Kick and ban user, '*kban [<chan>] <username> [<time>] [<reason>]'",true)
@@ -272,8 +275,21 @@ local function cycle(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
-	expectedPart=chan
 	ircSendRawQ("PART "..chan)
-	ircSendRawQ("JOIN "..chan)
+	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end
 add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)
+
+--REMOVE a user (ninja)
+local function remove(usr,chan,msg,args)
+	if not args[1] then error("No args") end
+	if args[1] and args[1]:sub(1,1)=='#' then
+		chan = args[1]
+		table.remove(args, 1)
+	end
+	local nick = args[1]
+	table.remove(args, 1)
+	ircSendRawQ("REMOVE "..chan.." "..nick.." :"..table.concat(args, " "))
+	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
+end
+add_cmd(remove,"remove",50,"Forefully remove a user from a channel, '/remove [<chan>] <user> [<reason>]'",true, {"ninja"})

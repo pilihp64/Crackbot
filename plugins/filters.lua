@@ -138,7 +138,7 @@ add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '*colorstrip <text
 function rainbow(text)
 	local newtext= ""
 	local rCount=1
-	for char in colorstrip(text):gmatch(".") do
+	for char in colorstrip(text):gmatch(".%s?") do
 		newtext = newtext .. cchar .. rainbowOrder[rCount] .. char
 		rCount = ((rCount)%(#rainbowOrder))+1
 	end
@@ -264,20 +264,17 @@ local function scramble(text,args)
 	if args.skip then args = getArgs(text) end
 	for k,word in pairs(args) do
 		if #word>2 then
-			local b,s,e = word:match("^(.)(.-)(.)$")
-			local t={}
-			if b and s and e then
-				for char in s:gmatch(".") do
-					table.insert(t,char)
-				end
-				local n=#t
-				while n >= 2 do
-					local k = math.random(n)
-					t[n], t[k] = t[k], t[n]
-					n = n - 1
-				end
-				word = b.. table.concat(t,"")..e
+			local t = {}
+			for char in word:gmatch("[\3%d%d?[,%d%d?]*]-.") do
+				table.insert(t,char)
 			end
+			local n = #t-1
+			while n >= 2 do
+				local k = math.random(#t-2)
+				t[n], t[k+1] = t[k+1], t[n]
+				n = n - 1
+			end
+			word = table.concat(t,"")
 		end
 		table.insert(words,word)
 		rstring = table.concat(words," ")
@@ -416,6 +413,11 @@ function mknumscramb(n)
 	if rnd<15 then return tostring(n) end
 	return scramble(mknum(n),{skip=true})
 end
+
+function nicenum(text,args)
+	return text:gsub("([-]?)(%d+)([.]?%d*)",function(minus, int, fraction) return minus..int:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")..fraction end)
+end
+add_filt(nicenum,"nicenum",nil,"Inserts commas into numbers, '/nicenum <text>'")
 
 local function luaFilt(text,args)
 	local msg = args[1]

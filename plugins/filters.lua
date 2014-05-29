@@ -8,13 +8,22 @@ setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} r
 local function add_filt(f,name,sane,help)
 	filters[name] = { f=f, sanity=sane or function() return true end,helptext = help}
 end
-
+multiLine=false
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
 	local oldtext, status = colorstrip(text), true
 	for k,v in pairs(activeFilters[chan].t) do
 		status, text = pcall(v.f,text,v.args,true)
-		if text then text = text:sub(1,4450) end
+		if text then
+			if type(text)=="table" then
+				for k,v in pairs(text) do
+					ircSendChatQ(chan,v,true)
+				end
+				
+				return chan,''
+			end
+			text = text:sub(1,4450)
+		end
 	end
 	if not status then
 		text = "Error in filter: "..text
@@ -256,6 +265,74 @@ function reverse2(text)
 end
 add_filt(reverse2,"reverse",nil,"Reverses text, '*reverse <text>'")
 --add_filt(reverse,"oldreverse",nil,"Reverses text, '*reverse <text>'")
+
+local function cow_text(text,length)
+	if (#text < length) then return {text} end
+	local t,start,en = {},1,length
+	local s = text:sub(start,en)
+	while (#s>0) do
+		if (#s<length) then s = s..string.rep(" ",length-#s) end
+		table.insert(t,s)
+		start = en+1
+		en = en + length
+		s = text:sub(start,en)
+	end
+	return t	
+end
+local function get_border(lines,i)
+	if lines < 2 then
+		return '<','>'
+	elseif i==0 then
+		return '/','\\'
+	elseif i==(lines-1) then
+		return '\\','/'
+	else
+		return '|','|'
+	end
+end
+local function get_cow()
+    return [[
+          \   ^__^ 
+           \  (oo)\_______
+              (__)\       )\/\\
+                  ||----w |
+                  ||     ||
+     ]]
+end
+local function get_bubble(text)
+	local bubble = {}
+	local lines = cow_text(text,40)
+	local bordersize = #lines[1]
+	table.insert(bubble,"   "..string.rep("_",bordersize))
+	for i,v in ipairs(lines) do
+		local b1,b2 = get_border(#lines,i-1)
+		table.insert(bubble,string.format(" %s %s %s",b1,v,b2))
+	end
+
+	table.insert(bubble,"   "..string.rep("-",bordersize))
+	return table.concat(bubble,'\n')..'\n'
+end
+
+local function docowsay(text)
+	return get_bubble(text)..get_cow()
+end
+
+local function cowsay(text,args)
+	if multiLine or #text>1000 then return '' end
+	local t = {}
+	local s = docowsay(text)
+	for line in s:gmatch('(.-)\n') do
+		table.insert(t,line)
+	end
+	return t
+end
+local function cowsane(args,filt)
+	if filt then args.skip=true end
+	if multiLine then return false end
+	--multiLine = true
+	return true
+end
+add_filt(cowsay,"cowsay",cowsane,"Says things with a cow.")
 
 --SCRAMBLE, scrambles letters inside each word
 local function scramble(text,args)

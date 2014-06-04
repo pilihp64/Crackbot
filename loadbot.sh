@@ -2,5 +2,5 @@
 while :
 do
 	echo "Restarting Crackbot"
-	lua init.lua
+	lua init.lua &
 done

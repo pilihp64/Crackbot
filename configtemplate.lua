@@ -3,6 +3,7 @@ permissions = {}
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
 permissions["/bot/"] = -1
+permissions[" "..config.owner.host] = 101
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host)
@@ -31,7 +32,7 @@ local config = {
 	user = {
 		nick = "wolfybot",
 		username = "wolfy1339",
-		realname = "Wolfy1339 Bot",
+		realname = "Wolfy1339's Lua Bot",
 		account = "BigWolfy1339",
 		--password = "password"
 	},
@@ -42,13 +43,15 @@ local config = {
 		fullhost = "wolfy1339!~wolfy1339@botters/wolfy1339"
 	},
 	--Channels to join on start
-	autojoin = {
-		--"##foo",
+	channels = {
+		autojoin = {
+			--"##foo",
+		},
+		--used occasionally to kick people in games.lua
+		primary = "##powder-bots",
+		--logs all commands done in pm, and added aliases
+		logs = "##foo",
 	},
-	--used occasionally to kick people in games.lua
-	primarychannel = "##powder-bots",
-	--logs all commands done in pm, and added aliases
-	logchannel = "##foo",
 	prefix = "%*$",
 	suffix = "woof+",
 	

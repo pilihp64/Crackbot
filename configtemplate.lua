@@ -1,9 +1,8 @@
 permissions = {}
-if host:find("/bot/") then return -1 end
---if nick:find("bot") then return -1 end
 --insert host into permissions here
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
+permissions["/bot/"] = -1
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host)
@@ -54,8 +53,10 @@ local config = {
 	suffix = "woof+",
 	
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
-	terminal = "gnome-terminal",
-	terminalinput = true
+	console = {
+		terminal = "gnome-terminal",
+		input = true
+	}
 }
 
 return config

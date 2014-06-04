@@ -23,7 +23,7 @@ console:settimeout(5)
 
 if not WINDOWS and config.terminalinput then
 	--start my console line-in
-	os.execute(config.terminal.." -x lua consolein.lua")
+	os.execute(config.console.terminal.." -x lua consolein.lua")
 end
 shutdown = false
 user = config.user

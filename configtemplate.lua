@@ -57,7 +57,7 @@ local config = {
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
 	console = {
 		terminal = "gnome-terminal",
-		input = true
+		input = false
 	}
 }
 

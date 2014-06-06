@@ -58,7 +58,7 @@ local config = {
 	console = {
 		terminal = "gnome-terminal",
 		input = false
-	}
+	},
 }
 
 return config

@@ -53,7 +53,6 @@ local config = {
 	},
 	prefix = "%*$",
 	suffix = "woof+",
-	
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
 	console = {
 		terminal = "gnome-terminal",

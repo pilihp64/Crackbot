@@ -24,7 +24,8 @@ console:settimeout(5)
 if WINDOWS and config.console.input then
 	w=print("Unforunately, Windows doesn't support the console line-in")
 	error(w)
-elseif not WINDOWS and config.console.input then
+end
+if not WINDOWS and config.console.input then
 	--start my console line-in
 	os.execute(config.console.terminal.." -x lua consolein.lua")
 end

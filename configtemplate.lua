@@ -31,7 +31,7 @@ local config = {
 	user = {
 		nick = "wolfybot1339",
 		username = "wolfy1339",
-		realname = "Wolfy1339's Lua Bot",
+		realname = "A Wolfy1339 Lua Bot",
 		account = "BigWolfy1339",
 		--password = "password"
 	},

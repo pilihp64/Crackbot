@@ -3,7 +3,6 @@ permissions = {}
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
 permissions["/bot/"] = -1
-permissions[" "..config.owner.host] = 101
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host)

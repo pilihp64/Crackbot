@@ -30,7 +30,7 @@ local config = {
 	},
 	--User info, set these to whatever you need
 	user = {
-		nick = "wolfybot",
+		nick = "wolfybot1339",
 		username = "wolfy1339",
 		realname = "Wolfy1339's Lua Bot",
 		account = "BigWolfy1339",

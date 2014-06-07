@@ -53,8 +53,13 @@ function ircSendNoticeQ(channel, text)
 end
 
 --send a line of queue
-function ircSendOne(tick)
-	if tick%12==0 and #buffer then
+local messageBurst,messageBurstTimeout,timer = 4,0,socket.gettime()
+function ircSendOne()
+	if #buffer == 0 then return end
+	if messageBurst == 0 and messageBurstTimeout < socket.gettime() then
+		messageBurst = 4
+	end
+	if timer < socket.gettime() then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
 		if line.raw then
@@ -79,6 +84,13 @@ function ircSendOne(tick)
 				print("["..line.channel.."] <"..user.nick.."> "..line.msg)
 			end
 		end
+		if messageBurst == 0 then
+			timer = socket.gettime() + .8
+		else
+			messageBurst = messageBurst - 1
+			timer = socket.gettime() + .05
+		end
+		messageBurstTimeout = socket.gettime() + 5
 	end
 end
 

@@ -5,10 +5,9 @@ local activeFilters = {}
 local badWordFilt = nil
 local bannedChans = {['nickserv']=true,['chanserv']=true,['memoserv']=true}
 setmetatable(activeFilters,{__index = function(t,k) t[k]={t = {},lock = false} return t[k] end})
-local function add_filt(f,name,sane,help)
-	filters[name] = { f=f, sanity=sane or function() return true end,helptext = help}
+local function add_filt(f,name,sane,help,level)
+	filters[name] = { f=f, sanity=sane or function() return true end,helptext = help,level=level or 0}
 end
-multiLine=false
 local function chatFilter(chan,text)
 	if bannedChans[chan:lower()] then error("Bad chan") end
 	local oldtext, status = colorstrip(text), true
@@ -317,7 +316,7 @@ local function docowsay(text)
 end
 
 local function cowsay(text,args)
-	if multiLine or #text>1000 then return '' end
+	if #text>1000 then return '' end
 	local t = {}
 	local s = docowsay(text)
 	for line in s:gmatch('(.-)\n') do
@@ -327,11 +326,9 @@ local function cowsay(text,args)
 end
 local function cowsane(args,filt)
 	if filt then args.skip=true end
-	if multiLine then return false end
-	--multiLine = true
 	return true
 end
-add_filt(cowsay,"cowsay",cowsane,"Says things with a cow.")
+add_filt(cowsay,"cowsay",cowsane,"Says things with a cow.",1)
 
 --SCRAMBLE, scrambles letters inside each word
 local function scramble(text,args)
@@ -520,8 +517,9 @@ end
 add_filt(luaFilt,"luaFilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/luaFilt \"<code>\" <text>'")
 
 --function to let filters sanity check some args for direct calls
-function callFilt(f,sanf,filt)
+function callFilt(name,f,sanf,filt)
 	return function(usr,chan,msg,args)
+		if not commands[name] then return end		
 		local args = args
 		if not msg then return end
 		local s,err = sanf(args,filt) --allow filter to sanity check args before running
@@ -574,7 +572,11 @@ local function filter(usr,chan,msg,args)
 	end
 	local name=table.remove(args,1)
 	args.name=name
-	if filters[name] then
+	if filters[name] and commands[name] then
+		local perm = getPerms(usr.host)
+		if perm < commands[name].level then
+			return "No permission to add this filter"
+		end
 		local s,err = filters[name].sanity(args,true) --allow filter to sanity check args before adding
 		if s then
 			if addFilter(chan,filters[name].f,name,args) then
@@ -593,7 +595,7 @@ add_cmd(filter,"filter",0,"Set a filter, '/filter <filtName>/list/current [<argu
 
 --add sub commands to call filters directly
 for k,v in pairs(filters) do
-	add_cmd(callFilt(v.f,v.sanity),k,0,v.helptext,false)
+	add_cmd(callFilt(k,v.f,v.sanity),k,v.level,v.helptext,false)
 end
 
 --BADWORD filter, hopefully always active, uses my terrible color table to re-add

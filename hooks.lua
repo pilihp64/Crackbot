@@ -171,7 +171,6 @@ function timerCheck()
 			end
 		end
 	end
-	filters.multiLine=false
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener

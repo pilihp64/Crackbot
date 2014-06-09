@@ -3,6 +3,7 @@
 *.exe
 *.dll
 *.sh
+*.zip
 code2.c
 ltn12.lua
 mime.lua

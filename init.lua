@@ -60,11 +60,11 @@ for k,v in pairs(config.autojoin) do
 	irc:join(v)
 end
 --join extra config channels if they for some reason aren't in the autojoin
-if config.primarychannel then
-	irc:join(config.primarychannel)
+if config.channel.primary then
+	irc:join(config.channel.primary)
 end
-if config.logchannel then
-	irc:join(config.logchannel)
+if config.channels.logs then
+	irc:join(config.channels.logs)
 end
 
 local function consoleThink()

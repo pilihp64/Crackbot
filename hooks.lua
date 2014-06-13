@@ -33,9 +33,9 @@ function ircSendChatQ(chan,text,nohook)
 	end
 	text = text:gsub("[\r\n]"," ")
 	local host = ""
-	if not chan then chan=config.logchannel end
-	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then
-		host = irc.channels[config.primarychannel].users[irc.nick].fullhost or ""
+	if not chan then chan=config.channels.logs end
+	if irc.channels[config.channels.primary] and irc.channels[config.channels.primary].users[irc.nick] then
+		host = irc.channels[config.channels.primary].users[irc.nick].fullhost or ""
 	end
 	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
@@ -354,8 +354,8 @@ local function realchat(usr,channel,msg)
 			ircSendChatQ(channel,resp)
 		end
 		--log to channel, to notice things faster
-		if config.logchannel and channel:sub(1,1):match("%a") then
-			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
+		if config.channels.logs and channel:sub(1,1):match("%a") then
+			ircSendChatQ(config.channels.logs, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
 		end
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
@@ -387,7 +387,7 @@ local function chat(usr,channel,msg)
 end
 
 --console is read as messages from me
-local conChannel = config.primarychannel
+local conChannel = config.channels.primary
 function consoleChat(msg)
 	local _,_,chan = msg:find("^"..config.prefix.."chan (.+)")
 	local isPrefix = msg:find("^"..config.prefix)

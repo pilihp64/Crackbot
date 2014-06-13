@@ -48,8 +48,8 @@ for file in pluginList:lines() do
 	if file:sub(#file-3,#file) == ".lua" then
 		local s,e = pcall(dofile, "plugins/"..file)
 		if not s then
-			if config.logchannel then
-				ircSendChatQ(config.logchannel, e)
+			if config.channels.logs then
+				ircSendChatQ(config.channels.logs, e)
 			end
 			print("Error loading plugins/"..file..": "..e)
 		else
@@ -192,7 +192,7 @@ local function pull(usr,chan,msg)
 	os.execute("git checkout . && git pull")
 	--[[Needs Flags to reload
 	reload("")]]
-	ircSendRawQ("PRIVMSG "..config.logchannel.." :"..config.owner.nick.." Updated!")
+	ircSendRawQ("PRIVMSG "..config.channels.logs.." :"..config.owner.nick.." Updated!")
 end
 add_cmd(pull,"pull",100,"Updates the bot to the latest Git Version, '*pull'",true)
 

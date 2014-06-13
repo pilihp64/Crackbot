@@ -135,8 +135,8 @@ local function alias(usr,chan,msg,args)
 		add_cmd( mkAliasFunc(alis,aArgs) ,name,alis.level,"(lvl="..userlevel..",req="..commands[cmd].level..") Alias for "..cmd.." "..aMsg,false)
 		table.insert(aliasList,alis)
 		table.save(aliasList,"plugins/AliasList.txt")
-		if config.logchannel then
-			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." added alias "..name.." to "..cmd.." "..aMsg)
+		if config.channels.logs then
+			ircSendChatQ(config.channel.logs, usr.nick.."!"..usr.username.."@"..usr.host.." added alias "..name.." to "..cmd.." "..aMsg)
 		end
 		return "Added alias"
 	elseif args[1]=="rem" or args[1]=="remove" then

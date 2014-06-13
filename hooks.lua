@@ -53,8 +53,13 @@ function ircSendNoticeQ(channel, text)
 end
 
 --send a line of queue
-function ircSendOne(tick)
-	if tick%12==0 and #buffer then
+local messageBurst,messageBurstTimeout,timer = 4,0,socket.gettime()
+function ircSendOne()
+	if #buffer == 0 then return end
+	if messageBurst == 0 and messageBurstTimeout < socket.gettime() then
+		messageBurst = 4
+	end
+	if timer < socket.gettime() then
 		local line = table.remove(buffer,1)
 		if not line or not line.msg then return end
 		if line.raw then
@@ -79,6 +84,13 @@ function ircSendOne(tick)
 				print("["..line.channel.."] <"..user.nick.."> "..line.msg)
 			end
 		end
+		if messageBurst == 0 then
+			timer = socket.gettime() + .8
+		else
+			messageBurst = messageBurst - 1
+			timer = socket.gettime() + .05
+		end
+		messageBurstTimeout = socket.gettime() + 5
 	end
 end
 
@@ -157,7 +169,7 @@ function timerCheck()
 						end
 					else
 						if not noNickPrefix then resp=v.usr.nick..": "..resp end
-						ircSendChatQ(v.channel,resp)	
+						ircSendChatQ(v.channel,resp)
 					end
 					table.remove(waitingCommands,k)
 				elseif resp==false then
@@ -171,7 +183,6 @@ function timerCheck()
 			end
 		end
 	end
-	filters.multiLine=false
 end
 
 --chat listeners, can read for specific messages, returning true means delete listener
@@ -369,7 +380,7 @@ local function realchat(usr,channel,msg)
 	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "108.59.12.136") then
 		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
 		--print(nusr.." AND "..nmsg)
-		if nmsg and nmsg~="" then 
+		if nmsg and nmsg~="" then
 			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))
 			return
 		end
@@ -431,7 +442,7 @@ local function partCheck(usr,chan,reason)
 		print("Parted from "..chan)
 		if expectedPart~=chan then
 			ircSendRawQ("JOIN "..chan)
-		else 
+		else
 			expectedPart=""
 		end
 	else

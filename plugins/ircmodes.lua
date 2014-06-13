@@ -238,7 +238,7 @@ local function nick(usr,chan,msg,args)
 	end
 	ircSendRawQ("NICK "..nickname)
 end
-add_cmd(nick,"nick",101,"Make bot change nick, '*nick <nickname>",true,{"nickname"})
+add_cmd(nick,"bot.nick",101,"Makes the bot change nick, '*bot.nick <nickname>",true,{"nickname"})
 
 --JOIN a channel
 local function join(usr,chan,msg,args)

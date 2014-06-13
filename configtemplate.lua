@@ -1,9 +1,8 @@
 permissions = {}
-if host:find("/bot/") then return -1 end
---if nick:find("bot") then return -1 end
 --insert host into permissions here
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
+permissions["/bot/"] = -1
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host)
@@ -30,9 +29,9 @@ local config = {
 	},
 	--User info, set these to whatever you need
 	user = {
-		nick = "wolfybot",
+		nick = "wolfybot1339",
 		username = "wolfy1339",
-		realname = "Wolfy1339 Bot",
+		realname = "A Wolfy1339 Lua Bot",
 		account = "BigWolfy1339",
 		--password = "password"
 	},
@@ -43,19 +42,22 @@ local config = {
 		fullhost = "wolfy1339!~wolfy1339@botters/wolfy1339"
 	},
 	--Channels to join on start
-	autojoin = {
-		--"##foo",
+	channels = {
+		autojoin = {
+			--"##foo",
+		},
+		--used occasionally to kick people in games.lua
+		primary = "##powder-bots",
+		--logs all commands done in pm, and added aliases
+		logs = "##foo",
 	},
-	--used occasionally to kick people in games.lua
-	primarychannel = "##powder-bots",
-	--logs all commands done in pm, and added aliases
-	logchannel = "##foo",
 	prefix = "%*$",
 	suffix = "woof+",
-	
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
-	terminal = "gnome-terminal",
-	terminalinput = true
+	console = {
+		terminal = "gnome-terminal",
+		input = false
+	},
 }
 
 return config

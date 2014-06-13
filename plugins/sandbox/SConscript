@@ -7,31 +7,15 @@ AddOption('--avx',dest="avx",action='store_true',default=False,help="Enable AVX 
 AddOption('--avx2',dest="avx",action='store_true',default=False,help="Enable AVX2 optimisations")
 AddOption('--win',dest="win",action='store_true',default=False,help="Windows platform target.")
 AddOption('--lin',dest="lin",action='store_true',default=False,help="Linux platform target")
-AddOption('--macosx',dest="macosx",action='store_true',default=False,help="Mac OS X platform target")
-AddOption('--rpi',dest="rpi",action='store_true',default=False,help="Raspbain platform target")
 
-
-if not GetOption('lin') and not GetOption('win') and not GetOption('rpi') and not GetOption('macosx'):
+if not GetOption('lin') and not GetOption('win'):
 	print "You must specify a platform to target"
 	raise SystemExit(1)
 
-# if the platform is windows switch to a mingw toolset, use the default otherwise
-
-#if GetOption('win'):
-#	env = Environment(tools = ['mingw'], ENV = os.environ)
-#else:
-#	env = Environment(tools = ['default'], ENV = os.environ)
-
-#env.Append(CFLAGS=['-pthread -llua5.1'])
-#env.Append(LIBS=['pthread', 'lua'])
+env.Append(CFLAGS=['-pthread -llua5.1'])
+env.Append(LIBS=['pthread', 'lua'])
 
 
-# check if we're compiling for macosx, if we are include macosx specific libraries and defines.
-
-if GetOption('macosx'):
-	env.Append(CFLAGS=['-I/Library/Frameworks/Lua.framework/Headers'])
-	env.Append(LINKFLAGS=['-framework'])
-	env.Append(LINKFLAGS=['Lua'])
 # defines
 # =======
 
@@ -55,9 +39,6 @@ if GetOption('avx2'):
 
 # use some settings to detect what name to use for the executable
 Name = "luasandbox"
-
-if GetOption('macosx'):
-	Name += "-x"
 
 if GetOption('win'):
 	Name += ".exe"

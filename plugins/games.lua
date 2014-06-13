@@ -337,14 +337,14 @@ local itemUses = {
 	["doll"]=function(usr)
 		remInv(usr,"doll",1)
 		if string.lower(usr.nick):find("mitch") then
-			ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
+			ircSendRawQ("KICK "..config.channels.primary.." "..usr.nick)
 			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
 		end
 		local rnd = math.random(1,100)
 		if rnd <= 50 then
 			return "You find out the doll was gay and throw it away (-1 doll)"
 		elseif rnd == 51 then
-			ircSendRawQ("KICK "..config.primarychannel.." wolfmitchell")
+			ircSendRawQ("KICK "..config.channels.primary.." wolfmitchell")
 			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
 		else
 			return "The doll looks so ugly that you burn it (-1 doll)"
@@ -468,7 +468,7 @@ local itemUses = {
 			end
 			if rnd%2 == 1 then
 				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick.." :"..str)
+				ircSendRawQ("KICK "..config.channels.primary.." "..usr.nick.." :"..str)
 				str = ""
 			end
 			remInv(usr,"potato",1)

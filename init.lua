@@ -61,7 +61,7 @@ for k,v in pairs(config.channels.autojoin) do
 end
 --join extra config channels if they for some reason aren't in the autojoin
 if config.channels.primary then
-	irc:join(config.channel.primary)
+	irc:join(config.channels.primary)
 end
 if config.channels.logs then
 	irc:join(config.channels.logs)

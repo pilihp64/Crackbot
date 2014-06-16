@@ -106,7 +106,7 @@ local function compHelp(usr,chan,msg,args)
 	else rstring=rstring .. "People are in love with you" end
 	return rstring
 end
-add_cmd(compHelp,"comp",0,"Basic information of your company",true)
+add_cmd(compHelp,"comp",0,"Basic information of your company",true,{"company"})
 
 local function projHelp(usr,chan,msg,args)
 	local proj = compData[usr.host].currentProject

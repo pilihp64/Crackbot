@@ -121,7 +121,7 @@ local function suicide(usr,chan,msg)
 	ircSendRawQ("QUIT :woof")
 	shutdown = true;
 end
-add_cmd(suicide,"suicide",101,"Quits the bot",true,{"quit"})
+add_cmd(suicide,"suicide",101,"Makes the bot Quit",true,{"quit","die"})
 
 --PING
 local function ping(usr,chan,msg)
@@ -200,7 +200,7 @@ add_cmd(pull,"pull",100,"Updates the bot to the latest Git Version, '*pull'",tru
 local function echo(usr,chan,msg)
 	return msg,true
 end
-add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true)
+add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true,{"e","say"})
 
 --LIST
 local function list(usr,chan,msg,args)
@@ -216,7 +216,7 @@ local function list(usr,chan,msg,args)
 	table.sort(t,function(x,y)return x<y end)
 	return "Commands("..perm.."): " .. table.concat(t,", ")
 end
-add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '*list [<level>]'",true,{"ls"})
+add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '*list [<level>]'",true,{"ls","commands"})
 
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
@@ -240,7 +240,7 @@ local function chmod(usr,chan,msg,args)
 	permissions[host] = tonumber(level)
 	return "perm['"..host.."'] = "..level
 end
-add_cmd(chmod,"chmod",40,"Changes a hostmask level, '*chmod <name/host> <level>'",true)
+add_cmd(chmod,"chmod",40,"Changes a hostmask level, '*chmod <name/host> <level>'",true,{"permissions"})
 
 --hostmask
 local function getHost(usr,chan,msg,args,ofull)

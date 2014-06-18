@@ -701,7 +701,7 @@ local function myMoney(usr,chan,msg,args)
 	end
 	return myCash(usr)
 end
-add_cmd(myMoney,"cash",0,"Your current balance, '*cash [stats]', Sending stats will show some saved stats.",true)
+add_cmd(myMoney,"cash",0,"Your current balance, '*cash [stats]', Sending stats will show some saved stats.",true,{"money"})
 --GIVE
 local function giveMon(usr,chan,msg,args)
 	if not args[2] then return "Usage: '*give <username> <amount>'" end
@@ -767,7 +767,8 @@ local function flipCoin(usr,chan,msg,args)
 	if bet < 1 then return "Bet too low" end
 	return coinToss(usr,bet)
 end
-add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '*flip <bet>', 50% chance to win double",true)
+add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true,{"bet"})
+
 --DOOR
 local function odor(usr,chan,msg,args)
 	return odoor(usr,args)
@@ -777,7 +778,7 @@ add_cmd(odor,"door",0,"Open a door, '*door <door>', No one knows what will happe
 --STORE, to buy somethings?
 local function store(usr,chan,msg,args)
 	if not msg  or args[1]=="help" then
-		return "Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item> [<amt>]' or '/store sell <item> [<amt>]'."
+		return "Welcome to the CrackStore, use '*store list' or '*store info <item>' or '*store buy <item> [<amt>]' or '*store sell <item> [<amt>]'."
 	end
 	if args[1]=="list" then
 		local t={}
@@ -851,7 +852,7 @@ local function store(usr,chan,msg,args)
 		end
 	end
 end
-add_cmd(store,"store",0,"Browse the store, '*store list/info/buy/sell'",true)
+add_cmd(store,"store",0,"Browse the store, '*store list/info/buy/sell'",true,{"shop"})
 
 
 local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S",["6"]="G",["7"]="Z",["8"]="3",["9"]="6",

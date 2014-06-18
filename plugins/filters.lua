@@ -593,7 +593,7 @@ local function filter(usr,chan,msg,args)
 		return "No filter named "..name
 	end
 end
-add_cmd(filter,"filter",0,"Set a filter, '*filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true)
+add_cmd(filter,"filter",0,"Set a filter, '*filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true,{"f"})
 
 --add sub commands to call filters directly
 for k,v in pairs(filters) do

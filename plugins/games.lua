@@ -8,33 +8,34 @@ end
 gameUsers = gameUsers or loadUsers()
 
 storeInventory={
-["paradox"]=	{name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=false},
-["blackhole"]=	{name="blackhole",cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=false},
-["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=false},
-["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=false},
-["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=false},
-["junk"]=	{name="junk",	cost=-500,info="Why do you have this, you will have to PAY someone to get rid of it",amount=1,instock=false},
+["whitehole"]=	{name="whitehole",cost=-999999999999999999999,info="?no gniog si tahW",amount=1,instock=true},
+["paradox"]=	{name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=true},
+["blackhole"]=	{name="blackhole",cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=true},
+["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=true},
+["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=true},
+["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=true},
+["junk"]=	{name="junk",	cost=-500,info="Why do you have this, you will have to PAY someone to get rid of it",amount=1,instock=true},
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
-["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
+["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=true},
 ["iPad"]=	{name="iPad",	cost=499,info="A new iPad.",amount=1,instock=true},
 ["lamp"]=	{name="lamp",	cost=1001,info="A very expensive lamp, great lighting.",amount=1,instock=true},
-["penguin"]=	{name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
-["nothing"]=	{name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
+["penguin"]=	{name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=true},
+["nothing"]=	{name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=true},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
-["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
+["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=true},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
-["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
+["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=true},
 ["potato"]=	{name="potato",	cost=2000000,info="Just a potato.",amount=1,instock=true},
-["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=false},
-["diamond"]=	{name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
+["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=true},
+["diamond"]=	{name="diamond",cost=10000000,info="You are rich.",amount=1,instock=true},
 ["cow"]=	{name="cow",	cost=24000000,info="Can generate moo's.",amount=1,instock=true},
-["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
+["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=true},
 ["cube"]=	{name="cube",	cost=76000000,info="A rubik's cube made of ice.",amount=1,instock=true},
-["cracker"]=	{name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
+["cracker"]=	{name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=true},
 ["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
-["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
+["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=true},
 ["billion"]=	{name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
 ["company"]=	{name="company",cost=25000000000,info="A successful company that makes money (doesn't give you any yet).",amount=1,instock=true},
 ["antiPad"]=	{name="antiPad",cost=100000000000,info=".daPi wen A, For the rich, made from antimatter.",amount=1,instock=true},
@@ -129,7 +130,7 @@ local function remInv(usr,name,amt)
 	end
 end
 
-local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
+local antiPadList = {"iPad","whitehole","blackhole","company","billion","iPad","country"}
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -140,6 +141,8 @@ local function timedSave()
 				v.cost = math.floor(v.cost*1.002)
 			elseif k=="blackhole" then
 				v.cost = math.floor(v.cost*1.02)
+			elseif k=="whitehole" then
+				v.cost = math.floor(v.cost*1.0002)
 			elseif k=="paradox" then
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
@@ -280,7 +283,8 @@ local itemUses = {
 				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
-					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
+					addInv(usr,storeInventory["whitehole"],1)
+					return "The app imploded into a blackhole and a whitehole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole, +1 whitehole)"
 				end
 				addInv(usr, storeInventory[name], 1)
 				--if usr.nick == "cracker64" then
@@ -739,6 +743,7 @@ local function giveMon(usr,chan,msg,args)
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
 		if i.name == "antiPad" then return "You can't give that!" end
+		if gameUsers[usr.host].inventory["whitehole"] then return "The force of your whitehole prevents you from giving!." end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"

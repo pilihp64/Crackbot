@@ -378,7 +378,7 @@ end
 add_cmd(seen,"seen",0,"Display a last seen message '*seen [<chan>] <nick>'",true)
 
 --source
-local source(usr,chan,msg,args)
+local function source(usr,chan,msg,args)
 	if "$1" ~= "" then 
 		return "https://github.com/wolfy1339/WolfyBot/blob/master/$1"
 	else 

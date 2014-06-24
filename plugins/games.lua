@@ -130,7 +130,7 @@ local function remInv(usr,name,amt)
 	end
 end
 
-local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
+local antiPadList = {"iPad","whitehole","blackhole","company","billion","iPad","country"}
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -141,6 +141,8 @@ local function timedSave()
 				v.cost = math.floor(v.cost*1.002)
 			elseif k=="blackhole" then
 				v.cost = math.floor(v.cost*1.02)
+			elseif k=="whitehole" then
+				v.cost = math.floor(v.cost*1.0002)
 			elseif k=="paradox" then
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
@@ -281,7 +283,8 @@ local itemUses = {
 				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
-					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
+					addInv(usr,storeInventory["whitehole"],1)
+					return "The app imploded into a blackhole and a whitehole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole, +1 whitehole)"
 				end
 				addInv(usr, storeInventory[name], 1)
 				--if usr.nick == "cracker64" then
@@ -740,6 +743,7 @@ local function giveMon(usr,chan,msg,args)
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
 		if i.name == "antiPad" then return "You can't give that!" end
+		if gameUsers[usr.host].inventory["whitehole"] then return "The force of your whitehole prevents you from giving!." end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"

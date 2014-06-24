@@ -376,3 +376,13 @@ local function seen(usr,chan,msg,args)
 	return msg
 end
 add_cmd(seen,"seen",0,"Display a last seen message '*seen [<chan>] <nick>'",true)
+
+--source
+local source(usr,chan,msg,args)
+	if "$1" ~= "" then 
+		return "https://github.com/wolfy1339/WolfyBot/blob/master/$1"
+	else 
+		return "https://github.com/wolfy1339/WolfyBot"
+	end 
+end
+add_cmd(source,"source",0,"Display the location of my source '*source [<file>]'",true,{"github"})

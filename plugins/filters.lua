@@ -331,6 +331,34 @@ local function cowsane(args,filt)
 end
 add_filt(cowsay,"cowsay",cowsane,"Says things with a cow.",1)
 
+local function get_dog()
+    return [[
+                .-._     /
+               {_}^ )o  /
+      {\________//~`     
+       (         )
+       /||~~~~~||\
+      |_\\_    \\_\_   
+      "' ""'    ""'"'
+     ]]
+end
+
+local function dodogsay(text)
+	return get_bubble(text)..get_dog()
+end
+
+local function dogsay(text,args)
+	if #text>1000 then return '' end
+	local t = {}
+	local s = dodogsay(text)
+	for line in s:gmatch('(.-)\n') do
+		table.insert(t,line)
+	end
+	return t
+end
+add_filt(dogsay,"dogsay",cowsane,"Says things with a dog.",1)
+
+
 --SCRAMBLE, scrambles letters inside each word
 local function scramble(text,args)
 	local rstring

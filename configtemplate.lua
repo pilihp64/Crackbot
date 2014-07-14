@@ -49,7 +49,7 @@ local config = {
 		--used occasionally to kick people in games.lua
 		primary = "##powder-bots",
 		--logs all commands done in pm, and added aliases
-		logs = "##foo",
+		logs = "##foo"
 	},
 	prefix = "%*$",
 	suffix = "woof+",

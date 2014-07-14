@@ -289,7 +289,12 @@ local function remove(usr,chan,msg,args)
 	end
 	local nick = args[1]
 	table.remove(args, 1)
-	ircSendRawQ("REMOVE "..chan.." "..nick.." :"..table.concat(args, " "))
+	reason=table.concat(args, " ")
+	if reason then
+		ircSendRawQ("REMOVE "..chan.." "..nick.." :"..table.concat(args, " "))
+	else
+		ircSendRawQ("REMOVE "..chan.." "..nick.." :"..usr.nick.." says GTFO.")
+	end
 	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end
-add_cmd(remove,"remove",50,"Forefully remove a user from a channel, '/remove [<chan>] <user> [<reason>]'",true, {"ninja"})
+add_cmd(remove,"remove",50,"Forefully remove a user from a channel, '*remove [<chan>] <user> [<reason>]'",true, {"ninja"})

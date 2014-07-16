@@ -202,7 +202,7 @@ local function echo(usr,chan,msg)
 end
 add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true,{"e","say"})
 
---LIST
+--COMMANDS
 local function list(usr,chan,msg,args)
 	local perm = tonumber(args[1]) or getPerms(usr.host)
 	local t = {}
@@ -214,9 +214,12 @@ local function list(usr,chan,msg,args)
 		end
 	end
 	table.sort(t,function(x,y)return x<y end)
-	return "Commands("..perm.."): " .. table.concat(t,", ")
+	return "Hi there, I hope you don't mind I sent you the commands list in a PM"
+	ircSendRawQ("PRIVMSG "..usr.nick.." These commands are available for this permissions level "..perm.." : " .. table.concat(t,", "))
 end
-add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '*list [<level>]'",true,{"ls","commands"})
+add_cmd(list,"commands",0,"Lists commands for the specified level, or your own, '*commands [<level>]'",true,{"cmd","ls","list"})
+
+--LIST
 
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)

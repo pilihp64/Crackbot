@@ -214,8 +214,8 @@ local function list(usr,chan,msg,args)
 		end
 	end
 	table.sort(t,function(x,y)return x<y end)
-	return "Hi there, I hope you don't mind I sent you the commands list in a PM" then
-		ircSendRawQ("PRIVMSG "..usr.nick.." These commands are available for this permissions level "..perm.." : " .. table.concat(t,", "))
+	return "Hi there, I hope you don't mind I sent you the commands list in a PM"
+	ircSendRawQ("PRIVMSG "..usr.nick.." These commands are available for this permissions level "..perm.." : " .. table.concat(t,", "))
 end
 add_cmd(list,"commands",0,"Lists commands for the specified level, or your own, '*commands [<level>]'",true,{"cmd","ls","list"})
 

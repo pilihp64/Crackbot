@@ -1,4 +1,5 @@
 --List of files to load
+local sleep=require "socket".sleep
 dofile("tableSave.lua")
 math.randomseed(os.time())
 commands = {}
@@ -117,8 +118,13 @@ end
 add_cmd(enable,"enable",100,"Enables a command previously disabled, '*enable <cmd> [<cmd2> ...]'",true)
 
 --QUIT
-local function suicide(usr,chan,msg)
-	ircSendRawQ("QUIT :woof")
+local function suicide(usr,chan,msg,args)
+	if args[1] then
+		ircSendRawQ("QUIT :"..args[1])
+	else
+		ircSendRawQ("QUIT :woof")
+	end
+	sleep(3)
 	shutdown = true;
 end
 add_cmd(suicide,"suicide",101,"Makes the bot Quit",true,{"quit","die"})

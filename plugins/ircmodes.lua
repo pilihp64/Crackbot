@@ -203,7 +203,10 @@ local function kick(usr,chan,msg,args)
 	elseif nick == irc.nick then
 		nick = usr.nick
 	end
-	ircSendRawQ("KICK "..chan.." "..nick.." :"..reason)
+	if reason then
+	        ircSendRawQ("KICK "..chan.." "..nick.." :"..reason)
+	else
+	        ircSendRawQ("KICK "..chan.." "..nick.." :"..usr.nick.." says GTFO.")
 end
 add_cmd(kick,"kick",10,"Kick a user, '*kick [<chan>] <username> [<reason>]'",true)
 

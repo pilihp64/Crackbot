@@ -181,6 +181,39 @@ end
 
 --Uses for items, with /use
 local itemUses = {
+	["void"] = function(usr)
+		for i=1,4 do
+			amount = math.floor(gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*math.random()*-1)
+			usertotal = 0  for i,v in pairs(irc.channels[config.primarychannel].users) do usertotal = usertotal + 1 end
+			randomuser,usertotal = math.random(0, usertotal),0
+			for k,v in pairs(irc.channels[config.primarychannel].users) do
+				if randomuser == usertotal then
+					if not gameUsers[v.host] or not gameUsers[v.host].inventory then
+						randomuser = randomuser + 1
+					else
+						randomitem, randomitemcount = math.random(0, #gameUsers[v.host].inventory), 0
+						for k2,v2 in pairs(gameUsers[v.host].inventory) do
+							if randomitemcount == randomitem then
+								if v2.cost > 0 and v2.cost < amount then
+									destroyed = math.floor(amount/v2.cost)
+									lostvoids = math.floor(amount/50000*math.random())
+									if destroyed == 0 or lostvoids == 0 then break end
+									remInv(usr, "void", lostvoids)
+									remInv(v, v2.name, destroyed)
+									return "The void sucks up "..destroyed.." of "..v.nick.."'s "..v2.name.."s! (-"..lostvoids.." voids)"
+								else
+									randomitem = randomitem + 1
+								end
+							end
+							randomitemcount = randomitemcount + 1
+						end
+					end
+				end
+				usertotal = usertotal + 1
+			end
+		end
+		return "You fall into a bottomless void"
+	end,
 	["junk"] = function(usr)
 		local rnd = math.random(100)
 		if rnd <= 10 then

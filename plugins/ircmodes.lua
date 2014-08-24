@@ -252,7 +252,7 @@ local function part(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
-	expectedPart=chan
+	_G.expectedPart=chan
 	ircSendRawQ("PART "..chan)
 end
 add_cmd(part,"part",101,"Make bot part a channel, '/part <chan>'",true)

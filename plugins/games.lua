@@ -196,7 +196,8 @@ local itemUses = {
 							if randomitemcount == randomitem then
 								if v2.cost > 0 and v2.cost < amount then
 									destroyed = math.floor(amount/v2.cost)
-									lostvoids = math.floor(amount/50000*math.random())
+									if destroyed > v2.amount then destroyed = v2.amount end
+									lostvoids = math.floor(destroyed*v2.cost/50000*math.random())
 									if destroyed == 0 or lostvoids == 0 then break end
 									remInv(usr, "void", lostvoids)
 									remInv(v, v2.name, destroyed)

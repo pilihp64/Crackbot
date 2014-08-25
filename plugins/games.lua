@@ -512,11 +512,11 @@ local itemUses = {
 	["cow"]=function(moo)
 		local cowCount = gameUsers[moo.host].inventory["cow"].amount
 		local rnd = math.random(1,100)
-		local info = gameUsers[moo.host].inventory["cow"].status
+		--[[local info = gameUsers[moo.host].inventory["cow"].status
 		if info and os.time() < info then
 			return "Please wait "..(info-os.time()).." seconds before spamming this again"
 		end
-		gameUsers[moo.host].inventory["cow"].status = os.time()+3
+		gameUsers[moo.host].inventory["cow"].status = os.time()+3]]
 		if cowCount > 2 then
 			if rnd%5 == 1 then
 				local amountgained = math.ceil(cowCount/24)

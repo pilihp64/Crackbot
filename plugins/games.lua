@@ -181,10 +181,11 @@ end
 
 --Uses for items, with /use
 local itemUses = {
-	["void"] = function(usr)
+	["void"] = function(usr,args,chan)
+		if not irc.channels[chan] then return "You fall into a bottomless void"..changeCash(usr, -500000) end
 		for i=1,4 do
 			amount = math.floor(gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*math.random()*-1)
-			usertotal = 0  for i,v in pairs(irc.channels[config.primarychannel].users) do usertotal = usertotal + 1 end
+			usertotal = 0  for i,v in pairs(irc.channels[chan].users) do usertotal = usertotal + 1 end
 			randomuser,usertotal = math.random(0, usertotal),0
 			for k,v in pairs(irc.channels[config.primarychannel].users) do
 				if randomuser == usertotal then
@@ -197,7 +198,7 @@ local itemUses = {
 								if v2.cost > 0 and v2.cost < amount and storeInventory[v2.name] then
 									destroyed = math.floor(amount/v2.cost)
 									if destroyed > v2.amount then destroyed = v2.amount end
-									lostvoids = math.floor(destroyed*v2.cost/(5000*math.random(3,10)))
+									lostvoids = math.floor(destroyed*v2.cost/(5000*math.random(5,10)))
 									if destroyed == 0 or lostvoids == 0 then break end
 									remInv(usr, "void", lostvoids)
 									remInv(v, v2.name, destroyed)
@@ -213,7 +214,7 @@ local itemUses = {
 				usertotal = usertotal + 1
 			end
 		end
-		return "You fall into a bottomless void"
+		return "You fall into a bottomless void"..changeCash(usr, -500000)
 	end,
 	["junk"] = function(usr)
 		local rnd = math.random(100)
@@ -474,7 +475,7 @@ local itemUses = {
 			return "You realize you didn't actually have any moos (-"..mooCount.." moo"..(mooCount > 1 and "s" or "")..")"
 		end
 	end,
-	["potato"]=function(usr)
+	["potato"]=function(usr,args,chan)
 		if usr.nick == "jacob1" then
 			return "You are a potato"..changeCash(usr,1000)
 		end
@@ -500,9 +501,9 @@ local itemUses = {
 			elseif rnd < 100 then
 				str = "You fry the potato and make french fries"
 			end
-			if rnd%2 == 1 then
+			if rnd%2 == 1 and irc.channels[chan] then
 				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick.." :"..str)
+				ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
 				str = ""
 			end
 			remInv(usr,"potato",1)
@@ -615,7 +616,7 @@ local function useItem(usr,chan,msg,args)
 	if not gameUsers[usr.host].inventory[args[1]] or gameUsers[usr.host].inventory[args[1]].amount<=0 then
 		return "You don't have that item!"
 	elseif itemUses[args[1]] and gameUsers[usr.host].inventory[args[1]] then
-		return itemUses[args[1]](usr,args)
+		return itemUses[args[1]](usr,args,chan)
 	else
 		return "This item can't be used!"
 	end

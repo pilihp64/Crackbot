@@ -902,7 +902,7 @@ local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S"
 local questions={}
 table.insert(questions,{
 q= function() --Count a letter in string, with some other simple math
-	if not filters.mknumscramb then return "Error: filter plugin must be loaded"
+	if not filters.mknumscramb then return "Error: filter plugin must be loaded" end
 	local chars = {}
 	local extraNumber = math.random(10)
 	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end

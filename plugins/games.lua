@@ -902,6 +902,7 @@ local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S"
 local questions={}
 table.insert(questions,{
 q= function() --Count a letter in string, with some other simple math
+	if not filters.mknumscramb then return "Error: filter plugin must be loaded"
 	local chars = {}
 	local extraNumber = math.random(10)
 	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end
@@ -949,24 +950,24 @@ q= function() --Count a letter in string, with some other simple math
 	if extraNumber then
 		local randMod = math.random(43)
 		if randMod<=15 then --subtract
-			intro="What is "..mknumscramb(extraNumber).." minus the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." minus the number of"
 			answer = extraNumber-answer
 			multiplier=0.85
 		elseif randMod<=22 then --Multiply
 			extraNumber = extraNumber%200
-			intro="What is "..mknumscramb(extraNumber).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." times the number of"
 			answer = extraNumber*answer
 			timeout,multiplier = 40,1.1
 		elseif randMod==23 then --addition AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..mknumscramb(extraNumber).." plus "..mknumscramb(extraNum2).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." plus "..filters.mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber + (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod==24 then --subtraction AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..mknumscramb(extraNumber).." minus "..mknumscramb(extraNum2).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." minus "..filters.mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber - (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
@@ -975,7 +976,7 @@ q= function() --Count a letter in string, with some other simple math
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
 		elseif randMod<=40 then --add
-			intro="What is "..mknumscramb(extraNumber).." plus the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." plus the number of"
 			answer = answer+extraNumber
 			multiplier=0.85
 		else

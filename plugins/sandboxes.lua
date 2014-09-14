@@ -9,7 +9,7 @@ local function lua(usr,chan,msg,args,luan)
 	
 	if WINDOWS then
 		msg = msg:gsub(".",function(a)return string.char(65+math.floor(a:byte()/16),65+a:byte()%16)end)
-		local rf = io.popen("plugins/sandbox/luasandbox.exe "..msg)
+		local rf = io.popen("plugins\\sandbox\\luasandbox.exe "..msg)
 		local r = rf:read("*a")
 		return r:sub(1,#r-1)
 	else

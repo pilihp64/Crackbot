@@ -207,7 +207,7 @@ add_cmd(update,"update",100,"Updates the bot to the latest Git Version and then 
 local function echo(usr,chan,msg)
 	return msg,true
 end
-add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true,{"e","say"})
+add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true,{"say"})
 
 --LIST
 local function list(usr,chan,msg,args)

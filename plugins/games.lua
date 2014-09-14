@@ -184,6 +184,41 @@ end
 
 --Uses for items, with /use
 local itemUses = {
+	["void"] = function(usr,args,chan)
+		if not irc.channels[chan] then return "You fall into a bottomless void"..changeCash(usr, -500000) end
+		for i=1,4 do
+			amount = math.floor(gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*math.random()*-1)
+			usertotal = 0  for i,v in pairs(irc.channels[chan].users) do usertotal = usertotal + 1 end
+			randomuser,usertotal = math.random(0, usertotal),0
+			for k,v in pairs(irc.channels[config.primarychannel].users) do
+				if randomuser == usertotal then
+					if not gameUsers[v.host] or not gameUsers[v.host].inventory then
+						randomuser = randomuser + 1
+					else
+						randomitem, randomitemcount = math.random(0, #gameUsers[v.host].inventory), 0
+						for k2,v2 in pairs(gameUsers[v.host].inventory) do
+							if randomitemcount == randomitem then
+								if v2.cost > 0 and v2.cost < amount and storeInventory[v2.name] then
+									destroyed = math.floor(amount/v2.cost)
+									if destroyed > v2.amount then destroyed = v2.amount end
+									lostvoids = math.floor(destroyed*v2.cost/(5000*math.random(5,10)))
+									if destroyed == 0 or lostvoids == 0 then break end
+									remInv(usr, "void", lostvoids)
+									remInv(v, v2.name, destroyed)
+									return "The void sucks up "..destroyed.." of "..v.nick.."'s "..v2.name.."s! (-"..lostvoids.." voids)"
+								else
+									randomitem = randomitem + 1
+								end
+							end
+							randomitemcount = randomitemcount + 1
+						end
+					end
+				end
+				usertotal = usertotal + 1
+			end
+		end
+		return "You fall into a bottomless void"..changeCash(usr, -500000)
+	end,
 	["junk"] = function(usr)
 		local rnd = math.random(100)
 		if rnd <= 10 then
@@ -444,7 +479,7 @@ local itemUses = {
 			return "You realize you didn't actually have any moos (-"..mooCount.." moo"..(mooCount > 1 and "s" or "")..")"
 		end
 	end,
-	["potato"]=function(usr)
+	["potato"]=function(usr,args,chan)
 		if usr.nick == "jacob1" then
 			return "You are a potato"..changeCash(usr,1000)
 		end
@@ -470,9 +505,9 @@ local itemUses = {
 			elseif rnd < 100 then
 				str = "You fry the potato and make french fries"
 			end
-			if rnd%2 == 1 then
+			if rnd%2 == 1 and irc.channels[chan] then
 				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK "..config.channels.primary.." "..usr.nick.." :"..str)
+				ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
 				str = ""
 			end
 			remInv(usr,"potato",1)
@@ -482,11 +517,11 @@ local itemUses = {
 	["cow"]=function(moo)
 		local cowCount = gameUsers[moo.host].inventory["cow"].amount
 		local rnd = math.random(1,100)
-		local info = gameUsers[moo.host].inventory["cow"].status
+		--[[local info = gameUsers[moo.host].inventory["cow"].status
 		if info and os.time() < info then
 			return "Please wait "..(info-os.time()).." seconds before spamming this again"
 		end
-		gameUsers[moo.host].inventory["cow"].status = os.time()+3
+		gameUsers[moo.host].inventory["cow"].status = os.time()+3]]
 		if cowCount > 2 then
 			if rnd%5 == 1 then
 				local amountgained = math.ceil(cowCount/24)
@@ -585,7 +620,7 @@ local function useItem(usr,chan,msg,args)
 	if not gameUsers[usr.host].inventory[args[1]] or gameUsers[usr.host].inventory[args[1]].amount<=0 then
 		return "You don't have that item!"
 	elseif itemUses[args[1]] and gameUsers[usr.host].inventory[args[1]] then
-		return itemUses[args[1]](usr,args)
+		return itemUses[args[1]](usr,args,chan)
 	else
 		return "This item can't be used!"
 	end
@@ -873,6 +908,7 @@ local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S"
 local questions={}
 table.insert(questions,{
 q= function() --Count a letter in string, with some other simple math
+	if not filters.mknumscramb then return "Error: filter plugin must be loaded" end
 	local chars = {}
 	local extraNumber = math.random(10)
 	if extraNumber<=7 then extraNumber=math.random(20000) else extraNumber=nil end
@@ -920,24 +956,24 @@ q= function() --Count a letter in string, with some other simple math
 	if extraNumber then
 		local randMod = math.random(43)
 		if randMod<=15 then --subtract
-			intro="What is "..mknumscramb(extraNumber).." minus the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." minus the number of"
 			answer = extraNumber-answer
 			multiplier=0.85
 		elseif randMod<=22 then --Multiply
 			extraNumber = extraNumber%200
-			intro="What is "..mknumscramb(extraNumber).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." times the number of"
 			answer = extraNumber*answer
 			timeout,multiplier = 40,1.1
 		elseif randMod==23 then --addition AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..mknumscramb(extraNumber).." plus "..mknumscramb(extraNum2).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." plus "..filters.mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber + (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod==24 then --subtraction AND multiply
 			extraNumber = extraNumber
 			local extraNum2 = math.random(200)-1
-			intro="What is "..mknumscramb(extraNumber).." minus "..mknumscramb(extraNum2).." times the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." minus "..filters.mknumscramb(extraNum2).." times the number of"
 			answer = extraNumber - (extraNum2*answer)
 			timeout,multiplier = 50,1.3
 		elseif randMod<=26 and answer>0 then --Repeat string
@@ -946,7 +982,7 @@ q= function() --Count a letter in string, with some other simple math
 			answer = (tostring(extraNumber)):rep(answer)
 			timeout,multiplier = 40,1.2
 		elseif randMod<=40 then --add
-			intro="What is "..mknumscramb(extraNumber).." plus the number of"
+			intro="What is "..filters.mknumscramb(extraNumber).." plus the number of"
 			answer = answer+extraNumber
 			multiplier=0.85
 		else

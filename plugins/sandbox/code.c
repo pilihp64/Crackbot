@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 			 io={write=io.write}\n\
 		");
 	const char *h = argv[1];
-	char *code = (char*)malloc(strlen(h+1)/2);
+	char *code = (char*)malloc(strlen(h)/2+1);
 	char *c = code;
 	for(;*h && h[1];h+=2)
 	{

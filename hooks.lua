@@ -341,7 +341,7 @@ local function realchat(usr,channel,msg)
 
 	local func,err
 	if cmd then
-		func,err=makeCMD(cmd,usr,channel,rest)
+		func,err=makeCMD(cmd:lower(),usr,channel,rest)
 	end
 	listen(usr,channel,msg)
 	if func then

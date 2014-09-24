@@ -116,7 +116,7 @@ local function alias(usr,chan,msg,args)
 	if args[1]=="add" then
 		if not args[2] then return "Usage: '/alias add <name> <cmd> [<args>]'" end
 		if not args[3] then return "No cmd specified! '/alias add <name> <cmd> [<args>]'" end
-		local name,cmd,aArgs = args[2],args[3],{}
+		local name,cmd,aArgs = args[2]:lower(),args[3]:lower(),{}
 		if not commands[cmd] then return cmd.." doesn't exist!" end
 		if cmd == "timer" or cmd == "use" or cmd == "bug" then
 			return "You can't alias that!"
@@ -141,7 +141,7 @@ local function alias(usr,chan,msg,args)
 		return "Added alias"
 	elseif args[1]=="rem" or args[1]=="remove" then
 		if not args[2] then return "Usage: '/alias rem <name>'" end
-		local name = args[2]
+		local name = args[2]:lower()
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				if v.lock then return "Alias is locked!" end
@@ -178,7 +178,7 @@ local function alias(usr,chan,msg,args)
 		--Lock an alias so other users can't remove it
 		if not args[2] then return "'/alias lock <name>'" end
 		if getPerms(usr.host) < 100 then return "No permission to lock!" end
-		local name = args[2]
+		local name = args[2]:lower()
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.lock = "*" --bool doesn't save right now
@@ -190,7 +190,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="unlock" then
 		if not args[2] then return "'/alias unlock <name>'" end
 		if getPerms(usr.host) < 100 then return "No permission to unlock!" end
-		local name = args[2]
+		local name = args[2]:lower()
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.lock = nil
@@ -202,7 +202,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="suid" then
 		if not args[2] then return "'/alias suid <name> [level]' No level will disable" end
 		if getPerms(usr.host) < 101 then return "No permission to suid!" end
-		local name, level = args[2],tonumber(args[3])
+		local name, level = args[2]:lower(),tonumber(args[3])
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.usrlvl,v.suid = (level or v.usrlvl),(level and 1 or nil)
@@ -217,7 +217,7 @@ local function alias(usr,chan,msg,args)
 	elseif args[1]=="restrict" then
 		if not args[3] then return "'/alias restrict <name> <level>'" end
 		if getPerms(usr.host) < 101 then return "No permission to restrict!" end
-		local name, level = args[2],(tonumber(args[3]) or 101)
+		local name, level = args[2]:lower(),(tonumber(args[3]) or 101)
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.level = level
@@ -234,7 +234,7 @@ local function alias(usr,chan,msg,args)
 		if not args[2] then return "'/alias "..args[1].." <name>'" end
 		if getPerms(usr.host) < 100 then return "No permission to "..args[1].."!" end
 		local shown = args[1] == "unhide"
-		local name = args[2]
+		local name = args[2]:lower()
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.shown = shown

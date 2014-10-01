@@ -385,7 +385,9 @@ local function realchat(usr,channel,msg)
 			return
 		end
 	end
-	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+	if channel:sub(1,13) ~= "##starcatcher" then
+		print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+	end
 end
 local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr

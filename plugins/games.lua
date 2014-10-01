@@ -755,7 +755,7 @@ local function giveMon(usr,chan,msg,args)
 		return "Please do not give to the bot"
 	end
 	toHost = getUserFromNick(args[1])
-	if not toHost then
+	if not toHost or not toHost.host then
 		return "Invalid user, or not online"
 	end
 	toHost = toHost.host

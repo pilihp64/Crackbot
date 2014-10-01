@@ -83,7 +83,7 @@ local function disable(usr,chan,msg,args)
 	else
 		local t={}
 		for i=1,#args do
-			local dcmd = args[i]
+			local dcmd = args[i]:lower()
 			if dcmd~="enable" and commands[dcmd] then
 				commands[dcmd]=nil
 				table.insert(t,dcmd)
@@ -105,7 +105,7 @@ local function enable(usr,chan,msg,args)
 	else
 		local t={}
 		for i=1,#args do
-			local ecmd = args[i]
+			local ecmd = args[i]:lower()
 			if not commands[ecmd] and allCommands[ecmd] then
 				commands[ecmd]=allCommands[ecmd]
 				table.insert(t,ecmd)
@@ -279,7 +279,7 @@ add_cmd(lua2,"..",101,"Runs full lua code, '/lua <code>'",false)
 
 --HELP
 local function help(usr,chan,msg)
-	msg = msg or "help"
+	msg = msg:lower() or "help"
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. commands[msg].helptext
@@ -291,7 +291,7 @@ add_cmd(help,"help",0,"Returns hopefully helpful information, '/help <cmd>'",tru
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
-	msg = msg or "unhelp"
+	msg = msg:lower() or "unhelp"
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. string.reverse(commands[msg].helptext)

@@ -250,6 +250,7 @@ function setNest(nb,ne)
 end
 
 function makeCMD(cmd,usr,channel,msg)
+	cmd = cmd:lower()
 	if commands[cmd] then
 		--command exists
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
@@ -341,7 +342,7 @@ local function realchat(usr,channel,msg)
 
 	local func,err
 	if cmd then
-		func,err=makeCMD(cmd:lower(),usr,channel,rest)
+		func,err=makeCMD(cmd,usr,channel,rest)
 	end
 	listen(usr,channel,msg)
 	if func then

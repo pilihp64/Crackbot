@@ -300,7 +300,7 @@ local itemUses = {
 		local rnd = math.random(1,10)
 		if rnd < 2 then
 			remInv(usr,"nothing",1)
-			return "Your nothing was confiscated by the universal oversight comittee for breaking the laws of the universe. You are given a $50000 fine"..changeCash(usr,-50000)
+			return "Your nothing was confiscated by the universal oversight committee for breaking the laws of the universe. You are given a $50000 fine"..changeCash(usr,-50000)
 		elseif rnd < 3 then
 			remInv(usr,"nothing",1)
 			return "You look inside your nothing and get sucked inside to an alternate universe where you didn't have it (-1 nothing)"

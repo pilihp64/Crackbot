@@ -310,7 +310,7 @@ local function timer(usr,chan,msg,args)
 		return "Error: too many timers already"
 	end
 	local num = tonumber(args[1])
-	if num and num==num and num<36000 and args[2] then
+	if num and num==num and num<108000 and args[2] then
 		local t={}
 		for i=2,#args do
 			table.insert(t,args[i])

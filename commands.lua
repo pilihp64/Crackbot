@@ -393,3 +393,12 @@ local function source(usr,chan,msg,args)
 	end 
 end
 add_cmd(source,"source",0,"Display the location of my source '*source [<file>]'",true,{"github"})
+local function ctcp(usr,chan,msg,args)
+	if args[1] and args[2] then
+		ircSendRawQ("PRIVMSG "..args[1].." \001"..args[2].."\001")
+	end
+	if not args[2] then
+		return "You must specify the type of CTCP request (in caps), and someone's nick"
+	end
+end
+add_cmd(ctcp,"ctcp",0,"Send a CTCP request to a specified nick '*ctcp <type> <nick>'",true)

@@ -397,7 +397,7 @@ local function ctcp(usr,chan,msg,args)
 	if args[1] and args[2] then
 		ircSendRawQ("PRIVMSG "..args[1].." \001"..args[2].."\001")
 	end
-	if not args[2] then
+	if not args[2] or not args[1] then
 		return "You must specify the type of CTCP request (in caps), and someone's nick"
 	end
 end

@@ -84,7 +84,7 @@ local function disable(usr,chan,msg,args)
 	else
 		local t={}
 		for i=1,#args do
-			local dcmd = args[i]
+			local dcmd = args[i]:lower()
 			if dcmd~="enable" and commands[dcmd] then
 				commands[dcmd]=nil
 				table.insert(t,dcmd)
@@ -106,7 +106,7 @@ local function enable(usr,chan,msg,args)
 	else
 		local t={}
 		for i=1,#args do
-			local ecmd = args[i]
+			local ecmd = args[i]:lower()
 			if not commands[ecmd] and allCommands[ecmd] then
 				commands[ecmd]=allCommands[ecmd]
 				table.insert(t,ecmd)
@@ -301,7 +301,7 @@ add_cmd(lua2,"..",101,"Runs full lua code, '*lua <code>'",false)
 
 --HELP
 local function help(usr,chan,msg)
-	msg = msg or "help"
+	msg = msg:lower() or "help"
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. commands[msg].helptext
@@ -313,7 +313,7 @@ add_cmd(help,"help",0,"Returns hopefully helpful information, '*help <cmd>'",tru
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
-	msg = msg or "unhelp"
+	msg = msg:lower() or "unhelp"
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. string.reverse(commands[msg].helptext)
@@ -332,7 +332,7 @@ local function timer(usr,chan,msg,args)
 		return "Error: too many timers already"
 	end
 	local num = tonumber(args[1])
-	if num and num==num and num<36000 and args[2] then
+	if num and num==num and num<108000 and args[2] then
 		local t={}
 		for i=2,#args do
 			table.insert(t,args[i])

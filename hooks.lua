@@ -250,6 +250,7 @@ function setNest(nb,ne)
 end
 
 function makeCMD(cmd,usr,channel,msg)
+	cmd = cmd:lower()
 	if commands[cmd] then
 		--command exists
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
@@ -385,7 +386,9 @@ local function realchat(usr,channel,msg)
 			return
 		end
 	end
-	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+	if channel:sub(1,13) ~= "##starcatcher" then
+		print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+	end
 end
 local function chat(usr,channel,msg)
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr

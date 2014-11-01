@@ -92,7 +92,7 @@ local function mkAliasFunc(t,aArgs)
 				return "No permission for "..t.name --this is never displayed anyway
 			end
 			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
-			local f = makeCMD(t.cmd,nusr,nchan,nmsg,getArgs(nmsg))
+			local f = makeCMD(t.cmd,nusr,nchan,nmsg,true)
 			if not f then return "" end
 			local ret = {f()}
 			aliasDepth = 0

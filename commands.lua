@@ -400,5 +400,6 @@ local function ctcp(usr,chan,msg,args)
 	if not args[2] or not args[1] then
 		return "You must specify the type of CTCP request (in caps), and someone's nick"
 	end
+	return msg
 end
 add_cmd(ctcp,"ctcp",0,"Send a CTCP request to a specified nick '*ctcp <type> <nick>'",true)

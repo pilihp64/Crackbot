@@ -23,6 +23,7 @@ storeInventory={
 ["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
+["table"]=	{name="table",	cost=70000,info="The fanciest table around!",amount=1,instock=true},
 ["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
 ["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
@@ -601,6 +602,30 @@ local itemUses = {
 	['antiPad'] = function(usr,args)
 		return "You play Angry Birds."
 	end,
+    ["table"] = function(usr)
+        local rnd = math.random(22)
+        print(rnd)
+        if rnd < 2 then
+            randomitem = math.random(0, #gameUsers[usr.host].inventory)
+            remInv(usr, "void", lostvoids)
+            remInv(usr, randomitem.name, 1)
+            return "You flip a table (╯°□°）╯︵ ┻━┻. It lands on your " ..randomitem.name.. " and breaks it. (-1 table, -1 "..randomitem.name..")"
+        elseif rnd < 5 then
+            return "You stare at your table. The table stares back o.o"
+        elseif rnd < 10 then
+            return "You look underneath your table and find a wad of cash!"..changeCash(usr,math.random(1,5000))
+        elseif rnd < 15 then
+            remInv(usr, "table", 1)
+            return "You flip your table (╯°□°）╯︵ ┻━┻. It breaks. (-1 table)"
+        elseif rnd < 20 then
+            addInv(usr, storeInventory["shoe"], 2)
+            remInv(usr, "table", 1)
+            return "You flip your table (╯°□°）╯︵ ┻━┻ and find a pair of shoes. (+2 shoes, -1 table)"
+        else
+            addInv(usr, storeInventory["gold"], 1)
+            return "Eureka! You find gold under your table! (+1 gold)"
+        end
+    end,
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato

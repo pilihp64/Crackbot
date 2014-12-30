@@ -37,7 +37,7 @@ storeInventory={
 ["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
 ["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
 ["billion"]={name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
-["company"]={name="company",cost=25000000000,info="A successful company that makes money (doesn't give you any yet).",amount=1,instock=true},
+["company"]={name="company",cost=25000000000,info="A successful company that makes money.",amount=1,instock=true},
 ["antiPad"]={name="antiPad",cost=100000000000,info=".daPi wen A, For the rich, made from antimatter.",amount=1,instock=true},
 ["country"]={name="country",cost=1000000000000,info="You own a country and everything in it.",amount=1,instock=true},
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
@@ -145,6 +145,8 @@ local function timedSave()
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
 				addInv({host=host},storeInventory["moo"],1)
+			elseif k=="company" and math.random()>.75 then
+				changeCash({host=host},math.random(100,100000))
 			elseif k=="antiPad" and math.random()>.99 then
 				addInv({host=host},storeInventory[antiPadList[math.random(#antiPadList)]],1)
 			end
@@ -604,7 +606,6 @@ local itemUses = {
 	end,
     ["table"] = function(usr)
         local rnd = math.random(21)
-        print(rnd)
         if rnd <= 3 then
             inv = {}
             for k,v in pairs(gameUsers[usr.host].inventory) do table.insert(inv,v) end
@@ -625,6 +626,58 @@ local itemUses = {
         else
             addInv(usr, storeInventory["gold"], 1)
             return "Eureka! You find gold under your table! (+1 gold)"
+        end
+    end,
+    ["company"] = function(usr, args)
+        local rnd = math.random(77)
+        local other = getUserFromNick(args[2])
+        if other and other.nick ~= usr.nick then
+            if other.nick == config.user.nick then return "You cannot sue the bot!" end
+            amt = math.random(1, 500000)
+            if math.random() >= .5 then
+                changeCash(other, -amt)
+                return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and wins!" .. changeCash(usr, amt)
+            else
+                changeCash(other, amt)
+                return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and loses." .. changeCash(usr, -amt)
+            end
+        end
+        if rnd <= 30 then
+            items = {"derp", "vroom", "chips", "iPad", "powder", "cube", "lamp", "table"}
+            randomitem = items[math.random(1, #items)]
+            amt = math.random(1,200)
+            addInv(usr, storeInventory[randomitem], amt)
+            -- Pluralize item names properly
+            if randomitem ~= "chips" then
+                name = randomitem + "s"
+            else
+                name = randomitem
+            end
+            return "Your company starts manufacturing " ..name.. " (+" .. amt .. " " .. name..")"
+        elseif rnd <= 48 then
+            amt = math.random(1, 200000000)
+            return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
+        elseif rnd <= 65 then
+            fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products"}
+            fine = fines[math.random(1, #fines)]
+            amt = math.random(1, 500000000)
+            return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
+        elseif rnd <= 75 then
+            amt = math.random(1,9) * 100000000
+            amtjunk = math.random(1000,10000)
+            addInv(usr, storeInventory["junk"], amtjunk)
+            changeCash(usr, -amt)
+            return "A mob of angry customers descends on your headquarters and loots the entire place, causing you many damages. (-$" ..nicenum(amt)..", +" ..amtjunk.." junk)"
+        else
+            items = {"gold", "diamond", "billion"}
+            item = items[math.random(1, #items)]
+            amt = math.ceil(storeInventory["company"].cost / storeInventory[item].cost)
+            good = math.random(1, math.floor(amt/2))
+            bad = amt - good
+            addInv(usr, storeInventory[item], good)
+            addInv(usr, storeInventory["junk"], bad)
+            remInv(usr, "company", 1)
+            return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
         end
     end,
 }

@@ -635,6 +635,7 @@ local itemUses = {
             if other.nick == config.user.nick then return "You cannot sue the bot!" end
             amt = math.random(1, 500000)
             if math.random() >= .5 then
+                if amt > gameUsers[other.host].cash then amt = gameUsers[other.host].cash end
                 changeCash(other, -amt)
                 return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and wins!" .. changeCash(usr, amt)
             else

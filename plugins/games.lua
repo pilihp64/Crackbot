@@ -629,7 +629,7 @@ local itemUses = {
         end
     end,
     ["company"] = function(usr, args)
-        local rnd = math.random(77)
+        local rnd = math.random(81)
         local other = getUserFromNick(args[2])
         if other and other.nick ~= usr.nick then
             if other.nick == config.user.nick then return "You cannot sue the bot!" end

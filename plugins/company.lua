@@ -119,11 +119,11 @@ local function projHelp(usr,chan,msg,args)
 	local rstring = "Current ProjectName:"..proj.name.." Progress:"..proj.work.."/"..proj.needed.."("..math.floor(proj.work/proj.needed*100).."%) Reward: "..proj.reward.." TimeGoal: "..proj.time
 	return rstring
 end
-add_cmd(projHelp,"proj",0,"Current company project information, '/proj [start]' to intiate it.",true)
+add_cmd(projHelp,"proj",0,"Current company project information, '/proj [start]' to initiate it.",true)
 
 local function hireEmp(usr,chan,msg,args)
 	local comp = compData[usr.host]
-	if not msg then return "Hiring Firm Sells: Employee(1w/s, $1/s)($"..((comp.employees)*50+100)..") Manager(+.5 w/s to 10 employees, $2/s) (unavailble right now) '/hire <amt>'" end
+	if not msg then return "Hiring Firm Sells: Employee(1w/s, $1/s)($"..((comp.employees)*50+100)..") Manager(+.5 w/s to 10 employees, $2/s) (unavailable right now) '/hire <amt>'" end
 	local amt= tonumber(args[1])
 	if amt and amt > 0 and amt == math.floor(amt) then
 		local cost = ((comp.employees)*50+100)*amt + (amt-1)*50 --(amt*100)+(amt+comp.employees-1)*50

@@ -603,24 +603,25 @@ local itemUses = {
 		return "You play Angry Birds."
 	end,
     ["table"] = function(usr)
-        local rnd = math.random(22)
+        local rnd = math.random(21)
         print(rnd)
-        if rnd < 2 then
-            randomitem = math.random(0, #gameUsers[usr.host].inventory)
-            remInv(usr, "void", lostvoids)
+        if rnd <= 3 then
+            inv = {}
+            for k,v in pairs(gameUsers[usr.host].inventory) do table.insert(inv,v) end
+            randomitem = inv[math.random(1, #inv)]
+            print(randomitem.name)
             remInv(usr, randomitem.name, 1)
-            return "You flip a table (╯°□°）╯︵ ┻━┻. It lands on your " ..randomitem.name.. " and breaks it. (-1 table, -1 "..randomitem.name..")"
-        elseif rnd < 5 then
+            return "You flip a table (╯°□°）╯︵ ┻━┻. It lands on your " ..randomitem.name.. " and breaks it. (-1 "..randomitem.name..")"
+        elseif rnd <= 5 then
             return "You stare at your table. The table stares back o.o"
-        elseif rnd < 10 then
+        elseif rnd <= 10 then
             return "You look underneath your table and find a wad of cash!"..changeCash(usr,math.random(1,5000))
-        elseif rnd < 15 then
+        elseif rnd <= 15 then
             remInv(usr, "table", 1)
-            return "You flip your table (╯°□°）╯︵ ┻━┻. It breaks. (-1 table)"
-        elseif rnd < 20 then
+            return "You flip your table (╯°□°）╯︵ ┻━┻. It falls and breaks. (-1 table)"
+        elseif rnd <= 19 then
             addInv(usr, storeInventory["shoe"], 2)
-            remInv(usr, "table", 1)
-            return "You flip your table (╯°□°）╯︵ ┻━┻ and find a pair of shoes. (+2 shoes, -1 table)"
+            return "You flip your table (╯°□°）╯︵ ┻━┻ and find a pair of shoes. (+2 shoes)"
         else
             addInv(usr, storeInventory["gold"], 1)
             return "Eureka! You find gold under your table! (+1 gold)"

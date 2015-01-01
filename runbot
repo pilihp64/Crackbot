@@ -1,9 +1,18 @@
 #!/bin/bash
+
+function ctrl_c() {
+	echo -e '\nExiting on SIGINT / Ctrl-C...'
+	exit
+}
+
+# Catch SIGINT and exit
+trap ctrl_c SIGINT
+
 if [ -a /usr/bin/lua ]
 	then
 		while :
 			do
-			echo "(Re)starting Crackbot"
+			echo "(Re)starting Crackbot - Press Ctrl-C to break."
 			lua init.lua
 			done
 	else

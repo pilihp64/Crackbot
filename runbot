@@ -1,16 +1,7 @@
 #!/bin/bash
-<<<<<<< HEAD
-lua init.lua &
-
-=======
-if [ -a /usr/bin/lua ]
+if [ -e /usr/bin/lua ]
 	then
-		while :
-			do
-			echo "(Re)starting Crackbot"
-			lua init.lua
-			done
+		lua init.lua &
 	else
 		echo "Lua was not found at /usr/bin/lua! If lua is installed in this computer, then you may safely proceed by running lua init.lua inside the directory wherein Crackbot resides."
 fi
->>>>>>> 28c9f60a3dec1fff221bf87ca612c73da2a91c41

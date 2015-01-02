@@ -249,12 +249,12 @@ function setNest(nb,ne)
 	end
 end
 
-function makeCMD(cmd,usr,channel,msg)
+function makeCMD(cmd,usr,channel,msg,permcheck)
 	cmd = cmd:lower()
 	if commands[cmd] then
 		--command exists
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
-		if getPerms(usr.host) >= commands[cmd].level then
+		if permcheck or getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
 
 			return function()

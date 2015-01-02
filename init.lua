@@ -17,7 +17,7 @@ end
 config = r
 
 local sleep=require "socket".sleep
-local socket = require"socket"
+socket = require"socket"
 local console=socket.tcp()
 console:settimeout(5)
 

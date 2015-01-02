@@ -1,7 +1,17 @@
 #!/bin/bash
-if [ -e /usr/bin/lua ]
+#Color codes for the script
+RED="\033[0;31m"
+WHITE="\033[1;37m"
+
+if [ -e /usr/bin/luajit ]
 	then
-		lua init.lua &
+		luajit init.lua &
 	else
-		echo "Lua was not found at /usr/bin/lua! If lua is installed in this computer, then you may safely proceed by running lua init.lua inside the directory wherein Crackbot resides."
+		echo -e "${RED}ERROR: ${WHITE}LuaJIT was not found at /usr/bin/luajit!\nTrying Lua..."
+		if [ -e /usr/bin/lua ]
+			then
+				lua init.lua &
+			else
+				echo -e "${RED}ERROR: ${WHITE}Lua was not found at /usr/bin/lua! If lua is installed in this computer, then you may safely proceed by running lua init.lua inside the directory wherein Crackbot resides."
+		fi
 fi

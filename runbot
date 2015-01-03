@@ -3,6 +3,14 @@
 RED="\033[0;31m"
 WHITE="\033[1;37m"
 
+function ctrl_c() {
+	echo -e '\nExiting on SIGINT / Ctrl-C...'
+	exit
+}
+
+# Catch SIGINT and exit
+trap ctrl_c SIGINT
+
 if [ -e /usr/bin/luajit ]
 	then
 		luajit init.lua &

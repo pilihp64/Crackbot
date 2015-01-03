@@ -279,7 +279,8 @@ add_cmd(lua2,"..",101,"Runs full lua code, '/lua <code>'",false)
 
 --HELP
 local function help(usr,chan,msg)
-	msg = msg:lower() or "help"
+	msg = msg or "help"
+	msg = msg:lower()
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. commands[msg].helptext
@@ -291,7 +292,8 @@ add_cmd(help,"help",0,"Returns hopefully helpful information, '/help <cmd>'",tru
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
-	msg = msg:lower() or "unhelp"
+	msg = msg or "unhelp"
+	msg = msg:lower()
 	if commands[msg] then
 		if commands[msg].helptext then
 			return msg ..": ".. string.reverse(commands[msg].helptext)

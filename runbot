@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ -a /usr/bin/lua ]
+if [ -e /usr/bin/lua ]
 	then
 		while :
 			do

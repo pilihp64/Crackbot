@@ -12,4 +12,6 @@ lua/*
 mime/*
 socket/*
 config.lua
-plugins/*
+plugins/sandbox/luasandbox
+.sconsign.dblite
+

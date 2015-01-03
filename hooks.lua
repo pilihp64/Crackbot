@@ -328,7 +328,6 @@ nestify=function(str,start,level,usr,channel)
 end
 
 local function realchat(usr,channel,msg)
-	--if usr.host:find("c%-75%-70%-221%-236%.hsd1%.co%.comcast%.net") then return end
 	didSomething=true
 	if prefix ~= config.prefix then
 		panic,_ = msg:find("^"..config.prefix.."fix")
@@ -375,19 +374,8 @@ local function realchat(usr,channel,msg)
 		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = {["msg"]=msg, ["time"]=os.time()} end
 	end
 
-	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
-		ircSendChatQ("##powder-bots",msg)
-	end
-	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "108.59.12.136") then
-		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
-		--print(nusr.." AND "..nmsg)
-		if nmsg and nmsg~="" then
-			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))
-			return
-		end
-	end
-	if channel:sub(1,13) ~= "##starcatcher" then
-		print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+	if user.nick=="wolfybot1339" and channel=='##wolfy1339' and usr.nick == "WolfybotRepo" and usr.host:find("192%.30%.252") then
+		ircSendChatQ("##io",msg)
 	end
 end
 local function chat(usr,channel,msg)

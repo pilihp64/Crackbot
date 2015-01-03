@@ -108,7 +108,7 @@ local function changeCash(usr,amt)
 			return " You went bankrupt, money reset"
 		end
 	end
-	return " ($"..nicenum(gameUsers[usr.host].cash).." now)"
+	return " ($\002"..nicenum(gameUsers[usr.host].cash).." \002now)"
 end
 
 --add item to inventory, creating if not exists
@@ -433,6 +433,29 @@ local itemUses = {
 			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
 		end
 	end,
+    ["table"] = function(usr)
+        local rnd = math.random(100)
+        if rnd <= 20 then
+            inv = {}
+            for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost > 0 and storeInventory[v.name] then table.insert(inv,v) end end
+            randomitem = inv[math.random(1, #inv)]
+            remInv(usr, randomitem.name, 1)
+            return "You flip a table (╯°□°）╯︵ ┻━┻. It lands on your " ..randomitem.name.. " and breaks it. (-1 "..randomitem.name..")"
+        elseif rnd <= 40 then
+            return "You stare at your table. The table stares back o.o"
+        elseif rnd <= 65 then
+            return "You look underneath your table and find a huge wad of cash!"..changeCash(usr,math.random(1,50000))
+        elseif rnd <= 90 then
+            remInv(usr, "table", 1)
+            return "You flip your table (╯°□°）╯︵ ┻━┻. It falls and breaks. (-1 table)"
+        elseif rnd <= 97 then
+            addInv(usr, storeInventory["shoe"], 2)
+            return "You flip your table (╯°□°）╯︵ ┻━┻ and find a pair of shoes. (+2 shoes)"
+        else
+            addInv(usr, storeInventory["gold"], 1)
+            return "Eureka! You find gold under your table! (+1 gold)"
+        end
+    end,
 	["vroom"]=function(usr)
 		--maybe have this do something later
 		local rnd = math.random(1,100)
@@ -601,35 +624,8 @@ local itemUses = {
 		end
 		return "You are just happy you have the billion"
 	end,
-	['antiPad'] = function(usr,args)
-		return "You play Angry Birds."
-	end,
-    ["table"] = function(usr)
-        local rnd = math.random(21)
-        if rnd <= 3 then
-            inv = {}
-            for k,v in pairs(gameUsers[usr.host].inventory) do table.insert(inv,v) end
-            randomitem = inv[math.random(1, #inv)]
-            print(randomitem.name)
-            remInv(usr, randomitem.name, 1)
-            return "You flip a table (╯°□°）╯︵ ┻━┻. It lands on your " ..randomitem.name.. " and breaks it. (-1 "..randomitem.name..")"
-        elseif rnd <= 5 then
-            return "You stare at your table. The table stares back o.o"
-        elseif rnd <= 10 then
-            return "You look underneath your table and find a wad of cash!"..changeCash(usr,math.random(1,5000))
-        elseif rnd <= 15 then
-            remInv(usr, "table", 1)
-            return "You flip your table (╯°□°）╯︵ ┻━┻. It falls and breaks. (-1 table)"
-        elseif rnd <= 19 then
-            addInv(usr, storeInventory["shoe"], 2)
-            return "You flip your table (╯°□°）╯︵ ┻━┻ and find a pair of shoes. (+2 shoes)"
-        else
-            addInv(usr, storeInventory["gold"], 1)
-            return "Eureka! You find gold under your table! (+1 gold)"
-        end
-    end,
     ["company"] = function(usr, args)
-        local rnd = math.random(81)
+        local rnd = math.random(150)
         local other = getUserFromNick(args[2])
         if other and other.nick ~= usr.nick then
             if other.nick == config.user.nick then return "You cannot sue the bot!" end
@@ -648,7 +644,7 @@ local itemUses = {
             randomitem = items[math.random(1, #items)]
             amt = math.random(1,200)
             addInv(usr, storeInventory[randomitem], amt)
-            -- Pluralize item names properly
+            -- Pluralize item names properly --you only made this do that? >_>
             if randomitem ~= "chips" then
                 name = randomitem + "s"
             else
@@ -659,7 +655,7 @@ local itemUses = {
             amt = math.random(1, 200000000)
             return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
         elseif rnd <= 65 then
-            fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products"}
+            fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
             fine = fines[math.random(1, #fines)]
             amt = math.random(1, 500000000)
             return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
@@ -667,9 +663,8 @@ local itemUses = {
             amt = math.random(1,9) * 100000000
             amtjunk = math.random(1000,10000)
             addInv(usr, storeInventory["junk"], amtjunk)
-            changeCash(usr, -amt)
-            return "A mob of angry customers descends on your headquarters and loots the entire place, causing you many damages. (-$" ..nicenum(amt)..", +" ..amtjunk.." junk)"
-        else
+            return "A mob of angry customers descends on your headquarters and loots the entire place, causing you many damages. (-$" ..nicenum(amt)..", +" ..amtjunk.." junk)"..changeCash(usr, -amt)
+        elseif rnd <= 81 then
             items = {"gold", "diamond", "billion"}
             item = items[math.random(1, #items)]
             amt = math.ceil(storeInventory["company"].cost / storeInventory[item].cost)
@@ -679,8 +674,27 @@ local itemUses = {
             addInv(usr, storeInventory["junk"], bad)
             remInv(usr, "company", 1)
             return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
+        elseif rnd <= 130 then
+            remInv(usr, "company", 1)
+            return "Your company goes bankrupt after a freak accident. (-1 company)"
+        elseif rnd <= 150 then
+            local users = {}
+            for k,v in pairs(irc.channels[config.primarychannel].users) do
+                if k ~= usr.nick then
+                    table.insert(users, v)
+                end
+            end
+            giveto = users[math.random(1,#users)]
+            remInv(usr, "company", 1)
+            addInv(giveto, storeInventory["company"], 1)
+            actions = {"eating potatoes", "ice cream", "apple products", "apocalypse preparations", "hugs", "donating to charity", "fighting terrorists", "drugs", "taking over foreign countries"}
+            randomaction = actions[math.random(1, #actions)]
+            return "Shareholders, angry over "..usr.nick.."'s tendency to spend all company profits on "..randomaction..", revolt and select "..giveto.nick.." as the new CEO (-1 company)"
         end
     end,
+	['antiPad'] = function(usr,args)
+		return "You play Angry Birds."
+	end
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato

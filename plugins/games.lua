@@ -31,7 +31,7 @@ storeInventory={
 ["diamond"]={name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
 ["cow"]=	{name="cow",	cost=24000000,info="Can generate moo's.",amount=1,instock=true},
 ["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
-["cube"]=	{name="cube",	cost=76000000,info="A rubik's cube made of ice.",amount=1,instock=true},
+["cube"]=	{name="cube",	cost=76000000,info="A Rubik's cube made of ice.",amount=1,instock=true},
 ["cracker"]={name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
 ["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
 ["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},

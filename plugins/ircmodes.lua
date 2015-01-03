@@ -282,7 +282,7 @@ local function cycle(usr,chan,msg,args)
 	end
 	ircSendRawQ("PART "..chan)
 	sleep(2)
-	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
+	ircSendRawQ("JOIN "..chan)
 end
 add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)
 

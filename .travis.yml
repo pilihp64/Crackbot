@@ -18,5 +18,5 @@ after_script:
   - (LUA_FAILURE=0; for file in `find plugins -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
   - (LUA_FAILURE=0; for file in `find -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
   - chmod +x runbot
-  - timeout 0.3 ./runbot
+  - timeout 15 ./runbot
 

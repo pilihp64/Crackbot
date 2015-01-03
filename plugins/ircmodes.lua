@@ -284,7 +284,7 @@ local function cycle(usr,chan,msg,args)
 	sleep(2)
 	ircSendRawQ("JOIN "..chan)
 end
-add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)
+add_cmd(cycle,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)
 
 --REMOVE a user (ninja)
 local function remove(usr,chan,msg,args)

@@ -1,10 +1,12 @@
+import os
+
 AddOption('--32bit',dest="_32bit",action='store_true',default=True,help="32-bit platform target")
 AddOption('--sse',dest="sse",action='store_true',default=False,help="Enable SSE optimisations")
 AddOption('--sse2',dest="sse2",action='store_true',default=False,help="Enable SSE2 optimisations")
 AddOption('--sse3',dest="sse3",action='store_true',default=False,help="Enable SSE3 optimisations")
 AddOption('--sse4',dest="sse4",action='store_true',default=False,help="Enable SSE4 optimisations")
 AddOption('--avx',dest="avx",action='store_true',default=False,help="Enable AVX optimisations")
-AddOption('--avx2',dest="avx",action='store_true',default=False,help="Enable AVX2 optimisations")
+AddOption('--avx2',dest="avx2",action='store_true',default=False,help="Enable AVX2 optimisations")
 AddOption('--win',dest="win",action='store_true',default=False,help="Windows platform target.")
 AddOption('--lin',dest="lin",action='store_true',default=False,help="Linux platform target")
 
@@ -12,8 +14,12 @@ if not GetOption('lin') and not GetOption('win'):
 	print "You must specify a platform to target"
 	raise SystemExit(1)
 
-env.Append(CFLAGS=['-pthread -llua5.1'])
-env.Append(LIBS=['pthread', 'lua'])
+if GetOption('win'):
+	env = Environment(tools = ['mingw'], ENV = os.environ)
+else:
+	env = Environment(tools = ['default'], ENV = os.environ)
+
+env.Append(LIBS=['pthread', 'lua5.1'])
 
 
 # defines
@@ -22,10 +28,9 @@ env.Append(LIBS=['pthread', 'lua'])
 # A lot of commandline flags translate directly into defines. those flags follow:
 if GetOption('_32bit'):
 	env.Append(CFlAGS=['-m32'])
-	#env.Append(LINKFLAGS=['-m32'])
 
 if GetOption('sse'):
-	env.Append(CCFLAGS='-msse')
+	env.Append(CFLAGS='-msse')
 if GetOption('sse2'):
 	env.Append(CFLAGS='-msse2')
 if GetOption('sse3'):

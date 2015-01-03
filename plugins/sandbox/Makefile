@@ -1,10 +1,9 @@
-SOURCE= code.c
 FLAGS= -pthread -llua5.1
 LFLAGS= -o luasandbox
 WFLAGS= -o luasandbox.exe
 
-LINUX= gcc $(SOURCE) $(FLAGS) $(LFLAGS)
-WIN= gcc $(SOURCE) $(FLAGS) $(WFLAGS)
+LINUX= gcc code.c $(FLAGS) $(LFLAGS)
+WIN= gcc code.c $(FLAGS) $(WFLAGS) -m32
 linux: 
 	$(LINUX)
 win: 

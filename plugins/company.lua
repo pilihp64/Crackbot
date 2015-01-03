@@ -119,7 +119,7 @@ local function projHelp(usr,chan,msg,args)
 	local rstring = "Current ProjectName:"..proj.name.." Progress:"..proj.work.."/"..proj.needed.."("..math.floor(proj.work/proj.needed*100).."%) Reward: "..proj.reward.." TimeGoal: "..proj.time
 	return rstring
 end
-add_cmd(projHelp,"proj",0,"Current company project information, '*proj [start]' to intiate it.",true)
+add_cmd(projHelp,"proj",0,"Current company project information, '*proj [start]' to initiate it.",true)
 
 local function hireEmp(usr,chan,msg,args)
 	local comp = compData[usr.host]

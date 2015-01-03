@@ -82,7 +82,7 @@ local function streak(usr,win)
 end
 
 local function nicenum(number)
-	if filters and filters.nicenum then print("moo") return filters.nicenum(tostring(number)) else return number end
+	if filters and filters.nicenum then return filters.nicenum(tostring(number)) else return number end
 end
 
 --change cash, that resets if 0 or below

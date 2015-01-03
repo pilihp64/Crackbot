@@ -45,8 +45,9 @@ local function op(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end local nick = args[2] or msg
-	setMode(chan,"+o", nick) end
+	end
+	local nick = args[2] or msg
+	setMode(chan,"+o", nick)
 end
 add_cmd(op,"op",30,"Op a user, '*op [<chan>] <username>'",true)
 --DEOP
@@ -280,6 +281,7 @@ local function cycle(usr,chan,msg,args)
 		end
 	end
 	ircSendRawQ("PART "..chan)
+	sleep(2)
 	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end
 add_cmd(part,"cycle",101,"Make bot part and rejoin channel, '*cycle <chan>'",true)

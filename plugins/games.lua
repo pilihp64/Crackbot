@@ -696,7 +696,58 @@ local itemUses = {
 	end,
 	['antiPad'] = function(usr,args)
 		return "You play Angry Birds."
+	end,
+	["cube"] = function(usr,args,other)
+	local other = getUserFromNick(args[2])
+	if other and other.nick ~= usr.nick then
+	items = {}
+	hittable = {}
+		for k,v in pairs(gameUsers[other.host].inventory) do
+		table.insert(items,v)
+		if v.cost > 0 and v.cost < 500000000 and storeInventory[k] then
+		    table.insert(hittable,v)
+		end
+	    end
+
+	    if not items[1] then -- Inventory is empty
+		remInv(usr, "cube", 1)
+		return "You throw your cube at "..other.nick.."'s inventory, but realize it was actually empty. What a waste! (-1 cube)"
+	    end
+
+	    rnd = math.random()
+	    if rnd >= .72 and hittable[1] then
+		item = hittable[math.random(1, #hittable)]
+		remInv(usr, "cube", 1)
+		remInv(other, item.name, 1)
+		return "You throw your razor sharp ice cube at "..other.nick.."'s inventory, completely destroying their poor "..item.name..". It's okay, they deserved it anyways! (-1 cube)"
+	    else
+		remInv(usr, "cube", 1)
+		return "You throw your cube at "..other.nick.."'s inventory, but you miss and it breaks. (-1 cube)"
+	    end
 	end
+	local rnd = math.random(26)
+	if rnd <= 5 then
+	    return "You play with your Rubik's cube..."
+	elseif rnd <= 10 then
+	    remInv(usr, "cube", 1)
+	    amt = math.random(40,90)
+	    addInv(usr, storeInventory["water"], amt)
+	    return "You play with your cube, but it unfortunately melts. (-1 cube, +"..amt.." water)"
+	elseif rnd <= 15 then
+	    remInv(usr, "cube", 1)
+	    return "The cube shatters and cuts your eye in the process. The medical costs were $20000. (-1 cube)" .. changeCash(usr, -20000)
+	elseif rnd <= 20 then
+	    amt = math.random(5,50)*10
+	    return "You solve the 4D Rubik's cube after months of deliberation and are awarded with a $"..amt.." prize." .. changeCash(usr, amt)
+	elseif rnd <= 24 then
+	    remInv(usr, "cube", 1)
+	    return "You find out that the cube is evil and was actually plotting to start another ice age. Disgusted, you throw it away. (-1 cube)"
+	else
+	    remInv(usr, "cube", 1)
+	    addInv(usr, storeInventory["billion"], 1)
+	    return "Your cube shatters into a billion pieces. (-1 cube, +1 billion)"
+	end
+	end,
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato

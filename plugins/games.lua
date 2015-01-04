@@ -625,7 +625,7 @@ local itemUses = {
 		return "You are just happy you have the billion"
 	end,
 	["company"] = function(usr, args)
-		local rnd = math.random(150)
+		local rnd = math.random(94)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
 			if other.nick == config.user.nick then return "You cannot sue the bot!" end
@@ -674,10 +674,10 @@ local itemUses = {
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
 			return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
-		elseif rnd <= 130 then
+		elseif rnd <= 89 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
-		elseif rnd <= 150 then
+		else
 			local users = {}
 			for k,v in pairs(irc.channels[config.primarychannel].users) do
 				if k ~= usr.nick then

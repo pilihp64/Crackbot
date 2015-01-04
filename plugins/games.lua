@@ -18,12 +18,12 @@ storeInventory={
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
 ["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
 ["iPad"]=	{name="iPad",	cost=499,info="A new iPad.",amount=1,instock=true},
+["table"]=	{name="table",	cost=700,info="The fanciest table around!",amount=1,instock=true},
 ["lamp"]=	{name="lamp",	cost=1001,info="A very expensive lamp, great lighting.",amount=1,instock=true},
 ["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
 ["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
-["table"]=	{name="table",	cost=70000,info="The fanciest table around!",amount=1,instock=true},
 ["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
 ["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
@@ -625,7 +625,7 @@ local itemUses = {
 		return "You are just happy you have the billion"
 	end,
 	["company"] = function(usr, args)
-		local rnd = math.random(150)
+		local rnd = math.random(94)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
 			if other.nick == config.user.nick then return "You cannot sue the bot!" end
@@ -674,10 +674,10 @@ local itemUses = {
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
 			return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
-		elseif rnd <= 130 then
+		elseif rnd <= 89 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
-		elseif rnd <= 150 then
+		else
 			local users = {}
 			for k,v in pairs(irc.channels[config.primarychannel].users) do
 				if k ~= usr.nick then

@@ -724,7 +724,7 @@ local function myCash(usr,all)
 		for k,v in pairs(gameUsers[usr.host].inventory or {}) do
 			cash = cash+ (v.cost*v.amount)
 		end
-		return "You have $"..cash.." including items."
+		return "You have $"..nicenum(cash).." including items."
 	end
 	return "You have $"..nicenum(gameUsers[usr.host].cash)
 end

@@ -8,7 +8,7 @@ end
 gameUsers = gameUsers or loadUsers()
 
 storeInventory={
-["whitehole"]=	{name="whitehole",cost=-999999999999999999999,info="?no gniog si tahW",amount=1,instock=true},
+["whitehole"]=	{name="whitehole",cost=5000000000000,info="?no gniog si tahW",amount=1,instock=true},
 ["paradox"]=	{name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=true},
 ["blackhole"]=	{name="blackhole",cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=true},
 ["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=true},
@@ -143,7 +143,7 @@ local function timedSave()
 			elseif k=="blackhole" then
 				v.cost = math.floor(v.cost*1.02)
 			elseif k=="whitehole" then
-				v.cost = math.floor(v.cost*1.0002)
+				changeCash({host=host},math.floor(v.cost*1.02))
 			elseif k=="paradox" then
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
@@ -321,8 +321,7 @@ local itemUses = {
 				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
-					addInv(usr,storeInventory["whitehole"],1)
-					return "The app imploded into a blackhole and a whitehole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole, +1 whitehole)"
+					return "The app imploded into a blackhole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole)"
 				end
 				addInv(usr, storeInventory[name], 1)
 				--if usr.nick == "cracker64" then
@@ -432,6 +431,9 @@ local itemUses = {
 			return "You drink the holy water. Nothing happens (-1 water)"
 		elseif rnd < 5 then
 			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
+		elseif rnd < 7 then
+			return "You drink the holy water. A whitehole opens (+1 whitehole)"
+			addInv(usr, storeInventory["whitehole"], 1)
 		else
 			local amt = ((rnd-5)^3)*100000+1
 			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
@@ -449,6 +451,9 @@ local itemUses = {
 			return "You stare at your table. The table stares back o.o"
 		elseif rnd <= 65 then
 			return "You look underneath your table and find a huge wad of cash!"..changeCash(usr,math.random(1,50000))
+		elseif rnd <= 70 then
+			addInv(usr, storeInventory["whitehole"], 1)
+			return "OMG! You find a whitehole under the table (+1 whitehole)"
 		elseif rnd <= 90 then
 			remInv(usr, "table", 1)
 			return "You flip your table (╯°□°）╯︵ ┻━┻. It falls and breaks. (-1 table)"
@@ -872,7 +877,6 @@ local function giveMon(usr,chan,msg,args)
 		if gameUsers[usr.host].inventory[item].cost<0 then return "You can't give crap to people" end
 		local i = gameUsers[usr.host].inventory[item]
 		if i.name == "antiPad" then return "You can't give that!" end
-		if gameUsers[usr.host].inventory["whitehole"] then return "The force of your whitehole prevents you from giving!." end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
 		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"

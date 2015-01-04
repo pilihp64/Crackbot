@@ -642,7 +642,7 @@ local itemUses = {
 		if rnd <= 30 then
 			items = {"derp", "vroom", "chips", "iPad", "powder", "cube", "lamp", "table"}
 			randomitem = items[math.random(1, #items)]
-			amt = math.random(1,200)
+			amt = math.random(1,1500)
 			addInv(usr, storeInventory[randomitem], amt)
 			-- Pluralize item names properly --you only made this do that? >_>
 			if randomitem ~= "chips" then
@@ -651,20 +651,20 @@ local itemUses = {
 				name = randomitem
 			end
 			return "Your company starts manufacturing " ..name.. " (+" .. amt .. " " .. name..")"
-		elseif rnd <= 48 then
-			amt = math.random(1, 200000000)
+		elseif rnd <= 64 then
+			amt = math.random(1, 2000000000)
 			return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
-		elseif rnd <= 65 then
+		elseif rnd <= 75 then
 			fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
 			fine = fines[math.random(1, #fines)]
 			amt = math.random(1, 500000000)
 			return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
-		elseif rnd <= 75 then
+		elseif rnd <= 82 then
 			amt = math.random(1,9) * 100000000
 			amtjunk = math.random(1000,10000)
 			addInv(usr, storeInventory["junk"], amtjunk)
 			return "A mob of angry customers descends on your headquarters and loots the entire place, causing you many damages. (-$" ..nicenum(amt)..", +" ..amtjunk.." junk)"..changeCash(usr, -amt)
-		elseif rnd <= 81 then
+		elseif rnd <= 87 then
 			items = {"gold", "diamond", "billion"}
 			item = items[math.random(1, #items)]
 			amt = math.ceil(storeInventory["company"].cost / storeInventory[item].cost)
@@ -674,7 +674,7 @@ local itemUses = {
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
 			return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
-		elseif rnd <= 89 then
+		elseif rnd <= 91 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
 		else

@@ -432,8 +432,8 @@ local itemUses = {
 		elseif rnd < 5 then
 			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
 		elseif rnd < 7 then
-			return "You drink the holy water. A whitehole opens (+1 whitehole)"
 			addInv(usr, storeInventory["whitehole"], 1)
+			return "You drink the holy water. A whitehole opens (+1 whitehole)"
 		else
 			local amt = ((rnd-5)^3)*100000+1
 			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)

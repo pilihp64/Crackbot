@@ -1,6 +1,7 @@
 import os
 
-AddOption('--32bit',dest="_32bit",action='store_true',default=True,help="32-bit platform target")
+AddOption('--32bit',dest="32bit",action='store_true',default=True,help="32-bit platform target")
+AddOption('--64bit',dest="64bit",action='store_true',default=True,help="64-bit platform target")
 AddOption('--sse',dest="sse",action='store_true',default=False,help="Enable SSE optimisations")
 AddOption('--sse2',dest="sse2",action='store_true',default=False,help="Enable SSE2 optimisations")
 AddOption('--sse3',dest="sse3",action='store_true',default=False,help="Enable SSE3 optimisations")
@@ -21,13 +22,10 @@ else:
 
 env.Append(LIBS=['pthread', 'lua5.1'])
 
-
-# defines
-# =======
-
-# A lot of commandline flags translate directly into defines. those flags follow:
-if GetOption('_32bit'):
+if GetOption('32bit'):
 	env.Append(CFlAGS=['-m32'])
+if GetOption('64bit'):
+	env.Append(CFlAGS=['-m64'])
 
 if GetOption('sse'):
 	env.Append(CFLAGS='-msse')
@@ -42,12 +40,10 @@ if GetOption('avx'):
 if GetOption('avx2'):
 	env.Append(CFLAGS='-maxv2')
 
-# use some settings to detect what name to use for the executable
 Name = "luasandbox"
 
 if GetOption('win'):
 	Name += ".exe"
 
-# set a default target
 t=env.Program(target=Name, source=['code.c'])
 Default(t)

@@ -67,7 +67,6 @@ for var in ["CFLAGS","CCFLAGS","CXXFLAGS","LINKFLAGS","CPPDEFINES","CPPPATH"]:
 if GetOption('64bit'):
 	env.Append(LINKFLAGS=['-m64'])
 	env.Append(CFLAGS=['-m64'])
-	add64bitflags(env)
 elif GetOption('32bit'):
 	env.Append(LINKFLAGS=['-m32'])
 	env.Append(CFLAGS=['-m32'])

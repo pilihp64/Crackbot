@@ -1,49 +1,167 @@
+
 import os
+import platform
+import atexit
+import time
+import SCons.Util
 
-AddOption('--32bit',dest="32bit",action='store_true',default=True,help="32-bit platform target")
-AddOption('--64bit',dest="64bit",action='store_true',default=True,help="64-bit platform target")
-AddOption('--sse',dest="sse",action='store_true',default=False,help="Enable SSE optimisations")
-AddOption('--sse2',dest="sse2",action='store_true',default=False,help="Enable SSE2 optimisations")
-AddOption('--sse3',dest="sse3",action='store_true',default=False,help="Enable SSE3 optimisations")
-AddOption('--sse4',dest="sse4",action='store_true',default=False,help="Enable SSE4 optimisations")
-AddOption('--avx',dest="avx",action='store_true',default=False,help="Enable AVX optimisations")
-AddOption('--avx2',dest="avx2",action='store_true',default=False,help="Enable AVX2 optimisations")
-AddOption('--win',dest="win",action='store_true',default=False,help="Windows platform target.")
-AddOption('--lin',dest="lin",action='store_true',default=False,help="Linux platform target")
 
-if not GetOption('lin') and not GetOption('win'):
-	print "You must specify a platform to target"
+def FatalError(message):
+	print(message)
 	raise SystemExit(1)
 
+#wrapper around SCons' AddOption
+def AddSconsOption(name, default, hasArgs, help):
+	AddOption("--{0}".format(name), dest=name, action=("store" if hasArgs else "store_true"), default=default, help=help)
+
+AddSconsOption('win', False, False, "Target Windows.")
+AddSconsOption('lin', False, False, "Target Linux.")
+AddSconsOption('mac', False, False, "Target Mac OS X.")
+
+AddSconsOption('64bit', False, False, "Compile a 64 bit binary.")
+AddSconsOption('32bit', False, False, "Compile a 32 bit binary.")
+AddSconsOption("universal", False, False, "compile universal binaries on Mac OS X.")
+AddSconsOption('sse', False, False, "Enable SSE optimizations.")
+AddSconsOption('sse2', False, False, "Enable SSE2 optimizations.")
+AddSconsOption('sse3', False, False, "Enable SSE3 optimizations.")
+AddSconsOption('sse4', False, False, "Enable SSE4 optimisations")
+AddSconsOption('avx', False, False, "Enable AVX optimisations")
+AddSconsOption('native', False, False, "Enable optimizations specific to your cpu.")
+
+AddSconsOption('luajit', False, False, "Enable LuaJIT")
+
+
+#detect platform automatically, but it can be overrided
+platform = compilePlatform = platform.system()
 if GetOption('win'):
-	env = Environment(tools = ['mingw'], ENV = os.environ)
+	platform = "Windows"
+elif GetOption('lin'):
+	platform = "Linux"
+elif GetOption('mac'):
+	platform = "Darwin"
+elif compilePlatform not in ["Linux", "Windows", "Darwin"]:
+	FatalError("Unknown platform: {0}".format(platform))
+
+#Create SCons Environment
+if platform == "Windows":
+	env = Environment(tools = ['mingw'], ENV = {'PATH' : os.environ['PATH']})
 else:
-	env = Environment(tools = ['default'], ENV = os.environ)
+	env = Environment(tools = ['default'], ENV = {'PATH' : os.environ['PATH']})
 
-env.Append(LIBS=['pthread', 'lua5.1'])
 
-if GetOption('32bit'):
-	env.Append(CFlAGS=['-m32'])
+#copy environment variables because scons doesn't do this by default
+for var in ["CC","CXX","LD","LIBPATH"]:
+	if var in os.environ:
+		env[var] = os.environ[var]
+		print "copying enviroment variable {0}={1!r}".format(var,os.environ[var])
+# variables containing several space separated things
+for var in ["CFLAGS","CCFLAGS","CXXFLAGS","LINKFLAGS","CPPDEFINES","CPPPATH"]:
+	if var in os.environ:
+		if var in env:
+			env[var] += SCons.Util.CLVar(os.environ[var])
+		else:
+			env[var] = SCons.Util.CLVar(os.environ[var])
+		print "copying enviroment variable {0}={1!r}".format(var,os.environ[var])
+
+#add 32/64 bit defines before configuration
 if GetOption('64bit'):
-	env.Append(CFlAGS=['-m64'])
+	env.Append(LINKFLAGS=['-m64'])
+	env.Append(CFLAGS=['-m64'])
+	add64bitflags(env)
+elif GetOption('32bit'):
+	env.Append(LINKFLAGS=['-m32'])
+	env.Append(CFLAGS=['-m32'])
 
+if GetOption('universal'):
+	if platform != "Darwin":
+		FatalError("Error: --universal only works on Mac OS X")
+	else:
+		env.Append(CCFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
+		env.Append(LINKFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
+
+
+#Custom function to check for Mac OS X frameworks
+def CheckFramework(context, framework):
+	import SCons.Conftest
+	#Extreme hack, TODO: maybe think of a better one (like replicating CheckLib here) or at least just fix the message
+	ret = SCons.Conftest.CheckLib(context, ['m" -framework {0}"'.format(framework)], autoadd = 0)
+	context.did_show_result = 1
+	if not ret:
+		context.env.Append(LINKFLAGS=["-framework", framework])
+		if framework != "Cocoa":
+			env.Append(CPPPATH=['/Library/Frameworks/{0}.framework/Headers/'.format(framework)])
+	return not ret
+
+#function that finds libraries and appends them to LIBS
+def findLibs(env, conf):
+	#Look for Lua
+	luaver = "lua5.1"
+	if GetOption('luajit'):
+		if not conf.CheckLib(['luajit-5.1', 'luajit5.1', 'luajit']):
+			FatalError("luajit development library not found or not installed")
+		luaver = "luajit"
+	else:
+		if not conf.CheckLib(['lua5.1', 'lua-5.1', 'lua51', 'lua']):
+			if platform != "Darwin" or not conf.CheckFramework("Lua"):
+				FatalError("lua5.1 development library not found or not installed")
+
+	if platform == "Linux":
+		try:
+			env.ParseConfig("pkg-config --cflags {0}".format(luaver))
+			env.ParseConfig("pkg-config --libs {0}".format(luaver))
+			env.Append(CPPDEFINES=["LUA_R_INCL"])
+		except:
+			pass
+
+	if GetOption('luajit'):
+		if conf.CheckCHeader('luajit.h'):
+			env.Append(CPPDEFINES=["LUAJIT"])
+		else:
+			if conf.CheckCHeader('luajit-2.0/luajit.h'):
+				env.Append(CPPDEFINES=["LUAJIT_INC"])
+			else:
+				FatalError("luajit.h not found")
+	else:
+		if not conf.CheckCHeader('lua.h'):
+			if conf.CheckCHeader('lua5.1/lua.h'):
+				env.Append(CPPDEFINES=["LUA_INC"])
+			else:
+				FatalError("lua.h not found")
+
+	#Look for pthreads
+	if not conf.CheckLib(['pthread', 'pthreadVC2']):
+		FatalError("pthreads development library not found or not installed")
+
+if not GetOption('help'):
+	conf = Configure(env)
+	conf.AddTest('CheckFramework', CheckFramework)
+	if not conf.CheckCC() or not conf.CheckCXX():
+		FatalError("compiler not correctly configured")
+	findLibs(env, conf)
+	env = conf.Finish()
+
+#Add architecture flags and defines
 if GetOption('sse'):
-	env.Append(CFLAGS='-msse')
+	env.Append(CFLAGS=['-msse'])
 if GetOption('sse2'):
-	env.Append(CFLAGS='-msse2')
+	env.Append(CFLAGS=['-msse2'])
 if GetOption('sse3'):
-	env.Append(CFLAGS='-msse3')
-if GetOption('sse4'):
-	env.Append(CFLAGS='-msse4')
-if GetOption('avx'):
-	env.Append(CFLAGS='-mavx')
-if GetOption('avx2'):
-	env.Append(CFLAGS='-maxv2')
+	env.Append(CFLAGS=['-msse3'])
+if GetOption('native'):
+	env.Append(CFLAGS=['-march=native'])
 
-Name = "luasandbox"
+env.Append(CFLAGS=['-static-libgcc'])
+env.Append(LINKFLAGS=['-static-libgcc'])
 
-if GetOption('win'):
-	Name += ".exe"
+#Program output name
+programName = "luasandbox"
+if platform == "Windows":
+	programName += ".exe"
+elif platform == "Darwin":
+	programName += "-x"
 
-t=env.Program(target=Name, source=['code.c'])
+#Once we get here, finally compile
+env.Decider('MD5-timestamp')
+SetOption('implicit_cache', 1)
+t = env.Program(target=programName, source="code.c")
 Default(t)

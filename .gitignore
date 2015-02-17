@@ -4,6 +4,7 @@
 *.dll
 *.sh
 *.zip
+*.o
 code2.c
 ltn12.lua
 mime.lua
@@ -14,4 +15,6 @@ socket/*
 config.lua
 plugins/sandbox/luasandbox
 .sconsign.dblite
+.sconf_temp/*
+config.log
 

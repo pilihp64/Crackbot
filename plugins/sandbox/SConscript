@@ -108,7 +108,6 @@ def findLibs(env, conf):
 		try:
 			env.ParseConfig("pkg-config --cflags {0}".format(luaver))
 			env.ParseConfig("pkg-config --libs {0}".format(luaver))
-			env.Append(CPPDEFINES=["LUA_R_INCL"])
 		except:
 			pass
 

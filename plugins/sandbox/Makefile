@@ -2,14 +2,12 @@ FLAGS= -pthread -llua5.1
 LFLAGS= -o luasandbox
 WFLAGS= -o luasandbox.exe
 
-LINUX= gcc code.c $(FLAGS) $(LFLAGS)
-WIN= gcc code.c $(FLAGS) $(WFLAGS)
 linux: 
-	$(LINUX)
+	gcc code.c $(FLAGS) $(LFLAGS)
 win: 
-	$(WIN)
+	gcc code.c $(FLAGS) $(WFLAGS)
 travis:
-	gcc code.c $(FLAGS) -o luasandbox
+	gcc code.c $(FLAGS) -I/usr/include/lua5.1  -o luasandbox
 .PHONY: clean
 
 clean:

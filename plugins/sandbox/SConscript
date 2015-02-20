@@ -71,6 +71,9 @@ elif GetOption('32bit'):
 	env.Append(LINKFLAGS=['-m32'])
 	env.Append(CFLAGS=['-m32'])
 
+if GetOption('win'):
+	env.Append(CPPDEFINES=['WIN32'])
+
 if GetOption('universal'):
 	if platform != "Darwin":
 		FatalError("Error: --universal only works on Mac OS X")

@@ -10,7 +10,8 @@ install:
 script:
   # Build Sandbox
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox
-
+  - pkg-config --libs lua5.1
+  - pkg-config --cflags lua5.1
   - make travis
 after_script:
   # Validate lua files

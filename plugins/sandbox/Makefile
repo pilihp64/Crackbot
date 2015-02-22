@@ -7,7 +7,7 @@ linux:
 win: 
 	gcc code.c $(FLAGS) $(WFLAGS)
 travis:
-	gcc code.c $(FLAGS) -I/usr/include/lua5.1  -o luasandbox
+	gcc code.c $(FLAGS) -DLUA_INC  -o luasandbox
 .PHONY: clean
 
 clean:

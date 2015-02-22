@@ -1,8 +1,7 @@
-# A WIP TracisCI script to build the sandbox and check for syntax errors in Lua files
 language: c
 install:
   - sudo apt-get -qq update
-  - sudo apt-get -qq install lua5.1 luarocks gcc build-essential liblua5.1-0-dev
+  - sudo apt-get -qq install lua5.1 luarocks gcc build-essential liblua5.1-0-dev libluajit-5.1-dev
   - sudo luarocks install lpeg
   - sudo luarocks install luafilesystem
   - wget http://mirrors.kernel.org/ubuntu/pool/universe/l/luasocket/lua-socket_2.0.2-8_amd64.deb
@@ -10,8 +9,6 @@ install:
 script:
   # Build Sandbox
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox
-  - pkg-config --libs lua5.1
-  - pkg-config --cflags lua5.1
   - make travis
 after_script:
   # Validate lua files

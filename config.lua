@@ -20,7 +20,7 @@ function addConfig(server,channel,k,v)
 end
 --Read a value from config
 function getConfig(server,channel,...)
-	assert(server~="default","Can't get config of default server")
+	assert(server~="default","Can't get bot default config directly, use a valid server")
 	assert(config[server],"This server does not exist")
 	local chan = config[server][channel]
 	local t = {...}
@@ -34,13 +34,13 @@ function getConfig(server,channel,...)
 			result = findValue(config["default"],t)
 		end
 	end
-	assert(result~=nil,"Config value "..table.concat(t,".") .." is missing from all default")
+	--assert(result~=nil,"Config value "..table.concat(t,".") .." is missing from all default")
 	return result
 end
 function setConfig(server,channel,...)
-	assert(server~="default","Can't set config of default server")
+	assert(server~="default","Can't set bot default config from command")
 	local keys = {...}
-	local val, chan = table.remove(keys,#keys), config[server][channel]
+	local val, chan = table.remove(keys,#keys), config[server][channel or "default"]
 	assert(chan,"Invalid channel!")
 	for i,v in ipairs(keys) do
 		chan[v] = chan[v] or {}
@@ -52,10 +52,26 @@ function setConfig(server,channel,...)
 	end
 	saveConfig()
 end
+function delConfig(server,channel,...)
+	assert(server~="default","Can't set bot default config from command")
+	local keys = {...}
+	local chan = config[server][channel or "default"]
+	assert(chan,"Invalid channel!")
+	for i,v in ipairs(keys) do
+		chan[v] = chan[v] or {}
+		if i==#keys then
+			chan[v] = nil
+		else
+			chan = chan[v]
+		end
+	end
+	saveConfig()
+end
 
 --Global Config Start, should be moved inside settings file later
 addConfig("default",nil,"nest",{enabled=true,start="<<",ending=">>"})
 addConfig("default",nil,"autojoin",{"##jacob1"})
+addConfig("default",nil,"cmdPrefix","%.")
 --Global Config End
 
 --Register a channel into settings
@@ -97,7 +113,7 @@ findValue = function(t,keys)
 end
 
 addNetwork(server("irc.freenode.net"),user('Crackbot2','jacobot','moo2'))
---addNetwork(server("irc.freenode.net"),user('Crackbot3','jacobot','moo2'))
+--addNetwork(server("chat.freenode.net"),user('Crackbot3','jacobot','moo2'))
 --addNetwork(server("irc.freenode.net"),user('Crackbot4','jacobot','moo2'))
 
 return config

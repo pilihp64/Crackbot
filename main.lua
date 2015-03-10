@@ -1,3 +1,4 @@
+users = dofile('users.lua')
 local prefix = '.'
 
 --Simple commands for now
@@ -9,6 +10,7 @@ local cheesy = {
 		return 'Moo0o'
 	end,
 	['reload'] = function(s,usr,chan,msg,args)
+		if usr.lvl < 101 then return "You are not worthy to use this." end
 		local rmsg = ''
 		msg = msg or 'main'
 		local st,r = pcall(dofile,msg ..".lua")
@@ -20,6 +22,7 @@ local cheesy = {
 		return rmsg
 	end,
 	['lua'] = function(s,usr,chan,msg,args)
+	if usr.lvl < 101 then return "You are too weak to use this." end
 	local e,err = loadstring(msg)
 	if e then
 		debug.sethook(infhook,"l")
@@ -37,11 +40,7 @@ local cheesy = {
 	return "ERROR: " .. err
 	end,
 	['test'] = function(s,usr,chan,msg,args)
-		if (getConfig(s,chan,"moo")==true) then
-			return 'Super mooooooo.'
-		else
-			return 'Sorry, this command needs moo permission :('
-		end
+		return "You are level " .. usr.lvl
 	end,
 }
 addConfig("default",nil,"moo",false)
@@ -50,14 +49,16 @@ local function chatHook(conn)
 	local server = conn.config.serv.host
 	return function(usr,chan,msg)
 		if chan==conn.nick then chan=usr.nick end
-		if usr.host:match('^Powder/Developer/.+') then
-			local pre,cmd,rest = msg:match("^("..prefix..")([^%s]*)%s?(.*)$")
-			if cheesy[cmd] then
-				if rest=="" then rest=nil end
-				local r = cheesy[cmd](server,usr,chan,rest,getArgs(rest))
-				if r then
-					conn:queue(ircMsg.privmsg(chan,r))
-				end
+		local pre,cmd,rest = msg:match("^(".. getConfig(server,chan,"cmdPrefix") ..")([^%s]*)%s?(.*)$")
+		if cheesy[cmd] then
+			if rest=="" then rest=nil end
+			usr.lvl = users.findUser(server,chan,usr).lvl
+			local s,r,e = pcall(cheesy[cmd],server,usr,chan,rest,getArgs(rest))
+			if not s then
+				conn:queue(ircMsg.privmsg(chan,e))
+			end
+			if r then
+				conn:queue(ircMsg.privmsg(chan,r))
 			end
 		end
 		--print(conn,usr.host,chan,msg)

@@ -12,3 +12,4 @@ lua/*
 mime/*
 socket/*
 plugins/*
+settings.lua

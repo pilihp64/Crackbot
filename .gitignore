@@ -5,7 +5,6 @@
 *.sh
 *.zip
 code2.c
-config.lua
 ltn12.lua
 mime.lua
 socket.lua

@@ -179,7 +179,9 @@ function timerCheck()
 					table.remove(waitingCommands,k)
 				end
 			else
+				--coroutine succeeded but caught an error
 				table.remove(waitingCommands,k)
+				ircSendChatQ(v.channel,resp)
 			end
 		end
 	end
@@ -379,7 +381,7 @@ local function realchat(usr,channel,msg)
 		ircSendChatQ("##powder-bots",msg)
 	end
 	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "108.59.12.136") then
-		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) %d%d(.-): (.+)$")
+		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) \003%d%d\002(.-)\002\003: (.+)$")
 		--print(nusr.." AND "..nmsg)
 		if nmsg and nmsg~="" then 
 			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))

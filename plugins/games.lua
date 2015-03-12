@@ -625,11 +625,11 @@ local itemUses = {
 		return "You are just happy you have the billion"
 	end,
 	["company"] = function(usr, args)
-		local rnd = math.random(94)
+		local rnd = math.random(96)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
 			if other.nick == config.user.nick then return "You cannot sue the bot!" end
-			amt = math.random(1, 500000)
+			local amt = math.random(1, 500000)
 			if math.random() >= .5 then
 				if amt > gameUsers[other.host].cash then amt = gameUsers[other.host].cash end
 				changeCash(other, -amt)
@@ -640,36 +640,32 @@ local itemUses = {
 			end
 		end
 		if rnd <= 30 then
-			items = {"derp", "vroom", "chips", "iPad", "powder", "cube", "lamp", "table"}
-			randomitem = items[math.random(1, #items)]
-			amt = math.random(1,1500)
+			local items = {"derp", "vroom", "chips", "iPad", "powder", "cube", "lamp", "table"}
+			local randomitem = items[math.random(1, #items)]
+			local amt = math.random(1,1500)
 			addInv(usr, storeInventory[randomitem], amt)
-			-- Pluralize item names properly --you only made this do that? >_>
-			if randomitem ~= "chips" then
-				name = randomitem + "s"
-			else
-				name = randomitem
-			end
+			-- Pluralize item names properly
+			local name = randomitem..(randomitem:sub(-1) == "s" and "" or "s")
 			return "Your company starts manufacturing " ..name.. " (+" .. amt .. " " .. name..")"
 		elseif rnd <= 64 then
-			amt = math.random(1, 2000000000)
+			local amt = math.random(1, 2000000000)
 			return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
 		elseif rnd <= 75 then
-			fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
-			fine = fines[math.random(1, #fines)]
-			amt = math.random(1, 500000000)
+			local fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
+			local fine = fines[math.random(1, #fines)]
+			local amt = math.random(1, 500000000)
 			return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
 		elseif rnd <= 82 then
-			amt = math.random(1,9) * 100000000
-			amtjunk = math.random(1000,10000)
+			local amt = math.random(1,9) * 100000000
+			local amtjunk = math.random(1000,10000)
 			addInv(usr, storeInventory["junk"], amtjunk)
 			return "A mob of angry customers descends on your headquarters and loots the entire place, causing you many damages. (-$" ..nicenum(amt)..", +" ..amtjunk.." junk)"..changeCash(usr, -amt)
 		elseif rnd <= 87 then
-			items = {"gold", "diamond", "billion"}
-			item = items[math.random(1, #items)]
-			amt = math.ceil(storeInventory["company"].cost / storeInventory[item].cost)
-			good = math.random(1, math.floor(amt/2))
-			bad = amt - good
+			local items = {"gold", "diamond", "billion"}
+			local item = items[math.random(1, #items)]
+			local amt = math.ceil(storeInventory["company"].cost / storeInventory[item].cost)
+			local good = math.random(1, math.floor(amt/2))
+			local bad = amt - good
 			addInv(usr, storeInventory[item], good)
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
@@ -677,19 +673,25 @@ local itemUses = {
 		elseif rnd <= 91 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
-		else
+		elseif rnd <= 94 then
 			local users = {}
 			for k,v in pairs(irc.channels[config.primarychannel].users) do
 				if k ~= usr.nick then
 					table.insert(users, v)
 				end
 			end
-			giveto = users[math.random(1,#users)]
+			local giveto = users[math.random(1,#users)]
 			remInv(usr, "company", 1)
 			addInv(giveto, storeInventory["company"], 1)
-			actions = {"eating potatoes", "ice cream", "apple products", "apocalypse preparations", "hugs", "donating to charity", "fighting terrorists", "drugs", "taking over foreign countries"}
-			randomaction = actions[math.random(1, #actions)]
+			local actions = {"eating potatoes", "ice cream", "apple products", "apocalypse preparations", "hugs", "donating to charity", "fighting terrorists", "drugs", "taking over foreign countries"}
+			local randomaction = actions[math.random(1, #actions)]
 			return "Shareholders, angry over "..usr.nick.."'s tendency to spend all company profits on "..randomaction..", revolt and select "..giveto.nick.." as the new CEO (-1 company)"
+		else
+			remInv(usr, "company", 1)
+			addInv(usr, storeInventory["country"], 1)
+			local countries = {"the United States", "China", "Russia", "Somalia", "The Democratic People's Republic of Korea", "Texas"}
+			local randomcountry = countries[math.random(1, #countries)]
+			return "Your company becomes so powerful that it buys "..randomcountry.." (-1 company) (+1 country)"
 		end
 	end,
 	['antiPad'] = function(usr,args)

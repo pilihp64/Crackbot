@@ -651,7 +651,7 @@ local itemUses = {
 			local amt = math.random(1, 2000000000)
 			return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
 		elseif rnd <= 75 then
-			local fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
+			local fines = {"illegally manufacturing iPads", "tax evasion", "violating competition laws", "money laundering", "selling defective products", "inciting genocide"}
 			local fine = fines[math.random(1, #fines)]
 			local amt = math.random(1, 500000000)
 			return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)

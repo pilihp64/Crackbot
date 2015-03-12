@@ -635,6 +635,50 @@ local itemUses = {
 			return "Your cube shatters into a billion pieces. (-1 cube, +1 billion)"
 		end
 	end,
+	["estate"] = function(usr,args)
+		local rnd = math.random(38)
+		if rnd <= 5 then
+			return "The sun shines on your grand estate. A new day has begun..."
+		elseif rnd <= 10 then
+			return "You gaze upon the lawns of your estate that seem to go on forever..."
+		elseif rnd <= 16 then
+			local amt = math.random(1,5)
+			addInv(usr, storeInventory["house"], 1)
+			local text = (amt == 1 and "a house" or "some houses")
+			return "You build "..text.." on your estate. (+"..amt.." house"..(amt == 1 and "" or "s")..")"
+		elseif rnd <= 22 then
+			local houseCount = gameUsers[usr.host].inventory["house"].amount
+			local bad = {"catches on fire", "spontaneously combusts", "gets eaten by termites", "magically disappears"}
+			local randombad = bad[math.random(1, #bad)]
+			if houseCount > 1 then
+				remInv(usr, "house", 1)
+				return "One of the houses on your estate " ..randombad..". (-1 house)"
+			else
+				local cost = storeInventory["house"].cost
+				return "One of the houses on your estate " ..randombad..", and you are forced to pay the damages. (-$"..cost..")"..changeCash(usr, -cost)
+			end
+		elseif rnd <= 28 then
+			local amt = (math.random(1,15) * 1000000)
+			return "You collect rent from your tenants. (+$"..amt..")"..changeCash(usr, amt)
+		elseif rnd <= 32 then
+			local bad = {"angry aliens", "government spies", "hungry black holes", "angry tenants", "evil monsters"}
+			local randombad = bad[math.random(1, #bad)]
+			remInv(usr, "estate", 1)
+			return "A group of "..randombad.." shows up on your estate and seizes it with force! (-1 estate)"
+		else
+			local potatoes = math.random(10, 60)
+			local cows = math.random(2, 18)
+			local cost = ((storeInventory["cow"].cost * cows) + (storeInventory["potato"].cost * potatoes))
+			local subtractedcost = (cost * math.random(75, 125) / 100)
+			if subtractedcost < gameUsers[usr.host].cash then
+				addInv(usr, storeInventory["potato"], potatoes)
+				addInv(usr, storeInventory["cow"], cows)
+				return "You start a farm on your estate. However, this costs you some money to set up. (+"..cows.." cows, +"..potatoes.." potatoes, -$"..subtractedcost..")"..changeCash(usr, -subtractedcost)
+			else
+				return "You want to start a farm on your estate, but you realize you don't have enough money."
+			end
+		end
+	end,
 	["billion"] = function(usr,args)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then

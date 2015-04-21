@@ -179,7 +179,9 @@ function timerCheck()
 					table.remove(waitingCommands,k)
 				end
 			else
+				--coroutine succeeded but caught an error
 				table.remove(waitingCommands,k)
+				ircSendChatQ(v.channel,resp)
 			end
 		end
 	end
@@ -374,8 +376,24 @@ local function realchat(usr,channel,msg)
 		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = {["msg"]=msg, ["time"]=os.time()} end
 	end
 
+<<<<<<< HEAD
 	if user.nick=="wolfybot1339" and channel=='##wolfy1339' and usr.nick == "WolfybotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##io",msg)
+=======
+	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
+		ircSendChatQ("##powder-bots",msg)
+	end
+	if channel=='##pwc' and usr.nick:match("^TrialReporter") and (usr.host == "prime.pwc-networks.com"or usr.host == "108.59.12.136") then
+		local mtime,nusr,nmsg = msg:match("^%((%d?%d?:?%d%d:%d%d)%) \003%d%d\002(.-)\002\003: (.+)$")
+		--print(nusr.." AND "..nmsg)
+		if nmsg and nmsg~="" then 
+			realchat({nick=nusr,host="ut2k4/ingame",fullhost=nusr.."!usr@ut2k4/ingame",ingame=true,gametime=mtime},channel,nmsg:gsub("^!","./"))
+			return
+		end
+	end
+	if channel:sub(1,13) ~= "##starcatcher" then
+		print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
+>>>>>>> 21ba6cc55150f22466f9a03e4522cb05bcf4ec20
 	end
 end
 local function chat(usr,channel,msg)

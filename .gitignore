@@ -15,6 +15,7 @@ socket/*
 config.lua
 plugins/sandbox/luasandbox
 .sconsign.dblite
+plugins/sandbox/.sconf_temp/*
 .sconf_temp/*
 config.log
 

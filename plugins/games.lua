@@ -250,9 +250,13 @@ local itemUses = {
 		elseif rnd <= 90 then
 			local t = {}
 			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 and v.cost>0 then table.insert(t,v) end end
-			local nom = t[math.random(#t)]
-			remInv(usr, nom.name, 1)
-			return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
+			if #t then
+				local nom = t[math.random(#t)]
+				remInv(usr, nom.name, 1)
+				return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
+			end
+			remInv(usr,"junk",1)
+			return "The junk expanded and ate itself (-1 junk)."
 		else
 			addInv(usr, storeInventory["penguin"], 1)
 			return "You find a penguin in your junk. (+1 penguin)"
@@ -275,17 +279,17 @@ local itemUses = {
 		if gameUsers[usr.host].inventory["shoe"].amount > 1 then
 			remInv(usr,"shoe",2)
 			local rnd = math.random(1,200000)
-			if rnd < 10000 then
+			if rnd < 100000 then
 				return "You put on another pair of shoes. Why do they always go missing ... (-2 shoes)"
 			else
-				return "You sold your designer pair of shoes for $"..rnd..changeCash(usr,rnd*100)
+				return "You sold your designer pair of shoes for $"..(rnd*10)..changeCash(usr,rnd*10)
 			end
 		end
 		if math.random(1,20) == 1 then
 			remInv(usr,"shoe",1)
 			return "Your shoe gets worn out (-1 shoe)"
 		else
-			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,50000))
+			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,30000))
 		end
 	end,
 	["iPad"] = function(usr)
@@ -325,7 +329,7 @@ local itemUses = {
 				--	addInv(usr, storeInventory["iPad"], math.random(1,3))
 				--end
 				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
-				return "You bought a "..name.." on Ebay for "..cost..changeCash(usr,-cost)
+				return "You bought a "..name.." on Ebay for $"..cost..changeCash(usr,-cost)
 			else
 				return "You couldn't afford to buy "..name
 			end

@@ -601,6 +601,30 @@ local itemUses = {
 			return filters and filters.rainbow("mo".."o"*math.random(1,75)) or "mo".."o"*math.random(1,75)
 		end
 	end,
+	["cube"] = function(usr,args,other)
+		local rnd = math.random(26)
+		if rnd <= 5 then
+			return "You play with your Rubik's cube..."
+		elseif rnd <= 10 then
+			remInv(usr, "cube", 1)
+			local amt = math.random(40,90)
+			addInv(usr, storeInventory["water"], amt)
+			return "You play with your cube, but it unfortunately melts. (-1 cube, +"..amt.." water)"
+		elseif rnd <= 15 then
+			remInv(usr, "cube", 1)
+			return "The cube shatters and cuts your eye in the process. The medical costs were $20000. (-1 cube)" .. changeCash(usr, -20000)
+		elseif rnd <= 20 then
+			local amt = math.random(5,50)*10
+			return "You solve the 4D Rubik's cube after months of deliberation and are awarded with a $"..amt.." prize." .. changeCash(usr, amt)
+		elseif rnd <= 24 then
+			remInv(usr, "cube", 1)
+			return "You find out that the cube is evil and was actually plotting to start another ice age. Disgusted, you throw it away. (-1 cube)"
+		else
+			remInv(usr, "cube", 1)
+			addInv(usr, storeInventory["billion"], 1)
+			return "Your cube shatters into a billion pieces. (-1 cube, +1 billion)"
+		end
+	end,
 	["billion"] = function(usr,args)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
@@ -655,7 +679,7 @@ local itemUses = {
 			local amt = math.random(1, 2000000000)
 			return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
 		elseif rnd <= 75 then
-			local fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
+			local fines = {"illegally manufacturing iPads", "tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
 			local fine = fines[math.random(1, #fines)]
 			local amt = math.random(1, 500000000)
 			return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
@@ -700,7 +724,7 @@ local itemUses = {
 	end,
 	['antiPad'] = function(usr,args)
 		return "You play Angry Birds."
-	end
+	end,
 }
 --powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
 --potato

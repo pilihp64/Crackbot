@@ -336,12 +336,12 @@ local itemUses = {
 				end
 				addInv(usr, storeInventory[name], 1)
 				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
-				return "You bought a "..name.." on Ebay for $"..cost..changeCash(usr,-cost)
+				return "You bought a "..name.." on eBay for $"..cost..changeCash(usr,-cost)
 			else
 				return "You couldn't afford to buy "..name
 			end
 		else
-			return "You couldn't find "..name.." on Ebay"
+			return "You couldn't find "..name.." on eBay"
 		end
 	end,
 	["lamp"]=function(usr)
@@ -352,7 +352,7 @@ local itemUses = {
 		else
 			local amt = math.floor((.016*rnd)*1001)
 			remInv(usr,"lamp",1)
-			return "You sold lamp on Ebay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
+			return "You sold lamp on eBay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
 		end
 	end,
 	["penguin"]=function(usr)

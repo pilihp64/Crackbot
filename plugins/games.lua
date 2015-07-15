@@ -153,7 +153,7 @@ local function timedSave()
 			if v.cost < -1e300 then
 				local total = usr.cash
 				for k,v in pairs(usr.inventory) do
-					if v.cost > 1e-300 then
+					if v.cost > -1e300 then
 						total = total + v.amount*v.cost
 					end
 				end

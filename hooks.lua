@@ -94,22 +94,20 @@ function ircSendOne()
 	end
 end
 
-local prefix = config.prefix
+
 function setPrefix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		prefix=fix
-	else
-		error("Not a string")
 	end
 end
-local suffix = config.suffix
+setPrefix(config.prefix)
+
 function setSuffix(fix)
 	if fix and type(fix)=="string" and fix~="" then
 		suffix=fix
-	else
-		error("Not a string")
 	end
 end
+setSuffix(config.suffix)
 
 --timers, might be useful to save these for long bans
 timers = timers or {}
@@ -331,12 +329,9 @@ end
 
 local function realchat(usr,channel,msg)
 	didSomething=true
-	if prefix ~= config.prefix then
-		panic,_ = msg:find("^"..config.prefix.."fix")
-		if panic then prefix = config.prefix end
-	end
-	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
-	if not cmd then
+    if prefix then
+        _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
+	elseif not cmd and suffix then
 		--no cmd found for prefix, try suffix
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end

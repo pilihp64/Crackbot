@@ -94,7 +94,7 @@ function ircSendOne()
 	end
 end
 
-
+local prefix
 function setPrefix(newprefix)
 	if newprefix and type(newprefix)=="string" and newprefix~="" then
 		prefix=newprefix
@@ -102,6 +102,7 @@ function setPrefix(newprefix)
 end
 setPrefix(config.prefix)
 
+local suffix
 function setSuffix(newsuffix)
 	if newsuffix and type(newsuffix)=="string" and newsuffix~="" then
 		suffix=newsuffix

@@ -540,6 +540,7 @@ local itemUses = {
 			remInv(usr,"potato",1)
 			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 60000000)
 		else
+			remInv(usr,"potato",1)
 			local str
 			if rnd < 70 then
 				str = "You plant the potato in the ground"
@@ -551,11 +552,12 @@ local itemUses = {
 				str = "You fry the potato and make french fries"
 			end
 			if rnd%2 == 1 and irc.channels[chan] then
-				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
-				str = ""
+				str = str..". The potato attacks you (-1 potato)"..changeCash(usr,-10000000)
+				if irc.channels[chan].users[config.user.nick].access.op then
+					ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
+					return nil
+				end
 			end
-			remInv(usr,"potato",1)
 			return str
 		end
 	end,

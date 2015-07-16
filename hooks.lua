@@ -32,6 +32,7 @@ function ircSendChatQ(chan,text,nohook)
 		end
 	end
 	text = text:gsub("[\r\n]"," ")
+	if #text == 0 then return end
 	local host = ""
 	if not chan then chan=config.logchannel end
 	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then

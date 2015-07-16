@@ -185,39 +185,49 @@ end
 --Uses for items, with /use
 local itemUses = {
 	["void"] = function(usr,args,chan)
-		if not irc.channels[chan] then return "You fall into a bottomless void"..changeCash(usr, -500000) end
-		for i=1,4 do
-			amount = math.floor(gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*math.random()*-1)
-			usertotal = 0  for i,v in pairs(irc.channels[chan].users) do usertotal = usertotal + 1 end
-			randomuser,usertotal = math.random(0, usertotal),0
-			for k,v in pairs(irc.channels[config.primarychannel].users) do
-				if randomuser == usertotal then
-					if not gameUsers[v.host] or not gameUsers[v.host].inventory then
-						randomuser = randomuser + 1
-					else
-						randomitem, randomitemcount = math.random(0, #gameUsers[v.host].inventory), 0
-						for k2,v2 in pairs(gameUsers[v.host].inventory) do
-							if randomitemcount == randomitem then
-								if v2.cost > 0 and v2.cost < amount and storeInventory[v2.name] then
-									destroyed = math.floor(amount/v2.cost)
-									if destroyed > v2.amount then destroyed = v2.amount end
-									lostvoids = math.floor(destroyed*v2.cost/(5000*math.random(5,10)))
-									if destroyed == 0 or lostvoids == 0 then break end
-									remInv(usr, "void", lostvoids)
-									remInv(v, v2.name, destroyed)
-									return "The void sucks up "..destroyed.." of "..v.nick.."'s "..v2.name.."s! (-"..lostvoids.." voids)"
-								else
-									randomitem = randomitem + 1
-								end
-							end
-							randomitemcount = randomitemcount + 1
-						end
-					end
-				end
-				usertotal = usertotal + 1
+		if not irc.channels[chan] or not irc.channels[chan].users then return "You fall into a bottomless void (-$500000)"..changeCash(usr, -500000) end
+		local rnd = math.random(100)
+		if rnd < 10 then
+			-- prevent void from doing anything
+			gameUsers[usr.host].inventory["void"].status = 1
+		elseif rnd > 80 then
+			-- void works again
+			gameUsers[usr.host].inventory["void"].status = nil
+		elseif gameUsers[usr.host].inventory["void"].status then
+			local lostvoids = math.random(gameUsers[usr.host].inventory["void"].amount)
+			remInv(usr, "void", lostvoids)
+			return "The void implodes in on itself (-"..lostvoids.." voids)"
+		end
+
+		local maxCost = gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*-1
+
+		local userlist = {}
+		for k,v in pairs(irc.channels[chan].users) do
+			if gameUsers[v.host] and gameUsers[v.host].inventory then
+				table.insert(userlist, v)
 			end
 		end
-		return "You fall into a bottomless void"..changeCash(usr, -500000)
+		local randomuser = userlist[math.random(#userlist)]
+
+		local userinventory = {}
+		for k,v in pairs(gameUsers[randomuser.host].inventory) do
+			if v.cost > 0 and v.cost < maxCost and storeInventory[v.name] then
+				table.insert(userinventory, v)
+			end
+		end
+		if #userinventory == 0 then return randomuser.nick.." pushes you into a bottomless void (-$500000)"..changeCash(usr, -500000) end
+		local randomitem = userinventory[math.random(#userinventory)]
+
+		local destroyed = math.floor(maxCost/randomitem.cost)
+		if destroyed > randomitem.amount then destroyed = randomitem.amount end
+		local lostvoids = math.floor(destroyed*randomitem.cost/(5000*math.random(5,10)))
+		if destroyed == 0 or lostvoids == 0 then
+			return "You fall into a bottomless void (-$555555)"..changeCash(usr, -555555)
+		end
+
+		remInv(usr, "void", lostvoids)
+		remInv(randomuser, randomitem.name, destroyed)
+		return "The void sucks up "..destroyed.." of "..randomuser.nick.."'s "..randomitem.name.."s! (-"..lostvoids.." voids)"
 	end,
 	["junk"] = function(usr)
 		local rnd = math.random(100)

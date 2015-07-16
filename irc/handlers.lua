@@ -108,7 +108,9 @@ handlers["352"] = function(o, prefix, me, channel, name1, host, serv, name, acce
 	end
 end
 --NAMES list
-handlers["353"] = function(o, prefix, me, chanType, channel, names)
+--disabled, better to always track everything instead of having it have an empty user with just an "access" field
+--also it is broken a bit anyway
+--[[handlers["353"] = function(o, prefix, me, chanType, channel, names)
 	if o.track_users then
 		o.channels[channel] = o.channels[channel] or {users = {}, type = chanType}
 
@@ -118,7 +120,7 @@ handlers["353"] = function(o, prefix, me, chanType, channel, names)
 			users[name] = {access = access}
 		end
 	end
-end
+end]]
 
 --end of NAMES
 handlers["366"] = function(o, prefix, me, channel, msg)

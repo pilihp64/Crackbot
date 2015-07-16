@@ -125,7 +125,7 @@ local function alias(usr,chan,msg,args)
 		local userlevel = getPerms(usr.host)
 		if userlevel < commands[cmd].level then return "You can't alias that!" end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
-		if name:find("[\128-\255]") then return "Ascii aliases only!" end
+		if name:find("[\128-\255]") or name:find("[\1-\20]") then return "Ascii aliases only!" end
 		if #name > 30 then return "Alias name too long!" end
 		if #args > 60 then return "Alias too complex!" end
 		for i=4,#args do table.insert(aArgs,args[i]) end

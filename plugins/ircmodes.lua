@@ -29,7 +29,7 @@ local function mode(usr,chan,msg,args)
 		if chan:sub(1,1)~='#' then return "Need to specify channel in query" end
 		tochan=chan
 		rest = table.concat(args, " ", 2)
-	end if string.lower(rest):find("mniip") then tomode = "-"..tomode:gsub("%+","%-") rest = rest:gsub("%+","%-") end
+	end
 	
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
@@ -45,8 +45,8 @@ local function op(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end local nick = args[2] or msg if nick:find("mniip") then setMode(chan,"+o-v",nick.." "..nick) else
-	setMode(chan,"+o", nick) end
+	end
+	setMode(chan,"+o", args[2] or msg)
 end
 add_cmd(op,"op",30,"Op a user, '/op [<chan>] <username>'",true)
 --DEOP
@@ -74,7 +74,7 @@ local function voice(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
+	end
 	setMode(chan,"+v", nick)
 end
 add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)

@@ -12,7 +12,7 @@ print = function(...)
 	frqq:close()
 end
 
-local onSendHooks = {}
+onSendHooks = onSendHooks or {}
 function addSendHook(hook,key)
 	if type(hook)=="function" then
 		onSendHooks[key] = onSendHooks[key] or hook

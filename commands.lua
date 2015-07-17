@@ -228,20 +228,23 @@ end
 add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 --hostmask
-local function getHost(usr,chan,msg,args,ofull)
-	local full,user = false,getUserFromNick(args[1])
+local function getHost(usr,chan,msg,args)
+	if not args[1] then return usr.host end
+	local user = getUserFromNick(args[1])
 	if not user then
-		user = usr
-		full = args[1]=="full"
-	else
-		full = args[2]=="full"
+		return "Invalid User"
 	end
-	return ((ofull or full) and user.fullhost or user.host)
+	return user.host
 end
 add_cmd(getHost,"host",0,"The host for a user, '/host <name>' Use /hostmask for full hostmask",false)
 
 local function getHostmask(usr,chan,msg,args)
-	return getHost(usr,chan,msg,args,true)
+	if not args[1] then return usr.fullhost end
+	local user = getUserFromNick(args[1])
+	if not user then
+		return "Invalid User"
+	end
+	return user.fullhost
 end
 add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '/hostmask <name>' Use /host for short host",false)
 

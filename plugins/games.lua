@@ -43,14 +43,14 @@ storeInventory={
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
 ["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
 }
-local inStockSorted = {}
+local storeInventorySorted = {}
 for k,v in pairs(storeInventory) do
 	if v.instock then
-		table.insert(inStockSorted,v)
+		table.insert(storeInventorySorted,v)
 	end
 end
-table.sort(inStockSorted,function(a,b) if a.cost<b.cost then return a end end)
---for k,v in pairs(inStockSorted) do print(v.name) end
+table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
+--for k,v in pairs(storeInventorySorted) do print(v.name) end
 
 --make function hook to reload user cash
 local function loadUsersCMD()
@@ -318,7 +318,7 @@ local itemUses = {
 			return "Please wait "..(info-os.time()).." seconds for the eBay app update to finish downloading"
 		end
 		local name
-		for k,v in pairs(inStockSorted) do
+		for k,v in pairs(storeInventorySorted) do
 			if math.random(1,7) < 2 and v.cost>0 then
 				name = v.name
 				break
@@ -940,7 +940,7 @@ local function store(usr,chan,msg,args)
 	end
 	if args[1]=="list" then
 		local t={}
-		for k,v in pairs(storeInventory) do
+		for k,v in ipairs(storeInventorySorted) do
 			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..nicenum(v.cost)..")") end
 		end
 		return table.concat(t," ")

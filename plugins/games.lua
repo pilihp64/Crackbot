@@ -50,7 +50,6 @@ for k,v in pairs(storeInventory) do
 	end
 end
 table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
---for k,v in pairs(storeInventorySorted) do print(v.name) end
 
 --make function hook to reload user cash
 local function loadUsersCMD()
@@ -940,7 +939,7 @@ local function store(usr,chan,msg,args)
 	end
 	if args[1]=="list" then
 		local t={}
-		for k,v in ipairs(storeInventorySorted) do
+		for k,v in pairs(storeInventorySorted) do
 			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..nicenum(v.cost)..")") end
 		end
 		return table.concat(t," ")
@@ -976,11 +975,26 @@ local function store(usr,chan,msg,args)
 		return "Item not found"
 	end
 	if args[1]=="inventory" then
-		local t={}
+		local invnames = {}
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			table.insert(t,v.name.."("..v.amount..")")
+			invnames[v.name] = true
 		end
-		return "You have, "..table.concat(t,", ")
+		local t = {}
+		for k,v in pairs(storeInventorySorted) do
+			if invnames[v.name] then
+				table.insert(t, v.name.."("..gameUsers[usr.host].inventory[v.name].amount..")")
+			end
+		end
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			if not storeInventory[k] then
+				table.insert(t, v.name.."("..v.amount..")")
+			end
+		end
+		if #t > 0 then
+			return "You have: "..table.concat(t,", ")
+		else
+			return "You have no items ):"
+		end
 	end
 	if args[1]=="sell" then
 		if not args[2] then return "Need an item! 'sell <item> [<amt>] [<item2> [<amt2>]]...'" end

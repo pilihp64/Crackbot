@@ -45,9 +45,7 @@ storeInventory={
 }
 local storeInventorySorted = {}
 for k,v in pairs(storeInventory) do
-	if v.instock then
-		table.insert(storeInventorySorted,v)
-	end
+	table.insert(storeInventorySorted,v)
 end
 table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
 

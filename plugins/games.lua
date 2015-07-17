@@ -662,7 +662,7 @@ local itemUses = {
 				local t = {}
 				for k,v in pairs(gameUsers[other.host].inventory) do table.insert(t,v) end
 				local otheritem = t[math.random(#t)]
-				if otheritem.instock or otheritem.cost<0 then
+				if otheritem.instock or otheritem.cost<0 or otheritem.cost>=1e14 then
 					remInv(other, otheritem.name, 1)
 					addInv(usr, otheritem,1)
 					return "You threw your billion at "..other.nick..", they are thankful and give you a " .. otheritem.name .. " in return without thinking."

@@ -316,7 +316,7 @@ local itemUses = {
 		end
 		local name
 		for k,v in pairs(storeInventorySorted) do
-			if math.random(1,7) < 2 and v.cost>0 then
+			if v.instock and math.random(1,7) < 2 and v.cost>0 then
 				name = v.name
 				break
 			end

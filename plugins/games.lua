@@ -655,7 +655,7 @@ local itemUses = {
 			local text = (amt == 1 and "a house" or "some houses")
 			return "You build "..text.." on your estate. (+"..amt.." house"..(amt == 1 and "" or "s")..")"
 		elseif rnd <= 22 then
-			local houseCount = gameUsers[usr.host].inventory["house"].amount
+			local houseCount = gameUsers[usr.host].inventory["house"] and gameUsers[usr.host].inventory["house"].amount or 0
 			local bad = {"catches on fire", "spontaneously combusts", "gets eaten by termites", "magically disappears"}
 			local randombad = bad[math.random(1, #bad)]
 			if houseCount > 1 then

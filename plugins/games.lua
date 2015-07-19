@@ -156,7 +156,7 @@ local function timedSave()
 				end
 				usr.inventory = {}
 				usr.cash = 1000
-				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
+				addInv({host=host},{name="memento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
 			end
 		end
 	end

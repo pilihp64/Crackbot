@@ -203,16 +203,6 @@ local function listen(usr,chan,msg)
 	end
 end
 
---Something to run before/after specific commands
-preCommands = {}
-postCommands = {}
-local function onPreCommand(cmd,usr)
-	if preCommands[cmd] then preCommands[cmd](usr) end
-end
-local function onPostCommand(cmd,usr)
-	if postCommands[cmd] then postCommands[cmd](usr) end
-end
-
 --capture args into table that supports "test test" args
 function getArgs(msg)
 	if not msg then return {} end
@@ -352,9 +342,7 @@ local function realchat(usr,channel,msg)
 	if func then
 		--we can execute the command
 		local co = coroutine.create(func)
-		onPreCommand(cmd,usr)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
-		onPostCommand(cmd,usr)
 		if not s and s2 then
 			ircSendChatQ(channel,s2)
 		elseif s2 then

@@ -40,17 +40,6 @@ local macroCMDs = {
 local aliasDepth = 0
 local function mkAliasFunc(t,aArgs)
 	local tempPerm={}
-	preCommands[t.name] = function(nusr)
-		local curPerm = getPerms(nusr.host)
-		local curLevel = t.usrlvl or curPerm
-		if curLevel < curPerm or t.suid then
-			tempPerm[nusr.host] = curPerm
-			permissions[nusr.host] = curLevel
-		end
-	end
-	postCommands[t.name] = function(nusr)
-		if tempPerm[nusr.host] then permissions[nusr.host] = tempPerm[nusr.host] end
-	end
 	return function(nusr,nchan,nmsg,nargs)
 			--TODO: FIX DEPTH CHECK
 			if aliasDepth>10 then aliasDepth=0 error("Alias depth limit reached!") end
@@ -123,7 +112,7 @@ local function alias(usr,chan,msg,args)
 		end
 		if allCommands[name] then return name.." already exists!" end
 		local userlevel = getPerms(usr.host)
-		if userlevel < commands[cmd].level then return "You can't alias that!" end
+		if userlevel < commands[cmd].level then return "You can't alias that!" else userlevel = commands[cmd].level end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if name:find("[\128-\255]") or name:find("[\1-\20]") then return "Ascii aliases only!" end
 		if #name > 30 then return "Alias name too long!" end

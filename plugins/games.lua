@@ -44,14 +44,11 @@ storeInventory={
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
 ["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
 }
-local inStockSorted = {}
+local storeInventorySorted = {}
 for k,v in pairs(storeInventory) do
-	if v.instock then
-		table.insert(inStockSorted,v)
-	end
+	table.insert(storeInventorySorted,v)
 end
-table.sort(inStockSorted,function(a,b) if a.cost<b.cost then return a end end)
---for k,v in pairs(inStockSorted) do print(v.name) end
+table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
 
 --make function hook to reload user cash
 local function loadUsersCMD()
@@ -156,13 +153,13 @@ local function timedSave()
 			if v.cost < -1e300 then
 				local total = usr.cash
 				for k,v in pairs(usr.inventory) do
-					if v.cost > 1e-300 then
+					if v.cost > -1e300 then
 						total = total + v.amount*v.cost
 					end
 				end
 				usr.inventory = {}
 				usr.cash = 1000
-				addInv({host=host},{name="momento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
+				addInv({host=host},{name="memento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
 			end
 		end
 	end
@@ -188,39 +185,49 @@ end
 --Uses for items, with /use
 local itemUses = {
 	["void"] = function(usr,args,chan)
-		if not irc.channels[chan] then return "You fall into a bottomless void"..changeCash(usr, -500000) end
-		for i=1,4 do
-			amount = math.floor(gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*math.random()*-1)
-			usertotal = 0  for i,v in pairs(irc.channels[chan].users) do usertotal = usertotal + 1 end
-			randomuser,usertotal = math.random(0, usertotal),0
-			for k,v in pairs(irc.channels[config.primarychannel].users) do
-				if randomuser == usertotal then
-					if not gameUsers[v.host] or not gameUsers[v.host].inventory then
-						randomuser = randomuser + 1
-					else
-						randomitem, randomitemcount = math.random(0, #gameUsers[v.host].inventory), 0
-						for k2,v2 in pairs(gameUsers[v.host].inventory) do
-							if randomitemcount == randomitem then
-								if v2.cost > 0 and v2.cost < amount and storeInventory[v2.name] then
-									destroyed = math.floor(amount/v2.cost)
-									if destroyed > v2.amount then destroyed = v2.amount end
-									lostvoids = math.floor(destroyed*v2.cost/(5000*math.random(5,10)))
-									if destroyed == 0 or lostvoids == 0 then break end
-									remInv(usr, "void", lostvoids)
-									remInv(v, v2.name, destroyed)
-									return "The void sucks up "..destroyed.." of "..v.nick.."'s "..v2.name.."s! (-"..lostvoids.." voids)"
-								else
-									randomitem = randomitem + 1
-								end
-							end
-							randomitemcount = randomitemcount + 1
-						end
-					end
-				end
-				usertotal = usertotal + 1
+		if not irc.channels[chan] or not irc.channels[chan].users then return "You fall into a bottomless void (-$500000)"..changeCash(usr, -500000) end
+		local rnd = math.random(100)
+		if rnd < 10 then
+			-- prevent void from doing anything
+			gameUsers[usr.host].inventory["void"].status = 1
+		elseif rnd > 80 then
+			-- void works again
+			gameUsers[usr.host].inventory["void"].status = nil
+		elseif gameUsers[usr.host].inventory["void"].status then
+			local lostvoids = math.random(gameUsers[usr.host].inventory["void"].amount)
+			remInv(usr, "void", lostvoids)
+			return "The void implodes in on itself (-"..lostvoids.." voids)"
+		end
+
+		local maxCost = gameUsers[usr.host].inventory["void"].amount*gameUsers[usr.host].inventory["void"].cost*-1
+
+		local userlist = {}
+		for k,v in pairs(irc.channels[chan].users) do
+			if gameUsers[v.host] and gameUsers[v.host].inventory then
+				table.insert(userlist, v)
 			end
 		end
-		return "You fall into a bottomless void"..changeCash(usr, -500000)
+		local randomuser = userlist[math.random(#userlist)]
+
+		local userinventory = {}
+		for k,v in pairs(gameUsers[randomuser.host].inventory) do
+			if v.cost > 0 and v.cost < maxCost and storeInventory[v.name] then
+				table.insert(userinventory, v)
+			end
+		end
+		if #userinventory == 0 then return randomuser.nick.." pushes you into a bottomless void (-$500000)"..changeCash(usr, -500000) end
+		local randomitem = userinventory[math.random(#userinventory)]
+
+		local destroyed = math.floor(maxCost/randomitem.cost)
+		if destroyed > randomitem.amount then destroyed = randomitem.amount end
+		local lostvoids = math.floor(destroyed*randomitem.cost/(5000*math.random(5,10)))
+		if destroyed == 0 or lostvoids == 0 then
+			return "You fall into a bottomless void (-$555555)"..changeCash(usr, -555555)
+		end
+
+		remInv(usr, "void", lostvoids)
+		remInv(randomuser, randomitem.name, destroyed)
+		return "The void sucks up "..destroyed.." of "..randomuser.nick.."'s "..randomitem.name.."s! (-"..lostvoids.." voids)"
 	end,
 	["junk"] = function(usr)
 		local rnd = math.random(100)
@@ -253,9 +260,13 @@ local itemUses = {
 		elseif rnd <= 90 then
 			local t = {}
 			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 and v.cost>0 then table.insert(t,v) end end
-			local nom = t[math.random(#t)]
-			remInv(usr, nom.name, 1)
-			return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
+			if #t then
+				local nom = t[math.random(#t)]
+				remInv(usr, nom.name, 1)
+				return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
+			end
+			remInv(usr,"junk",1)
+			return "The junk expanded and ate itself (-1 junk)."
 		else
 			addInv(usr, storeInventory["penguin"], 1)
 			return "You find a penguin in your junk. (+1 penguin)"
@@ -278,17 +289,17 @@ local itemUses = {
 		if gameUsers[usr.host].inventory["shoe"].amount > 1 then
 			remInv(usr,"shoe",2)
 			local rnd = math.random(1,200000)
-			if rnd < 10000 then
+			if rnd < 100000 then
 				return "You put on another pair of shoes. Why do they always go missing ... (-2 shoes)"
 			else
-				return "You sold your designer pair of shoes for $"..rnd..changeCash(usr,rnd*100)
+				return "You sold your designer pair of shoes for $"..(rnd*10)..changeCash(usr,rnd*10)
 			end
 		end
 		if math.random(1,20) == 1 then
 			remInv(usr,"shoe",1)
 			return "Your shoe gets worn out (-1 shoe)"
 		else
-			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,50000))
+			return "You found a wad of cash in your shoe!"..changeCash(usr,math.random(1,30000))
 		end
 	end,
 	["iPad"] = function(usr)
@@ -307,8 +318,8 @@ local itemUses = {
 			return "Please wait "..(info-os.time()).." seconds for the eBay app update to finish downloading"
 		end
 		local name
-		for k,v in pairs(inStockSorted) do
-			if math.random(1,7) < 2 and v.cost>0 then
+		for k,v in pairs(storeInventorySorted) do
+			if v.instock and math.random(1,7) < 2 and v.cost>0 then
 				name = v.name
 				break
 			end
@@ -324,16 +335,13 @@ local itemUses = {
 					return "The app imploded into a blackhole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole)"
 				end
 				addInv(usr, storeInventory[name], 1)
-				--if usr.nick == "cracker64" then
-				--	addInv(usr, storeInventory["iPad"], math.random(1,3))
-				--end
 				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
-				return "You bought a "..name.." on Ebay for "..cost..changeCash(usr,-cost)
+				return "You bought a "..name.." on eBay for $"..cost..changeCash(usr,-cost)
 			else
 				return "You couldn't afford to buy "..name
 			end
 		else
-			return "You couldn't find "..name.." on Ebay"
+			return "You couldn't find "..name.." on eBay"
 		end
 	end,
 	["lamp"]=function(usr)
@@ -344,7 +352,7 @@ local itemUses = {
 		else
 			local amt = math.floor((.016*rnd)*1001)
 			remInv(usr,"lamp",1)
-			return "You sold lamp on Ebay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
+			return "You sold lamp on eBay for "..amt.." (-1 lamp)"..changeCash(usr,amt)
 		end
 	end,
 	["penguin"]=function(usr)
@@ -375,8 +383,9 @@ local itemUses = {
 			return "You can't use nothin'"
 		end
 	end,
-	["doll"]=function(usr)
+	["doll"]=function(usr,args,chan)
 		remInv(usr,"doll",1)
+<<<<<<< HEAD
 		if string.lower(usr.nick):find("mitch") then
 			ircSendRawQ("KICK "..config.channels.primary.." "..usr.nick)
 			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
@@ -387,8 +396,32 @@ local itemUses = {
 		elseif rnd == 51 then
 			ircSendRawQ("KICK "..config.channels.primary.." wolfmitchell")
 			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
+=======
+		if chan == "##powder-bots" then
+			if string.lower(usr.nick):find("mitch") then
+				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
+				return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
+			end
+			local rnd = math.random(1,100)
+			if rnd <= 50 then
+				return "You find out the doll was gay and throw it away (-1 doll)"
+			elseif rnd == 51 then
+				-- TODO: wolfmitchel parted the channel ):
+				ircSendRawQ("KICK "..chan.." wolfmitchell")
+				return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
+			else
+				return "The doll looks so ugly that you burn it (-1 doll)"
+			end
+>>>>>>> 5907c6ad43b4a94705bddc2332b2a49ac53848c3
 		else
-			return "The doll looks so ugly that you burn it (-1 doll)"
+			local rnd = math.random(1,100)
+			if rnd <= 33 then
+				return "You play with the doll. It tries burning your house down and runs away (-1 doll)"
+			elseif rnd <= 66 then
+				return "You play with the doll. It disintegrates. (-1 doll)"
+			else
+				return "The doll looks so ugly that you burn it (-1 doll)"
+			end
 		end
 	end,
 	["derp"]=function(usr)
@@ -526,6 +559,7 @@ local itemUses = {
 			remInv(usr,"potato",1)
 			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 60000000)
 		else
+			remInv(usr,"potato",1)
 			local str
 			if rnd < 70 then
 				str = "You plant the potato in the ground"
@@ -537,11 +571,12 @@ local itemUses = {
 				str = "You fry the potato and make french fries"
 			end
 			if rnd%2 == 1 and irc.channels[chan] then
-				str = str..". The potato attacks you"..changeCash(usr,-10000000)
-				ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
-				str = ""
+				str = str..". The potato attacks you (-1 potato)"..changeCash(usr,-10000000)
+				if irc.channels[chan].users[config.user.nick].access.op then
+					ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
+					return nil
+				end
 			end
-			remInv(usr,"potato",1)
 			return str
 		end
 	end,
@@ -606,6 +641,74 @@ local itemUses = {
 			return filters and filters.rainbow("mo".."o"*math.random(1,75)) or "mo".."o"*math.random(1,75)
 		end
 	end,
+	["cube"] = function(usr,args,other)
+		local rnd = math.random(26)
+		if rnd <= 5 then
+			return "You play with your Rubik's cube..."
+		elseif rnd <= 10 then
+			remInv(usr, "cube", 1)
+			local amt = math.random(40,90)
+			addInv(usr, storeInventory["water"], amt)
+			return "You play with your cube, but it unfortunately melts. (-1 cube, +"..amt.." water)"
+		elseif rnd <= 15 then
+			remInv(usr, "cube", 1)
+			return "The cube shatters and cuts your eye in the process. The medical costs were $20000. (-1 cube)" .. changeCash(usr, -20000)
+		elseif rnd <= 20 then
+			local amt = math.random(5,50)*10
+			return "You solve the 4D Rubik's cube after months of deliberation and are awarded with a $"..amt.." prize." .. changeCash(usr, amt)
+		elseif rnd <= 24 then
+			remInv(usr, "cube", 1)
+			return "You find out that the cube is evil and was actually plotting to start another ice age. Disgusted, you throw it away. (-1 cube)"
+		else
+			remInv(usr, "cube", 1)
+			addInv(usr, storeInventory["billion"], 1)
+			return "Your cube shatters into a billion pieces. (-1 cube, +1 billion)"
+		end
+	end,
+	["estate"] = function(usr,args)
+		local rnd = math.random(38)
+		if rnd <= 5 then
+			return "The sun shines on your grand estate. A new day has begun..."
+		elseif rnd <= 10 then
+			return "You gaze upon the lawns of your estate that seem to go on forever..."
+		elseif rnd <= 16 then
+			local amt = math.random(1,5)
+			addInv(usr, storeInventory["house"], 1)
+			local text = (amt == 1 and "a house" or "some houses")
+			return "You build "..text.." on your estate. (+"..amt.." house"..(amt == 1 and "" or "s")..")"
+		elseif rnd <= 22 then
+			local houseCount = gameUsers[usr.host].inventory["house"] and gameUsers[usr.host].inventory["house"].amount or 0
+			local bad = {"catches on fire", "spontaneously combusts", "gets eaten by termites", "magically disappears"}
+			local randombad = bad[math.random(1, #bad)]
+			if houseCount > 1 then
+				remInv(usr, "house", 1)
+				return "One of the houses on your estate " ..randombad..". (-1 house)"
+			else
+				local cost = storeInventory["house"].cost
+				return "One of the houses on your estate " ..randombad..", and you are forced to pay the damages. (-$"..cost..")"..changeCash(usr, -cost)
+			end
+		elseif rnd <= 28 then
+			local amt = (math.random(1,15) * 1000000)
+			return "You collect rent from your tenants. (+$"..amt..")"..changeCash(usr, amt)
+		elseif rnd <= 32 then
+			local bad = {"angry aliens", "government spies", "hungry black holes", "angry tenants", "evil monsters"}
+			local randombad = bad[math.random(1, #bad)]
+			remInv(usr, "estate", 1)
+			return "A group of "..randombad.." shows up on your estate and seizes it with force! (-1 estate)"
+		else
+			local potatoes = math.random(10, 60)
+			local cows = math.random(2, 18)
+			local cost = ((storeInventory["cow"].cost * cows) + (storeInventory["potato"].cost * potatoes))
+			local subtractedcost = (cost * math.random(75, 125) / 100)
+			if subtractedcost < gameUsers[usr.host].cash then
+				addInv(usr, storeInventory["potato"], potatoes)
+				addInv(usr, storeInventory["cow"], cows)
+				return "You start a farm on your estate. However, this costs you some money to set up. (+"..cows.." cows, +"..potatoes.." potatoes, -$"..subtractedcost..")"..changeCash(usr, -subtractedcost)
+			else
+				return "You want to start a farm on your estate, but you realize you don't have enough money."
+			end
+		end
+	end,
 	["billion"] = function(usr,args)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
@@ -622,7 +725,7 @@ local itemUses = {
 				local t = {}
 				for k,v in pairs(gameUsers[other.host].inventory) do table.insert(t,v) end
 				local otheritem = t[math.random(#t)]
-				if otheritem.instock or otheritem.cost<0 then
+				if otheritem.instock or otheritem.cost<0 or otheritem.cost>=1e14 then
 					remInv(other, otheritem.name, 1)
 					addInv(usr, otheritem,1)
 					return "You threw your billion at "..other.nick..", they are thankful and give you a " .. otheritem.name .. " in return without thinking."
@@ -637,15 +740,23 @@ local itemUses = {
 		local rnd = math.random(96)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
-			if other.nick == config.user.nick then return "You cannot sue the bot!" end
-			local amt = math.random(1, 500000)
-			if math.random() >= .5 then
-				if amt > gameUsers[other.host].cash then amt = gameUsers[other.host].cash end
-				changeCash(other, -amt)
-				return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and wins!" .. changeCash(usr, amt)
+			if rnd < 20 then
+				remInv(usr, "company", 1)
+				addInv(other, storeInventory["company"], 1)
+				local actions = {"eating potatoes", "ice cream", "apple products", "apocalypse preparations", "hugs", "donating to charity", "fighting terrorists", "drugs", "taking over foreign countries"}
+				local randomaction = actions[math.random(1, #actions)]
+				return "Shareholders, angry over "..usr.nick.."'s tendency to spend all company profits on "..randomaction..", revolt and select "..other.nick.." as the new CEO (-1 company)"
 			else
-				changeCash(other, amt)
-				return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and loses." .. changeCash(usr, -amt)
+				if other.nick == config.user.nick then return "You cannot sue the bot!" end
+				local amt = math.random(1, 500000)
+				if math.random() >= .5 then
+					if amt > gameUsers[other.host].cash then amt = gameUsers[other.host].cash end
+					changeCash(other, -amt)
+					return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and wins!" .. changeCash(usr, amt)
+				else
+					changeCash(other, amt)
+					return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and loses." .. changeCash(usr, -amt)
+				end
 			end
 		end
 		if rnd <= 30 then
@@ -660,7 +771,7 @@ local itemUses = {
 			local amt = math.random(1, 2000000000)
 			return "Your company is making money. (+$" ..nicenum(amt).. ")" .. changeCash(usr, amt)
 		elseif rnd <= 75 then
-			local fines = {"tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
+			local fines = {"illegally manufacturing iPads", "tax evasion", "violating competition laws", "money laundering", "selling defective products", "genocide"}
 			local fine = fines[math.random(1, #fines)]
 			local amt = math.random(1, 500000000)
 			return "Your company is caught for " ..fine.. " and is given a hefty fine. (-$" ..nicenum(amt).. ")" ..changeCash(usr, -amt)
@@ -679,41 +790,22 @@ local itemUses = {
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
 			return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
-		elseif rnd <= 91 then
+		elseif rnd <= 95 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
-		elseif rnd <= 94 then
-			local users = {}
-			for k,v in pairs(irc.channels[config.primarychannel].users) do
-				if k ~= usr.nick then
-					table.insert(users, v)
-				end
-			end
-			local giveto = users[math.random(1,#users)]
-			remInv(usr, "company", 1)
-			addInv(giveto, storeInventory["company"], 1)
-			local actions = {"eating potatoes", "ice cream", "apple products", "apocalypse preparations", "hugs", "donating to charity", "fighting terrorists", "drugs", "taking over foreign countries"}
-			local randomaction = actions[math.random(1, #actions)]
-			return "Shareholders, angry over "..usr.nick.."'s tendency to spend all company profits on "..randomaction..", revolt and select "..giveto.nick.." as the new CEO (-1 company)"
 		else
 			remInv(usr, "company", 1)
 			addInv(usr, storeInventory["country"], 1)
-			local countries = {"the United States", "China", "Russia", "Somalia", "The Democratic People's Republic of Korea", "Texas"}
+			local countries = {"The United States", "China", "Russia", "Somalia", "The Democratic People's Republic of Korea", "Texas", "Greece", "Thailand", "Japan", "New Zealand", "Indonesia", "Kenya", "Spain", "Macedonia"}
 			local randomcountry = countries[math.random(1, #countries)]
 			return "Your company becomes so powerful that it buys "..randomcountry.." (-1 company) (+1 country)"
 		end
 	end,
 	['antiPad'] = function(usr,args)
 		return "You play Angry Birds."
-	end
+	end,
 }
---powder, chips, shoe, iPad, lamp, penguin, nothing, doll, derp, water, vroom, moo, 
---potato
---gold, diamond, cow, house, cube, cracker, estate, moo2, billion, company, country, 
---world, god
---- computer ($99) Who would use this piece of junk from your grandmother
---- iMac ($2999) Glorious master race
---- MacPro ($999999) A bit expensive but does have an apple logo!
+
 local function useItem(usr,chan,msg,args)
 	if not args[1] then
 		return "Need to specify an item! '/use <item>'"
@@ -773,9 +865,6 @@ local function odoor(usr,door)
 	if gameUsers[usr.host].cash <= 0 then
 		return "You are broke, you can't afford to open doors"
 	end
-	--[[if usr.nick == "JZTech101" then
-		return "You forgot how to open doors"
-	end]]
 	
 	door = door[1] or "" --do something with more args later?
 	local isNumber=false
@@ -789,10 +878,6 @@ local function odoor(usr,door)
 		if tonumber(door)>15 and (tonumber(door)<=adjust+1 and tonumber(door)>=adjust-1) then randMon=randMon+(adjust*50)^1.15 divideFactor=6 end
 		isNumber=true
 	end
-	--blacklist of people
-	--if (string.lower(usr.nick)):find("mitchell_") then divideFactor=1 end
-	--if (string.lower(usr.nick)):find("boxnode") then divideFactor=1 end
-	--if (string.lower(usr.host)):find("unaffiliated/angryspam98") then divideFactor=1 end
 
 	--some other weird functions to change money
 	
@@ -866,9 +951,6 @@ local function giveMon(usr,chan,msg,args)
 	toHost = toHost.host
 	
 	if amt and not item then
-		--if toHost == "Powder/Developer/jacob1" and amt < 50 then
-		--	return "Donations to jacob1 must be at least 1 million"
-		--end
 		if amt>0 and amt==amt then
 			return give(usr.host,toHost,amt)
 		else
@@ -922,7 +1004,7 @@ local function store(usr,chan,msg,args)
 	end
 	if args[1]=="list" then
 		local t={}
-		for k,v in pairs(storeInventory) do
+		for k,v in pairs(storeInventorySorted) do
 			if v.instock and gameUsers[usr.host].cash>=v.cost then table.insert(t,"\15"..v.name.."\00309("..nicenum(v.cost)..")") end
 		end
 		return table.concat(t," ")
@@ -958,11 +1040,26 @@ local function store(usr,chan,msg,args)
 		return "Item not found"
 	end
 	if args[1]=="inventory" then
-		local t={}
+		local invnames = {}
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			table.insert(t,v.name.."("..v.amount..")")
+			invnames[v.name] = true
 		end
-		return "You have, "..table.concat(t,", ")
+		local t = {}
+		for k,v in pairs(storeInventorySorted) do
+			if invnames[v.name] then
+				table.insert(t, v.name.."("..gameUsers[usr.host].inventory[v.name].amount..")")
+			end
+		end
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			if not storeInventory[k] then
+				table.insert(t, v.name.."("..v.amount..")")
+			end
+		end
+		if #t > 0 then
+			return "You have: "..table.concat(t,", ")
+		else
+			return "You have no items ):"
+		end
 	end
 	if args[1]=="sell" then
 		if not args[2] then return "Need an item! 'sell <item> [<amt>] [<item2> [<amt2>]]...'" end
@@ -1200,11 +1297,7 @@ local function quiz(usr,chan,msg,args)
 			return "Quiz in query has 10k max bid"
 		end
 	end
-	if usr.host=="unaffiliated/mniip/bot/xsbot" or usr.host=="178.219.36.155" or usr.host=="april-fools/2014/third/mniip" then
-		if bet > 13333337 then
-			return "You cannot bet this high!"
-		end
-	elseif bet > 10000000000 then
+	if bet > 10000000000 then
 		return "You cannot bet more than 10 billion"
 	end
 	
@@ -1224,11 +1317,6 @@ local function quiz(usr,chan,msg,args)
 	local alreadyAnswered={}
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
-		--blacklist of people
-		--if nusr.host=="gprs-inet-65-277.elisa.ee" then return end
-		--if nusr.host=="unaffiliated/mniip/bot/xsbot" then return end
-		--if nusr.host=="178.219.36.155" then return end
-		--if nusr.host=="unaffiliated/mniip" then return end
 		if nchan==chan then
 			if nmsg==answer and not alreadyAnswered[nusr.host] then
 				local answeredIn= os.time()-activeQuizTime[qName]-1

@@ -12,7 +12,7 @@ print = function(...)
 	frqq:close()
 end
 
-local onSendHooks = {}
+onSendHooks = onSendHooks or {}
 function addSendHook(hook,key)
 	if type(hook)=="function" then
 		onSendHooks[key] = onSendHooks[key] or hook
@@ -32,6 +32,7 @@ function ircSendChatQ(chan,text,nohook)
 		end
 	end
 	text = text:gsub("[\r\n]"," ")
+	if #text == 0 then return end
 	local host = ""
 	if not chan then chan=config.channels.logs end
 	if irc.channels[config.channels.primary] and irc.channels[config.channels.primary].users[irc.nick] then
@@ -94,22 +95,21 @@ function ircSendOne()
 	end
 end
 
-local prefix = config.prefix
-function setPrefix(fix)
-	if fix and type(fix)=="string" and fix~="" then
-		prefix=fix
-	else
-		error("Not a string")
+local prefix
+function setPrefix(newprefix)
+	if newprefix and type(newprefix)=="string" and newprefix~="" then
+		prefix=newprefix
 	end
 end
-local suffix = config.suffix
-function setSuffix(fix)
-	if fix and type(fix)=="string" and fix~="" then
-		suffix=fix
-	else
-		error("Not a string")
+setPrefix(config.prefix)
+
+local suffix
+function setSuffix(newsuffix)
+	if newsuffix and type(newsuffix)=="string" and newsuffix~="" then
+		suffix=newsuffix
 	end
 end
+setSuffix(config.suffix)
 
 --timers, might be useful to save these for long bans
 timers = timers or {}
@@ -201,16 +201,6 @@ local function listen(usr,chan,msg)
 			if r==true then chatListeners[k]=nil end
 		end
 	end
-end
-
---Something to run before/after specific commands
-preCommands = {}
-postCommands = {}
-local function onPreCommand(cmd,usr)
-	if preCommands[cmd] then preCommands[cmd](usr) end
-end
-local function onPostCommand(cmd,usr)
-	if postCommands[cmd] then postCommands[cmd](usr) end
 end
 
 --capture args into table that supports "test test" args
@@ -333,10 +323,13 @@ local function realchat(usr,channel,msg)
 	didSomething=true
 	if prefix ~= config.prefix then
 		panic,_ = msg:find("^"..config.prefix.."fix")
-		if panic then prefix = config.prefix end
+		if panic then setPrefix(config.prefix) end
 	end
-	local _,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
-	if not cmd then
+	local pre,cmd,rest
+	if prefix then
+		_,_,pre,cmd,rest = msg:find("^("..prefix..")([^%s]*)%s?(.*)$")
+	end
+	if not cmd and suffix then
 		--no cmd found for prefix, try suffix
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
@@ -349,9 +342,7 @@ local function realchat(usr,channel,msg)
 	if func then
 		--we can execute the command
 		local co = coroutine.create(func)
-		onPreCommand(cmd,usr)
 		local s,s2,resp,noNickPrefix = pcall(coroutine.resume,co)
-		onPostCommand(cmd,usr)
 		if not s and s2 then
 			ircSendChatQ(channel,s2)
 		elseif s2 then
@@ -376,6 +367,8 @@ local function realchat(usr,channel,msg)
 		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = {["msg"]=msg, ["time"]=os.time()} end
 	end
 
+	-- relay new Crackbot commits into ##powder-bots
+	-- maybe could add a relay module sometime
 	if user.nick=="wolfybot1339" and channel=='##wolfy1339' and usr.nick == "WolfybotRepo" and usr.host:find("192%.30%.252") then
 		ircSendChatQ("##io",msg)
 	end

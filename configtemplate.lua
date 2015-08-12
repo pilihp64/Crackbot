@@ -55,7 +55,7 @@ local config = {
 	suffix = "woof+",
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
 	console = {
-		terminal = "gnome-terminal",
+		terminal = "gnome-terminal -x",
 		input = false
 	},
 }

@@ -46,8 +46,12 @@ local function op(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+<<<<<<< HEAD
 	local nick = args[2] or msg
 	setMode(chan,"+o", nick)
+=======
+	setMode(chan,"+o", args[2] or msg)
+>>>>>>> 5907c6ad43b4a94705bddc2332b2a49ac53848c3
 end
 add_cmd(op,"op",30,"Op a user, '*op [<chan>] <username>'",true)
 --DEOP
@@ -75,7 +79,7 @@ local function voice(usr,chan,msg,args)
 			if not args[2] then args[2]=usr.nick end
 			chan=args[1]
 		end
-	end local nick = args[2] or msg if string.lower(nick) == "mniip" and string.lower(usr.nick) == "mniip" then setMode(chan,"-v", nick) return end
+	end
 	setMode(chan,"+v", nick)
 end
 add_cmd(voice,"voice",15,"Voice a user, '*voice [<chan>] <username>'",true)

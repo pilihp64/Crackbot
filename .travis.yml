@@ -1,9 +1,17 @@
 language: c
-install:
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install lua5.1 gcc build-essential liblua5.1-0-dev libluajit-5.1-dev
-  - wget http://mirrors.kernel.org/ubuntu/pool/universe/l/luasocket/luasocket_2.0.2-6_all.deb
-  - sudo dpkg -i luasocket_2.0.2-6_all.deb
+sudo: false
+addons:
+  apt:
+    packages:
+      - luajit
+      - gcc
+      - build-essential
+      - libluajit-5.1-dev
+      - python
+      - luasocket
+#install:
+#  - wget http://mirrors.kernel.org/ubuntu/pool/universe/l/luasocket/luasocket_2.0.2-6_all.deb
+#  - sudo dpkg -i luasocket_2.0.2-6_all.deb
 script:
   # Build Sandbox
   - cd $TRAVIS_BUILD_DIR/plugins/sandbox

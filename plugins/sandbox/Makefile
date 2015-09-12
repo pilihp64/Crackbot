@@ -1,4 +1,4 @@
-FLAGS= -pthread -lluajit -static-libgcc
+FLAGS= -pthread -lluajit5.1 -static-libgcc
 LFLAGS= -o luasandbox
 WFLAGS= -DWIN32 -o luasandbox.exe
 

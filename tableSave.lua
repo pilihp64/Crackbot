@@ -69,7 +69,12 @@ do
 						elseif stype == "string" then
 							file:write( str..exportstring( v )..","..charE )
 						elseif stype == "number" then
-							file:write( str..tostring( v )..","..charE )
+							local num = tostring( v )
+							if num == "nan" or num == "-nan" or num == "inf" or num == "-inf" then
+								file:write( str..(num:sub(1,1) == "-" and "-" or "").."tonumber(\""..num.."\"),"..charE )
+							else
+								file:write( str..num..","..charE )
+							end
 						elseif stype == "boolean" then
 							file:write( str..tostring( v )..","..charE )
 						end

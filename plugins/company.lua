@@ -84,7 +84,7 @@ local function updateComps()
 	end
 end
 remUpdate("company")
-addUpdate(updateComps,1,"jacob1","company")
+addUpdate(updateComps,1,"wolfy1339","company")
 
 local function calcWork(comp)
 	return comp.workSpeed + comp.employees*comp.emplSpeed
@@ -119,7 +119,7 @@ local function projHelp(usr,chan,msg,args)
 	local rstring = "Current ProjectName:"..proj.name.." Progress:"..proj.work.."/"..proj.needed.."("..math.floor(proj.work/proj.needed*100).."%) Reward: "..proj.reward.." TimeGoal: "..proj.time
 	return rstring
 end
-add_cmd(projHelp,"proj",0,"Current company project information, '/proj [start]' to initiate it.",true)
+add_cmd(projHelp,"proj",0,"Current company project information, '*proj [start]' to initiate it.",true)
 
 local function hireEmp(usr,chan,msg,args)
 	local comp = compData[usr.host]
@@ -138,4 +138,4 @@ local function hireEmp(usr,chan,msg,args)
 		return "Bad amount"
 	end
 end
-add_cmd(hireEmp,"hire",0,"Hire workers to work on projects faster '/hire [amt]' Note: Employees may leave your company at any time during a project",true)
+add_cmd(hireEmp,"hire",0,"Hire workers to work on projects faster '*hire [amt]' Note: Employees may leave your company at any time during a project",true)

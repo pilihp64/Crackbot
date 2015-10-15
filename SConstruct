@@ -1,0 +1,1 @@
+SConscript('plugins/sandbox/SConscript', duplicate=0)

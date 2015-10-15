@@ -34,9 +34,9 @@ function ircSendChatQ(chan,text,nohook)
 	text = text:gsub("[\r\n]"," ")
 	if #text == 0 then return end
 	local host = ""
-	if not chan then chan=config.logchannel end
-	if irc.channels[config.primarychannel] and irc.channels[config.primarychannel].users[irc.nick] then
-		host = irc.channels[config.primarychannel].users[irc.nick].fullhost or ""
+	if not chan then chan=config.channels.logs end
+	if irc.channels[config.channels.primary] and irc.channels[config.channels.primary].users[irc.nick] then
+		host = irc.channels[config.channels.primary].users[irc.nick].fullhost or ""
 	end
 	local byteLimit = 498 - #chan - #host
 	if byteLimit - #text < 0 and byteLimit - #text > -1600 then
@@ -169,7 +169,7 @@ function timerCheck()
 						end
 					else
 						if not noNickPrefix then resp=v.usr.nick..": "..resp end
-						ircSendChatQ(v.channel,resp)	
+						ircSendChatQ(v.channel,resp)
 					end
 					table.remove(waitingCommands,k)
 				elseif resp==false then
@@ -248,7 +248,7 @@ function makeCMD(cmd,usr,channel,msg,permcheck)
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
 		if permcheck or getPerms(usr.host) >= commands[cmd].level then
 			--we have permission
-			
+
 			return function()
 				if msg and cmd ~= "alias" and cmd ~= "aa" then
 					--check for nested commands, ./echo {`echo test`}
@@ -358,8 +358,8 @@ local function realchat(usr,channel,msg)
 			ircSendChatQ(channel,resp)
 		end
 		--log to channel, to notice things faster
-		if config.logchannel and channel:sub(1,1):match("%a") then
-			ircSendChatQ(config.logchannel, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
+		if config.channels.logs and channel:sub(1,1):match("%a") then
+			ircSendChatQ(config.channels.logs, usr.nick.."!"..usr.username.."@"..usr.host.." used "..config.prefix:gsub("%%","")..cmd)
 		end
 	else
 		if err then ircSendNoticeQ(usr.nick,err) end
@@ -369,8 +369,8 @@ local function realchat(usr,channel,msg)
 
 	-- relay new Crackbot commits into ##powder-bots
 	-- maybe could add a relay module sometime
-	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
-		ircSendChatQ("##powder-bots",msg)
+	if user.nick=="wolfybot1339" and channel=='##wolfy1339' and usr.nick == "WolfybotRepo" and usr.host:find("192%.30%.252") then
+		ircSendChatQ("##io",msg)
 	end
 end
 local function chat(usr,channel,msg)
@@ -384,7 +384,7 @@ local function chat(usr,channel,msg)
 end
 
 --console is read as messages from me
-local conChannel = config.primarychannel
+local conChannel = config.channels.primary
 function consoleChat(msg)
 	local _,_,chan = msg:find("^"..config.prefix.."chan (.+)")
 	local isPrefix = msg:find("^"..config.prefix)
@@ -428,7 +428,7 @@ local function partCheck(usr,chan,reason)
 		print("Parted from "..chan)
 		if expectedPart~=chan then
 			ircSendRawQ("JOIN "..chan)
-		else 
+		else
 			expectedPart=""
 		end
 	else
@@ -452,13 +452,13 @@ local function onCTCP(usr,channel,type,msg)
 		local cmd = io.popen(WINDOWS and "ver" or "uname -a")
 		local version = cmd:read("*a")
 		cmd:close()
-		response = "Crackbot, the best IRC bot. Running on "..version
+		response = "WolfyBot, the best IRC bot. Running on "..version
 	elseif type == "TIME" then
 		response = os.date()
 	elseif type == "PING" then
-		response = msg
+		response = "PONG!"
 	elseif type == "SOURCE" then
-		response = "https://github.com/cracker64/Crackbot"
+		response = "https://github.com/wolfy1339/WolfyBot"
 	end
 	if response then
 		ircSendNoticeQ(usr.nick,"\001"..type.." "..response.."\001")

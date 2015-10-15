@@ -1,4 +1,5 @@
 --List of files to load
+local sleep=require "socket".sleep
 dofile("tableSave.lua")
 math.randomseed(os.time())
 commands = {}
@@ -48,8 +49,8 @@ for file in pluginList:lines() do
 	if file:sub(#file-3,#file) == ".lua" then
 		local s,e = pcall(dofile, "plugins/"..file)
 		if not s then
-			if config.logchannel then
-				ircSendChatQ(config.logchannel, e)
+			if config.channels.logs then
+				ircSendChatQ(config.channels.logs, e)
 			end
 			print("Error loading plugins/"..file..": "..e)
 		else
@@ -74,7 +75,7 @@ add_cmd(userstatus,"userinfo",101,"Test info about someone",false)
 
 --DISABLE a command for the bot
 local function disable(usr,chan,msg,args)
-	if not msg then return "Usage: '/disable <cmd> [<cmd2> ...]'" end
+	if not msg then return "Usage: '*disable <cmd> [<cmd2> ...]'" end
 	if args[1]=="all" then
 		for k,v in pairs(commands) do
 			if k~="enable" then commands[k]=nil end
@@ -92,11 +93,11 @@ local function disable(usr,chan,msg,args)
 		return "Disabled: "..table.concat(t," ")
 	end
 end
-add_cmd(disable,"disable",100,"Disable a command for the bot, '/disable <cmd> [<cmd2> ...]'",true)
+add_cmd(disable,"disable",100,"Disable a command for the bot, '*disable <cmd> [<cmd2> ...]'",true)
 
 --ENABLE a command previously disabled
 local function enable(usr,chan,msg,args)
-	if not msg then return "Usage: '/enable <cmd> [<cmd2> ...]'" end
+	if not msg then return "Usage: '*enable <cmd> [<cmd2> ...]'" end
 	if args[1]=="all" then
 		for k,v in pairs(allCommands) do
 			if not commands[k] then commands[k]=v end
@@ -114,14 +115,19 @@ local function enable(usr,chan,msg,args)
 		return "Enabled: "..table.concat(t," ")
 	end
 end
-add_cmd(enable,"enable",100,"Enables a command previously disabled, '/enable <cmd> [<cmd2> ...]'",true)
+add_cmd(enable,"enable",100,"Enables a command previously disabled, '*enable <cmd> [<cmd2> ...]'",true)
 
 --QUIT
-local function suicide(usr,chan,msg)
-	ircSendRawQ("QUIT :moo")
+local function suicide(usr,chan,msg,args)
+	if args[1] then
+		ircSendRawQ("QUIT :"..args[1])
+	else
+		ircSendRawQ("QUIT :woof")
+	end
+	sleep(3)
 	shutdown = true;
 end
-add_cmd(suicide,"suicide",101,"Quits the bot",true,{"quit","die"})
+add_cmd(suicide,"suicide",101,"Makes the bot Quit",true,{"quit","die"})
 
 --PING
 local function ping(usr,chan,msg)
@@ -133,27 +139,33 @@ add_cmd(ping,"ping",0,"pong",true)
 local function dothis(usr,chan,msg) --fix DO and ME with filters
 	if msg then return "\001ACTION does "..msg.."\001",true end
 end
-add_cmd(dothis,"do",0,"Performs an action, '/do <text>'",true)
+add_cmd(dothis,"do",0,"Performs an action, '*do <text>'",true)
 --ME
 local function methis(usr,chan,msg)
 	if msg then return "\001ACTION "..msg.."\001",true end
 end
-add_cmd(methis,"me",0,"Performs an action, '/me <text>'",true)
+add_cmd(methis,"me",0,"Performs an action, '*me <text>'",true)
+
+--DATE
+local function date(usr,chan,msg)
+	return os.date()
+end
+add_cmd(date,"date",0,"Returns the current date, '*date'",true)
 
 --SNEAAK
 local function sneaky(usr,chan,msg)
 	return "You found me!"
 end
-add_cmd(sneaky,"./",0,nil,false)
+add_cmd(sneaky,"*",0,"You found me!",false)
 local function sneaky2(usr,chan,msg)
 	ircSendChatQ(usr.nick,"1 point gained")
 	return nil
 end
-add_cmd(sneaky2,"./moo",0,nil,false)
+add_cmd(sneaky2,"*woof",0,"Gain a point",false)
 local function sneaky3(usr,chan,msg)
-	return "MooOoOoooOooo"
+	return "WooOoOoooOoof"
 end
-add_cmd(sneaky3,"moo",0,nil,false)
+add_cmd(sneaky3,"woof",0,"Make me bark",false)
 
 --RELOAD files
 local function reload(usr,chan,msg,args)
@@ -179,13 +191,23 @@ local function reload(usr,chan,msg,args)
 	end
 	return rmsg
 end
-add_cmd(reload,"load",100,"Loads file(s), '/load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
+add_cmd(reload,"load",100,"Loads file(s), '*load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
+
+--UPDATE the bot's source, WIP
+local function update(usr,chan,msg,args)
+	os.execute("git checkout . && git pull")
+	--Pass the reload command
+	reload(usr,chan,msg,args)
+	ircSendRawQ("PRIVMSG "..config.channels.logs.." :"..config.owner.nick.." :Used *update, I am now updated")
+	ircSendRawQ("PRIVMSG "..chan.." :"..usr.." :Thanks for updating me, I'm now ready to rumble!")
+end
+add_cmd(update,"update",100,"Updates the bot to the latest Git Version and then reloads, '*update'",true,{"u","pull"})
 
 --ECHO
 local function echo(usr,chan,msg)
 	return msg,true
 end
-add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true,{"say"})
+add_cmd(echo,"echo",0,"Replies same text, '*echo <text>'",true,{"say"})
 
 --LIST
 local function list(usr,chan,msg,args)
@@ -201,7 +223,7 @@ local function list(usr,chan,msg,args)
 	table.sort(t,function(x,y)return x<y end)
 	return "Commands("..perm.."): " .. table.concat(t,", ")
 end
-add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/list [<level>]'",true,{"ls","commands"})
+add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '*list [<level>]'",true,{"ls","commands"})
 
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
@@ -225,7 +247,7 @@ local function chmod(usr,chan,msg,args)
 	permissions[host] = tonumber(level)
 	return "perm['"..host.."'] = "..level
 end
-add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
+add_cmd(chmod,"chmod",40,"Changes a hostmask level, '*chmod <name/host> <level>'",true,{"permissions"})
 
 --hostmask
 local function getHost(usr,chan,msg,args)
@@ -236,7 +258,7 @@ local function getHost(usr,chan,msg,args)
 	end
 	return user.host
 end
-add_cmd(getHost,"host",0,"The host for a user, '/host <name>' Use /hostmask for full hostmask",false)
+add_cmd(getHost,"host",0,"The host for a user, '*host <name>' Use *hostmask for full hostmask",false)
 
 local function getHostmask(usr,chan,msg,args)
 	if not args[1] then return usr.fullhost end
@@ -246,19 +268,19 @@ local function getHostmask(usr,chan,msg,args)
 	end
 	return user.fullhost
 end
-add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '/hostmask <name>' Use /host for short host",false)
+add_cmd(getHostmask,"hostmask",0,"The hostmask for a user, '*hostmask <name>' Use *host for short host",false)
 
 --username, for nesting
 local function getName(usr,chan,msg,args)
 	return usr.nick
 end
-add_cmd(getName,"nick",0,"Your nick, '/nick'",false)
+add_cmd(getName,"nick",0,"Your nick, '*nick'",false)
 
 --channel name, for nesting
 local function getChan(usr,chan,msg,args)
 	return chan
 end
-add_cmd(getChan,"chan",0,"The current channel, '/chan'",false)
+add_cmd(getChan,"chan",0,"The current channel, '*chan'",false)
 
 --LUA full access
 local function lua2(usr,chan,msg,args)
@@ -278,7 +300,7 @@ local function lua2(usr,chan,msg,args)
 	end
 	return "ERROR: " .. err
 end
-add_cmd(lua2,"..",101,"Runs full lua code, '/lua <code>'",false)
+add_cmd(lua2,"..",101,"Runs full lua code, '*lua <code>'",false)
 
 --HELP
 local function help(usr,chan,msg)
@@ -291,7 +313,7 @@ local function help(usr,chan,msg)
 	end
 	return "No help for "..msg.." found!"
 end
-add_cmd(help,"help",0,"Returns hopefully helpful information, '/help <cmd>'",true)
+add_cmd(help,"help",0,"Returns hopefully helpful information, '*help <cmd>'",true)
 
 --UNHELP, no idea
 local function unhelp(usr,chan,msg)
@@ -307,7 +329,7 @@ local function unhelp(usr,chan,msg)
 	end
 	return "No help for "..msg.." found!"
 end
-add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu/' ,noitamrofni lufplehnu yllufepoh snruteR",true)
+add_cmd(unhelp,"unhelp",0,"'>dmc< plehnu*' ,noitamrofni lufplehnu yllufepoh snruteR",true)
 
 --TIMER
 local function timer(usr,chan,msg,args)
@@ -326,7 +348,7 @@ local function timer(usr,chan,msg,args)
 		return "Bad timer"
 	end
 end
-add_cmd(timer,"timer",0,"Time until a print is done, '/timer <time(seconds)> <text>'",true)
+add_cmd(timer,"timer",0,"Time until a print is done, '*timer <time(seconds)> <text>'",true)
 
 --BUG, report something to me in a file
 local function rbug(usr,chan,msg,args)
@@ -336,7 +358,7 @@ local function rbug(usr,chan,msg,args)
 	f:close()
 	return "Reported bug"
 end
-add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '/bug <msg>'",true)
+add_cmd(rbug,"bug",0,"Report something to "..config.owner.nick..", '*bug <msg>'",true)
 
 --SEEN, display last message by a user
 local function seen(usr,chan,msg,args)
@@ -365,4 +387,24 @@ local function seen(usr,chan,msg,args)
 	msg = nick.." was last seen in "..chan.." "..msg..": <"..nick.."> "..irc.channels[chan].users[nick].lastSaid.msg
 	return msg
 end
-add_cmd(seen,"seen",0,"Display a last seen message '/seen [<chan>] <nick>'",true)
+add_cmd(seen,"seen",0,"Display a last seen message '*seen [<chan>] <nick>'",true)
+
+--source
+local function source(usr,chan,msg,args)
+	if args[1] then 
+		return "https://github.com/wolfy1339/WolfyBot/blob/master/"..args[1]
+	else 
+		return "https://github.com/wolfy1339/WolfyBot"
+	end 
+end
+add_cmd(source,"source",0,"Display the location of my source '*source [<file>]'",true,{"github"})
+local function ctcp(usr,chan,msg,args)
+	if args[1] and args[2] then
+		ircSendRawQ("PRIVMSG "..args[1].." \001"..args[2].."\001")
+	end
+	if not args[2] or not args[1] then
+		return "You must specify the type of CTCP request (in caps), and someone's nick"
+	end
+	return msg
+end
+add_cmd(ctcp,"ctcp",0,"Send a CTCP request to a specified nick '*ctcp <type> <nick>'",true)

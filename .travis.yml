@@ -1,0 +1,27 @@
+language: c
+sudo: true
+dist: trusty
+addons:
+  apt:
+    packages:
+      - luajit
+      - gcc
+      - build-essential
+      - libluajit-5.1-dev
+      - python
+      - luasocket
+#install:
+#  - wget http://mirrors.kernel.org/ubuntu/pool/universe/l/luasocket/luasocket_2.0.2-6_all.deb
+#  - sudo dpkg -i luasocket_2.0.2-6_all.deb
+script:
+  # Build Sandbox
+  - cd $TRAVIS_BUILD_DIR/plugins/sandbox
+  - make travis
+after_script:
+  # Validate lua files
+  - cd $TRAVIS_BUILD_DIR
+  - (LUA_FAILURE=0; for file in `find plugins -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
+  - (LUA_FAILURE=0; for file in `find -name '*.lua'`; do luac -p $file; if [ $? != 0 ]; then LUA_FAILURE=1; fi; done; exit $LUA_FAILURE)
+  - chmod +x runbot
+  - timeout 15 ./runbot
+

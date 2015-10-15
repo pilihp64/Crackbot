@@ -1,0 +1,3 @@
+[submodule "irc"]
+	path = irc
+	url = https://github.com/wolfy1339/LuaIRC.git

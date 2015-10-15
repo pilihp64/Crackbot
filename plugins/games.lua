@@ -8,38 +8,39 @@ end
 gameUsers = gameUsers or loadUsers()
 
 storeInventory={
-["paradox"]={name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=false},
-["blackhole"]=	{name="blackhole",	cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=false},
-["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=false},
-["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=false},
-["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=false},
-["junk"]=	{name="junk",	cost=-500,info="Why do you have this, you will have to PAY someone to get rid of it",amount=1,instock=false},
+["whitehole"]=	{name="whitehole",cost=5000000000000,info="?no gniog si tahW",amount=1,instock=true},
+["paradox"]=	{name="paradox",cost=-5000000000000,info="Game over for you, buddy",amount=1,instock=true},
+["blackhole"]=	{name="blackhole",cost=-50000000000,info="OH MY GOD, GET RID OF IT NOW",amount=1,instock=true},
+["loan"]=	{name="loan",	cost=-500000000,info="Why would you take out such a large loan.. better get rid of it fast (it grows)",amount=1,instock=true},
+["credit"]=	{name="credit",	cost=-5000000,info="You owe somebody a lot of money",amount=1,instock=true},
+["void"]=	{name="void",	cost=-50000,info="Watch out, this will take money with it!",amount=1,instock=true},
+["junk"]=	{name="junk",	cost=-500,info="Why do you have this, you will have to PAY someone to get rid of it",amount=1,instock=true},
 ["powder"]=	{name="powder",	cost=5,info="It's some kind of powder...",amount=1,instock=true},
 ["chips"]=	{name="chips",	cost=50,info="Baked Lays.",amount=1,instock=true},
-["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=false},
+["shoe"]=	{name="shoe",	cost=200,info="One shoe, why is there only one?",amount=1,instock=true},
 ["iPad"]=	{name="iPad",	cost=499,info="A new iPad.",amount=1,instock=true},
 ["table"]=	{name="table",	cost=700,info="The fanciest table around!",amount=1,instock=true},
 ["lamp"]=	{name="lamp",	cost=1001,info="A very expensive lamp, great lighting.",amount=1,instock=true},
-["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
-["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
+["penguin"]=	{name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=true},
+["nothing"]=	{name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=true},
 ["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
-["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
+["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=true},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
-["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=false},
+["moo"]=	{name="moo",	cost=1000000,info="A very rare moo, hard to find.",amount=1,instock=true},
 ["potato"]=	{name="potato",	cost=2000000,info="Just a potato.",amount=1,instock=true},
-["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=false},
-["diamond"]={name="diamond",cost=10000000,info="You are rich.",amount=1,instock=false},
+["gold"]=	{name="gold",	cost=5000000,info="Sparkly.",amount=1,instock=true},
+["diamond"]=	{name="diamond",cost=10000000,info="You are rich.",amount=1,instock=true},
 ["cow"]=	{name="cow",	cost=24000000,info="Can generate moo's.",amount=1,instock=true},
-["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=false},
+["house"]=	{name="house",	cost=50000000,info="A decent size mansion.",amount=1,instock=true},
 ["cube"]=	{name="cube",	cost=76000000,info="A Rubik's cube made of ice.",amount=1,instock=true},
-["cracker"]={name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=false},
+["cracker"]=	{name="cracker",cost=100000000,info="Just in-case anyone ever rolls this high.",amount=1,instock=true},
 ["estate"]=	{name="estate",	cost=300000000,info="You can live here forever.",amount=1,instock=true},
-["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=false},
-["billion"]={name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
-["company"]={name="company",cost=25000000000,info="A successful company that makes money.",amount=1,instock=true},
-["antiPad"]={name="antiPad",cost=100000000000,info=".daPi wen A, For the rich, made from antimatter.",amount=1,instock=true},
-["country"]={name="country",cost=1000000000000,info="You own a country and everything in it.",amount=1,instock=true},
+["moo2"]=	{name="moo2",	cost=500000000,info="This moo has evolved into something new.",amount=1,instock=true},
+["billion"]=	{name="billion",cost=999999999,info="A bill not actually worth a billion.",amount=1,instock=true},
+["company"]=	{name="company",cost=25000000000,info="A successful company that makes money.",amount=1,instock=true},
+["antiPad"]=	{name="antiPad",cost=100000000000,info=".daPi wen A, For the rich, made from antimatter.",amount=1,instock=true},
+["country"]=	{name="country",cost=1000000000000,info="You own a country and everything in it.",amount=1,instock=true},
 ["world"]=	{name="world",	cost=1000000000000000,info="You managed to buy the entire world",amount=1,instock=true},
 ["god"]=	{name="god",	cost=999999999999999999999,info="Even God sold himself to obey your will.",amount=1,instock=true},
 }
@@ -127,7 +128,7 @@ local function remInv(usr,name,amt)
 	end
 end
 
-local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
+local antiPadList = {"iPad","whitehole","blackhole","company","billion","iPad","country"}
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -138,6 +139,8 @@ local function timedSave()
 				v.cost = math.floor(v.cost*1.002)
 			elseif k=="blackhole" then
 				v.cost = math.floor(v.cost*1.02)
+			elseif k=="whitehole" then
+				changeCash({host=host},math.floor(v.cost*1.02))
 			elseif k=="paradox" then
 				v.cost = math.floor(v.cost*.9)
 			elseif k=="cow" and math.random()>.9 then
@@ -329,7 +332,7 @@ local itemUses = {
 				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
-					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
+					return "The app imploded into a blackhole while browsing, destroying space and time, THANKS OBAMA! (-1 iPad, +1 blackhole)"
 				end
 				addInv(usr, storeInventory[name], 1)
 				gameUsers[usr.host].inventory["iPad"].status = os.time()+math.floor((.6-cost/storeInventory[name].cost)*math.log(storeInventory[name].cost)^2)
@@ -382,6 +385,18 @@ local itemUses = {
 	end,
 	["doll"]=function(usr,args,chan)
 		remInv(usr,"doll",1)
+<<<<<<< HEAD
+		if string.lower(usr.nick):find("mitch") then
+			ircSendRawQ("KICK "..config.channels.primary.." "..usr.nick)
+			return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
+		end
+		local rnd = math.random(1,100)
+		if rnd <= 50 then
+			return "You find out the doll was gay and throw it away (-1 doll)"
+		elseif rnd == 51 then
+			ircSendRawQ("KICK "..config.channels.primary.." wolfmitchell")
+			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
+=======
 		if chan == "##powder-bots" then
 			if string.lower(usr.nick):find("mitch") then
 				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
@@ -397,6 +412,7 @@ local itemUses = {
 			else
 				return "The doll looks so ugly that you burn it (-1 doll)"
 			end
+>>>>>>> 5907c6ad43b4a94705bddc2332b2a49ac53848c3
 		else
 			local rnd = math.random(1,100)
 			if rnd <= 33 then
@@ -448,6 +464,9 @@ local itemUses = {
 			return "You drink the holy water. Nothing happens (-1 water)"
 		elseif rnd < 5 then
 			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
+		elseif rnd < 7 then
+			addInv(usr, storeInventory["whitehole"], 1)
+			return "You drink the holy water. A whitehole opens (+1 whitehole)"
 		else
 			local amt = ((rnd-5)^3)*100000+1
 			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
@@ -465,6 +484,9 @@ local itemUses = {
 			return "You stare at your table. The table stares back o.o"
 		elseif rnd <= 65 then
 			return "You look underneath your table and find a huge wad of cash!"..changeCash(usr,math.random(1,50000))
+		elseif rnd <= 70 then
+			addInv(usr, storeInventory["whitehole"], 1)
+			return "OMG! You find a whitehole under the table (+1 whitehole)"
 		elseif rnd <= 90 then
 			remInv(usr, "table", 1)
 			return "You flip your table (╯°□°）╯︵ ┻━┻. It falls and breaks. (-1 table)"
@@ -796,7 +818,7 @@ local function useItem(usr,chan,msg,args)
 		return "This item can't be used!"
 	end
 end
-add_cmd(useItem,"use",0,"Use an item, '/use <item>', Find out what all the items can do!",true)
+add_cmd(useItem,"use",0,"Use an item, '*use <item>', Find out what all the items can do!",true)
 
 --User cash
 local function myCash(usr,all)
@@ -904,10 +926,10 @@ local function myMoney(usr,chan,msg,args)
 	end
 	return myCash(usr)
 end
-add_cmd(myMoney,"cash",0,"Your current balance, '/cash [stats]', Sending stats will show some saved stats.",true,{"money"})
+add_cmd(myMoney,"cash",0,"Your current balance, '*cash [stats]', Sending stats will show some saved stats.",true,{"money"})
 --GIVE
 local function giveMon(usr,chan,msg,args)
-	if not args[2] then return "Usage: '/give <username> <amount>'" end
+	if not args[2] then return "Usage: '*give <username> <amount>'" end
 	local toHost
 	local amt,item
 	if tonumber(args[2]) then
@@ -952,7 +974,7 @@ local function giveMon(usr,chan,msg,args)
 	
 	
 end
-add_cmd(giveMon,"give",0,"Give money or item to a user, '/give <username> <amount/item>', need over 10k to give.",true)
+add_cmd(giveMon,"give",0,"Give money or item to a user, '*give <username> <amount/item>', need over 10k to give.",true)
 --reload cashtext
 local function loadCash(usr,chan,msg,args)
 	return loadUsersCMD()
@@ -961,23 +983,24 @@ add_cmd(loadCash,"loadcash",101,"Reload saved money",true)
 --FLIP
 local function flipCoin(usr,chan,msg,args)
 	if not args[1] or not tonumber(args[1]) then
-		return "You need to place a bet! '/flip <bet>'"
+		return "You need to place a bet! '*flip <bet>'"
 	end
 	local bet = math.floor(tonumber(args[1]))
 	if bet < 1 then return "Bet too low" end
 	return coinToss(usr,bet)
 end
 add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true,{"bet"})
+
 --DOOR
 local function odor(usr,chan,msg,args)
 	return odoor(usr,args)
 end
-add_cmd(odor,"door",0,"Open a door, '/door <door>', No one knows what will happen",true)
+add_cmd(odor,"door",0,"Open a door, '*door <door>', No one knows what will happen",true)
 
 --STORE, to buy somethings?
 local function store(usr,chan,msg,args)
 	if not msg  or args[1]=="help" then
-		return "Welcome to the CrackStore, use '/store list' or '/store info <item>' or '/store buy <item> [<amt>]' or '/store sell <item> [<amt>]'."
+		return "Welcome to the CrackStore, use '*store list' or '*store info <item>' or '*store buy <item> [<amt>]' or '*store sell <item> [<amt>]'."
 	end
 	if args[1]=="list" then
 		local t={}
@@ -1066,7 +1089,7 @@ local function store(usr,chan,msg,args)
 		end
 	end
 end
-add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true,{"shop"})
+add_cmd(store,"store",0,"Browse the store, '*store list/info/buy/sell'",true,{"shop"})
 
 
 local charLookAlike={["0"]="O",["1"]="I",["2"]="Z",["3"]="8",["4"]="H",["5"]="S",["6"]="G",["7"]="Z",["8"]="3",["9"]="6",
@@ -1322,7 +1345,7 @@ local function quiz(usr,chan,msg,args)
 	--no return so you can't see nest result
 	return nil
 end
-add_cmd(quiz,"quiz",0,"Start a question for the channel, '/quiz <bet>' First to answer correctly wins a bit more, only your first message is checked.",true)
+add_cmd(quiz,"quiz",0,"Start a question for the channel, '*quiz <bet>' First to answer correctly wins a bit more, only your first message is checked.",true)
 
 --ASK a question, similar to quiz, but from a user in query
 local function ask(usr,chan,msg,args)
@@ -1362,4 +1385,4 @@ local function ask(usr,chan,msg,args)
 	ircSendChatQ(toChan,rstring)
 	return nil
 end
-add_cmd(ask,"ask",0,"Ask a question to a channel, '/ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer.",true)
+add_cmd(ask,"ask",0,"Ask a question to a channel, '*ask <channel> [<prize($)>] <question> <mainAnswer> [<altAns...>]' Optional prize, It will help to put \" around the question and answer.",true)

@@ -2,6 +2,7 @@ permissions = {}
 --insert host into permissions here
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
+permissions["/bot/"] = -1
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host)
@@ -28,34 +29,35 @@ local config = {
 	},
 	--User info, set these to whatever you need
 	user = {
-		nick = "Crackbot",
-		username = "Meow",
-		realname = "moo",
-		
-		--account = "Crackbot",
+		nick = "wolfybot1339",
+		username = "wolfy1339",
+		realname = "A Wolfy1339 Lua Bot",
+		account = "BigWolfy1339",
 		--password = "password"
 	},
 	--Owner info, only used now for terminal input
 	owner = {
-		nick = "jacob1",
-		host = "Powder/Developer/jacob1",
-		fullhost = "jacob1!~jacob1@Powder/Developer/jacob1"
+		nick = "wolfy1339",
+		host = "botters/wolfy1339",
+		fullhost = "wolfy1339!~wolfy1339@botters/wolfy1339"
 	},
 	--Channels to join on start
-	autojoin = {
-		--"##foo",
+	channels = {
+		autojoin = {
+			--"##foo",
+		},
+		--used occasionally to kick people in games.lua
+		primary = "##foo",
+		--logs all commands done in pm, and added aliases
+		logs = "##foo"
 	},
-	--used occasionally to kick people in games.lua
-	primarychannel = "##powder-bots",
-	--logs all commands done in pm, and added aliases
-	logchannel = "##foo",
-	
-	prefix = "%./",
-	suffix = "moo+",
-	
+	prefix = "%*$",
+	suffix = "woof+",
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
-	terminal = "gnome-terminal -x",
-	terminalinput = true
+	console = {
+		terminal = "gnome-terminal -x",
+		input = false
+	},
 }
 
 return config

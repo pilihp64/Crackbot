@@ -1,8 +1,22 @@
+#if defined(WIN32)
+#include <windows.h>
+#endif
+#if defined(LUA_INC)
 #include <lua5.1/lua.h>
 #include <lua5.1/lualib.h>
 #include <lua5.1/lauxlib.h>
-#ifdef WIN32
-#include <windows.h>
+#elif defined(LUAJIT)
+#include <luajit.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#elif defined(LUAJIT_INC)
+#include <luajit-2.0/luajit.h>
+#include <luajit-2.0/lualib.h>
+#include <luajit-2.0/lauxlib.h>
+#else
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 #endif
 #include <pthread.h>
 #include <stdlib.h>

@@ -141,7 +141,7 @@ function colorstrip(text)
 	newstring = newstring:gsub("[\003\015]","") --remove extra \003
 	return newstring
 end
-add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
+add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '*colorstrip <text>'")
 --RAINBOW every letter is new color
 function rainbow(text)
 	local newtext= ""
@@ -153,7 +153,7 @@ function rainbow(text)
 	newtext = newtext .. cchar --end with color clear
 	return newtext
 end
-add_filt(rainbow,"rainbow",nil,"Rainbows! '/rainbow <text>'")
+add_filt(rainbow,"rainbow",nil,"Rainbows! '*rainbow <text>'")
 --COLOR add color to a line or section of line
 local function color(text,args)
 	local newstring
@@ -202,7 +202,7 @@ local function colorsane(args)
 		return false,"Need a color arg (0-15)"
 	end
 end
-add_filt(color,"color",colorsane,"Set to a specific color: '/color <col1>[,<col2>] [<startx> <endx>] <text>'")
+add_filt(color,"color",colorsane,"Set to a specific color: '*color <col1>[,<col2>] [<startx> <endx>] <text>'")
 
 --REVERSE reverses string while moving color codes
 local function reverse(text)
@@ -262,8 +262,9 @@ function reverse2(text)
 	end
 	return s
 end
-add_filt(reverse2,"reverse",nil,"Reverses text, '/reverse <text>'")
---add_filt(reverse,"oldreverse",nil,"Reverses text, '/reverse <text>'")
+add_filt(reverse2,"reverse",nil,"Reverses text, '*reverse <text>'")
+--add_filt(reverse,"oldreverse",nil,"Reverses text, '*reverse <text>'")
+
 local function cow_text(text,length)
 	if (#text < length) then return {text} end
 	local t,start,en = {},1,length
@@ -330,6 +331,34 @@ local function cowsane(args,filt)
 end
 add_filt(cowsay,"cowsay",cowsane,"Says things with a cow.",1)
 
+local function get_dog()
+    return [[
+                .-._     /
+               {_}^ )o  /
+      {\________//~`     
+       (         )
+       /||~~~~~||\
+      |_\\_    \\_\_   
+      "' ""'    ""'"'
+     ]]
+end
+
+local function dodogsay(text)
+	return get_bubble(text)..get_dog()
+end
+
+local function dogsay(text,args)
+	if #text>1000 then return '' end
+	local t = {}
+	local s = dodogsay(text)
+	for line in s:gmatch('(.-)\n') do
+		table.insert(t,line)
+	end
+	return t
+end
+add_filt(dogsay,"dogsay",cowsane,"Says things with a dog.",1)
+
+
 --SCRAMBLE, scrambles letters inside each word
 local function scramble(text,args)
 	local rstring
@@ -358,7 +387,8 @@ local function scrambSane(args,filt)
 	if filt then args.skip=true end
 	return true
 end
-add_filt(scramble,"scramble",scrambSane,"Scrambles words, '/scramble <text>'")
+add_filt(scramble,"scramble",scrambSane,"Scrambles words, '*scramble <text>'")
+
 --Pattern filter
 local function patF(text,args)
 	if not args.skip then text = args.str end
@@ -374,12 +404,12 @@ local function patFSane(args,filt)
 	args.str = table.concat(t," ")
 
 	if not args.pat or not args.repl then
-		return false,"Bad parameters, '/pattern <pat> <repl>'"
+		return false,"Bad parameters, '*pattern <pat> <repl>'"
 	end
 	if filt then args.skip=true end
 	return true
 end
-add_filt(patF,"pattern",patFSane,"Performs a gsub on text, '/pattern <patt> <repl> <text>'")
+add_filt(patF,"pattern",patFSane,"Performs a gsub on text, '*pattern <patt> <repl> <text>'")
 
 --BRAINFUCK filter
 function toBF(str)
@@ -405,21 +435,21 @@ local function hexlify(text,args)
 	text = text or ""
 	return hexStr(text,"")
 end
-add_filt(hexlify,"hex",nil,"Convert to hex, '/hex <text>'")
+add_filt(hexlify,"hex",nil,"Convert to hex, '*hex <text>'")
 local function unhexlify(text,args)
 	text = text or ""
 	return unHexStr(text)
 end
-add_filt(unhexlify,"unhex",nil,"Convert hex to chars, '/unhex <text>'")
+add_filt(unhexlify,"unhex",nil,"Convert hex to chars, '*unhex <text>'")
 --CAPS
 function toCaps(text,args)
 	return string.upper(text)
 end
-add_filt(toCaps,"caps",nil,"CAPITALIZES TEXT, '/CAPS <TEXT>'")
+add_filt(toCaps,"caps",nil,"CAPITALIZES TEXT, '*CAPS <TEXT>'")
 function toLower(text,args)
 	return string.lower(text)
 end
-add_filt(toLower,"nocaps",nil,"turns text to lowercase, '/nocaps <text>'")
+add_filt(toLower,"nocaps",nil,"turns text to lowercase, '*nocaps <text>'")
 
 local magn=setmetatable({"thousand","million","billion","trillion","quadrillion","quintillion","sextillion","septillion"},{__index=function(_,i)return i.."-bajillion"end})
 local one={"one","two","three","four","five","six","seven","eight","nine"}
@@ -479,7 +509,7 @@ end
 local function numify(text,args)
 	return text:gsub("(%-?%d+)",function(s) return mknum(tonumber(s)) end)
 end
-add_filt(numify,"mknum",nil,"Turns digits into their text, '/mknum <text>'")
+add_filt(numify,"mknum",nil,"Turns digits into their text, '*mknum <text>'")
 function mknumscramb(n)
 	local rnd=math.random(1,100)
 	if rnd<15 then return tostring(n) end
@@ -591,7 +621,7 @@ local function filter(usr,chan,msg,args)
 		return "No filter named "..name
 	end
 end
-add_cmd(filter,"filter",0,"Set a filter, '/filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true,{"f"})
+add_cmd(filter,"filter",0,"Set a filter, '*filter <filtName>/list/current [<arguments to filter>]', no argument to clear",true,{"f"})
 
 --add sub commands to call filters directly
 for k,v in pairs(filters) do
@@ -663,4 +693,4 @@ local function badWord(usr,chan,msg,args)
 	end
 	return "Usage: badword add/rem <word>"
 end
-add_cmd(badWord,"badword",20,"Set or remove bad words, '/badword add/rem <word>'",true)
+add_cmd(badWord,"badword",20,"Set or remove bad words, '*badword add/rem <word>'",true)

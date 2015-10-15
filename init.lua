@@ -21,9 +21,9 @@ socket = require"socket"
 local console=socket.tcp()
 console:settimeout(5)
 
-if not WINDOWS and config.terminalinput then
+if not WINDOWS and config.console.input then
 	--start my console line-in
-	os.execute(config.terminal.." lua consolein.lua")
+	os.execute(config.console.terminal.." -x lua consolein.lua")
 end
 shutdown = false
 user = config.user
@@ -35,8 +35,8 @@ config.network.password = nil
 if config.user.password then
 	irc:sendChat("NickServ", "identify "..config.user.account.." "..config.user.password)
 	config.user.password = nil
-	print("Connected, sleeping for 7 seconds")
-	sleep(7)
+	print("Connected, sleeping for 10 seconds")
+	sleep(10)
 else
 	print("Connected")
 end
@@ -55,18 +55,17 @@ end
 
 dofile("hooks.lua")
 dofile("commands.lua")
-if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
-for k,v in pairs(config.autojoin) do
+if #config.channels.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
+for k,v in pairs(config.channels.autojoin) do
 	irc:join(v)
 end
 --join extra config channels if they for some reason aren't in the autojoin
-if config.primarychannel then
-	irc:join(config.primarychannel)
+if config.channels.primary then
+	irc:join(config.channels.primary)
 end
-if config.logchannel then
-	irc:join(config.logchannel)
+if config.channels.logs then
+	irc:join(config.channels.logs)
 end
-irc:sendChat(config.primarychannel, "moo"*#config.autojoin)
 
 local function consoleThink()
 	if not connected then return end

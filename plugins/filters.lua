@@ -514,7 +514,7 @@ local function luaFiltSane(args,filt)
 	args.skip = filt
 	return true
 end
-add_filt(luaFilt,"luaFilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/luaFilt \"<code>\" <text>'")
+add_filt(luaFilt,"luafilt",luaFiltSane,"Lua code to parse text, input is ... , return/print the output '/luafilt \"<code>\" <text>'")
 
 --function to let filters sanity check some args for direct calls
 function callFilt(name,f,sanf,filt)
@@ -533,16 +533,17 @@ end
 
 --FILTER main command, set filter for output
 local function filter(usr,chan,msg,args)
-	if msg=="current" then
+	local command = msg and msg:lower() or nil
+	if command=="current" then
 		ircSendChatQ(chan,getFilts(chan),true)
 		return nil
-	elseif msg=="list" then
+	elseif command=="list" then
 		local t = {}
 		for k,v in pairs(filters) do
 			table.insert(t,k)
 		end
 		return "Filters: "..table.concat(t,", ")
-	elseif msg=="lock" then
+	elseif command=="lock" then
 		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtLock(chan)
@@ -550,7 +551,7 @@ local function filter(usr,chan,msg,args)
 		else
 			return "No permissions to lock"
 		end
-	elseif msg=="unlock" then
+	elseif command=="unlock" then
 		local perm = getPerms(usr.host)
 		if perm > 20 then
 			filtUnLock(chan)
@@ -558,19 +559,19 @@ local function filter(usr,chan,msg,args)
 		else
 			return "No permission to unlock"
 		end
-	elseif msg=="pop" then
+	elseif command=="pop" then
 		if popFilter(chan) then
 			return "Removed last filter"
 		else
 			return "Can't pop! Locked or no filters"
 		end	
-	elseif not msg then
+	elseif not command then
 		if clearFilter(chan) then
 			return "Cleared Filts"
 		end
 		return chan.." is locked"
 	end
-	local name=table.remove(args,1)
+	local name=table.remove(args,1):lower()
 	args.name=name
 	if filters[name] and commands[name] then
 		local perm = getPerms(usr.host)

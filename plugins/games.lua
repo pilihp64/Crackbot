@@ -845,6 +845,7 @@ local function odoor(usr,door)
 	end
 	
 	door = door[1] or "" --do something with more args later?
+	if door == "secret" then return "http://starcatcher.us:54329/Door" end
 	local isNumber=false
 	local randMon = 50
 	local divideFactor = 2

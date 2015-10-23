@@ -30,10 +30,11 @@ end
 --Helper to return user object from a name
 function getUserFromNick(nick)
 	if not nick then return end
+	nick = nick:lower()
 	for k,v in pairs(irc.channels) do
 		if v and v.users then
 			for k2,v2 in pairs(v.users) do
-				if v2 and v2.nick == nick then
+				if v2 and v2.nick:lower() == nick then
 					return v2
 				end
 			end

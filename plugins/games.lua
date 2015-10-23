@@ -10,8 +10,8 @@ gameUsers = gameUsers or loadUsers()
 local function itemName(item)
 	local fixed = item:lower()
 	if fixed == "ipad" then return "iPad"
-	elseif fixedname == "antipad" then return "antiPad"
-	else return fixedname
+	elseif fixed == "antipad" then return "antiPad"
+	else return fixed
 	end
 end
 storeInventory={

@@ -91,7 +91,7 @@ end
 
 local allColors = {'01','02','03','04','05','06','07','08','09','10','11','12','13','14','15',white='00', black='01', blue='02', green='03', red='04', brown='05', purple='06', orange='07', yellow='08', lightgreen='09', turquoise='10', lightblue='11', skyblue='12', lightpurple='13', gray='14', lightgray='15'}
 allColors[0]='00'
-local rainbowOrder = {'04','07','08','03','02','12','06'}
+local rainbowOrder = {'04','07','08','03','10','02','06'}
 local cchar = '\003'
 --returns a table with data about where color codes are, might not be correct at all, old
 local function tableColor(text)
@@ -101,9 +101,9 @@ local function tableColor(text)
 	local d = 0 --amount deleted
 	local startOf = true
 	while true do
-		local st3,en3,cap3 = text:find("(\003%d%d?,%d%d?)",1)
-		local st2,en2,cap2 = text:find("(\003%d%d?)",1)
-		local st,en,cap = text:find("([\003\015])",1)
+		local st3,en3,cap3 = text:find("(\022?\003%d%d?,%d%d?)",1)
+		local st2,en2,cap2 = text:find("(\022?\003%d%d?)",1)
+		local st,en,cap = text:find("([\003\015\022])",1)
 		local short=false
 		if not en then break end --smallest check
 
@@ -125,7 +125,7 @@ local function tableColor(text)
 		end
 		if not skip then
 			ending = ending or 99999
-			if en+1<ending then
+			if en+1<ending or cap=="\022" then
 				table.insert(t,{["start"]=st+d-i,["en"]=st+ending-en+d-i-2,["col"]=cap})
 			end
 		end
@@ -135,10 +135,10 @@ local function tableColor(text)
 	return t
 end
 --COLORSTRIP strips colors
-function colorstrip(text)
+function colorstrip(text,qqq,www,ignore)
 	local newstring = text:gsub("\003%d%d?,%d%d?","") --remove colors with backgrounds
 	newstring = newstring:gsub("\003%d%d?","") --remove normal
-	newstring = newstring:gsub("[\003\015]","") --remove extra \003
+	if not ignore then newstring = newstring:gsub("[\003\015\022]","") end --remove extra \003
 	return newstring
 end
 add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
@@ -146,10 +146,11 @@ add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text
 function rainbow(text)
 	local newtext= ""
 	local rCount=1
-	for char in colorstrip(text):gmatch(".%s?") do
-		newtext = newtext .. cchar .. rainbowOrder[rCount] .. char
+	newtext = (colorstrip(text,1,1,true)):gsub("([^%s%c])",function(c)
+		c = cchar .. rainbowOrder[rCount] .. c
 		rCount = ((rCount)%(#rainbowOrder))+1
-	end
+		return c
+	end)
 	newtext = newtext .. cchar --end with color clear
 	return newtext
 end

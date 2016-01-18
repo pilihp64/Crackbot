@@ -417,29 +417,29 @@ local itemUses = {
 	end,
 	["derp"]=function(usr)
 		remInv(usr,"derp",1)
-		local count = 0
+		local itemList, itemWeight, total = {}, {}, 0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if v.cost >= -1000 then
-				count = count + v.amount
+			if v.cost >= -1000 and v.instock then
+				table.insert(itemList,v)
+				total = total + v.amount
+				table.insert(itemWeight,total)
 			end
 		end
-		if count == 0 then
+		if #itemList == 0 then
 			return "You are a derp"
 		end
-		local item,rnd,count = nil,math.random(count),0
-		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if v.cost >= -1000 then
-				count = count + v.amount
-				if count >= rnd then
-					item = v
-					break
-				end
+		local item,rnd = nil,math.random(total)
+		for i,v in ipairs(itemWeight) do
+			if v >= rnd then
+				item = itemList[i]
+				break
 			end
 		end
 		if not item then
 			return "jacob1 is a derp"
 		end
 		rnd = math.random()
+		--return total.." "..rnd.." : "..table.concat(itemWeight," ")
 		if rnd < .5 then
 			addInv(usr,item,1)
 			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
@@ -795,6 +795,9 @@ local function useItem(usr,chan,msg,args)
 	if not args[1] then
 		return "Need to specify an item! '/use <item>'"
 	end
+	if chan:sub(1,1) ~= "#" then
+		return "This command must be run in a channel"
+	end
 	local item = itemName(args[1])
 	if not gameUsers[usr.host].inventory[item] or gameUsers[usr.host].inventory[item].amount<=0 then
 		return "You don't have that item!"
@@ -1074,6 +1077,21 @@ local function store(usr,chan,msg,args)
 		else
 			return "You don't have that!"
 		end
+	end
+	if command=="sellall" then
+		local sellList, rstring, totalSold = {}, "", 0
+		--Only sellall INSTOCK positive items
+		for k,v in pairs(gameUsers[usr.host].inventory) do
+			if v.instock and v.cost >= 0 then table.insert(sellList,v) end
+		end
+		if #sellList == 0 then return "You don't have any items to 'sellall'" end
+		for i,v in ipairs(sellList) do
+			changeCash(usr,v.cost*v.amount)
+			rstring = rstring..nicenum(v.amount).." "..v.name..", "
+			totalSold = totalSold + (v.cost*v.amount)
+			remInv(usr,v.name,v.amount)
+		end
+		return "Sold "..rstring.."for $"..totalSold
 	end
 end
 add_cmd(store,"store",0,"Browse the store, '/store list/info/buy/sell'",true,{"shop"})

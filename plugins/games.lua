@@ -135,6 +135,9 @@ local function remInv(usr,name,amt)
 end
 
 local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
+local ratelimit = {}
+local peruserlimit = 1000
+local perchannellimit = 2500
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -166,6 +169,9 @@ local function timedSave()
 				addInv({host=host},{name="memento",cost=0,info="Lost memories of your past, you were apparently worth $"..nicenum(total),amt=1,instock=false},1)
 			end
 		end
+	end
+	if os.date("%M") == 1 or os.date("%M") == 2 then
+		ratelimit = {}
 	end
 	table.save(gameUsers,"plugins/gameUsers.txt")
 end
@@ -797,6 +803,16 @@ local function useItem(usr,chan,msg,args)
 	end
 	if chan:sub(1,1) ~= "#" then
 		return "This command must be run in a channel"
+	end
+	if usr.host then
+		ratelimit[usr.host] = ratelimit[usr.host] and ratelimit[usr.host] + 1 or 1
+		if ratelimit[usr.host] > peruserlimit then
+			return "Error: You have been spamming ./use too often, please wait an hour"
+		end
+	end
+	ratelimit[chan] = ratelimit[chan] and ratelimit[chan] + 1 or 1
+	if ratelimit[chan] > perchannellimit then
+		return "Error: this command has been temporarily disabled due to spam, please wait an hour"
 	end
 	local item = itemName(args[1])
 	if not gameUsers[usr.host].inventory[item] or gameUsers[usr.host].inventory[item].amount<=0 then

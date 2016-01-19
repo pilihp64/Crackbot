@@ -153,7 +153,7 @@ local function nicenum(number)
 end
 
 --Add coupon to user : coup is the table index of coupon?
-local function addCoup(usr,coup,amt)
+function addCoup(usr,coup,amt)
 	gameUsers[usr.host].coupons = gameUsers[usr.host].coupons or {}
 	local userC = gameUsers[usr.host].coupons
 	if userC[coup] then
@@ -162,7 +162,7 @@ local function addCoup(usr,coup,amt)
 		userC[coup] = amt
 	end
 end
-local function remCoup(usr,coup,amt)
+function remCoup(usr,coup,amt)
 	gameUsers[usr.host].coupons = gameUsers[usr.host].coupons or {}
 	local userC = gameUsers[usr.host].coupons
 	if userC[coup] then
@@ -171,7 +171,7 @@ local function remCoup(usr,coup,amt)
 	end
 end
 --Returns first valid coupon and how many
-local function hasCoup(usr,...)
+function hasCoup(usr,...)
 	gameUsers[usr.host].coupons = gameUsers[usr.host].coupons or {}
 	local userC = gameUsers[usr.host].coupons
 	for i,v in ipairs({...}) do
@@ -271,7 +271,7 @@ local function timedSave()
 			end
 		end
 	end
-	if os.date("%M") == 1 or os.date("%M") == 2 then
+	if os.date("%M") == "01" or os.date("%M") == "02" then
 		ratelimit = {}
 	end
 	table.save(gameUsers,"plugins/gameUsers.txt")
@@ -1183,7 +1183,7 @@ local function store(usr,chan,msg,args)
 				if gameUsers[usr.host].cash - cost >= 0 then
 					changeCash(usr, -cost)
 					addInv(usr, v, amt, true)
-					return "You bought "..nicenum(amt).." "..k
+					return "You bought "..nicenum(amt).." "..v.name
 				else
 					return "Not enough money!"
 				end

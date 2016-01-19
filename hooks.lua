@@ -256,7 +256,7 @@ function makeCMD(cmd,usr,channel,msg,permcheck)
 				end
 				if msg=="" then msg=nil end
 				coroutine.yield(false,0)
-				local s,r,e = commands[cmd].f(usr,channel,msg,getArgs(msg))
+				local s,r,e = commands[cmd].f(usr,channel,msg,(cmd == "aa" or cmd == "alias") and getArgsOld(msg) or getArgs(msg))
 				if type(s)=="string" then s = s:sub(1,5000) end
 				return s,r,e
 			end
@@ -374,6 +374,7 @@ local function realchat(usr,channel,msg)
 	end
 end
 local function chat(usr,channel,msg)
+	print("["..tostring(channel).."] <".. tostring(usr.nick) .. ">: "..tostring(msg))
 	if channel==user.nick then channel=usr.nick end --if query, respond back to usr
 	if not usr.nick then return end
 	local s,r = pcall(realchat,usr,channel,msg)

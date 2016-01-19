@@ -755,7 +755,7 @@ local itemUses = {
 			addInv(moo,storeInventory["moo2"],1)
 			return "Your cow moos. This cow was special though, it moos so hard that it makes a moo2 appear! Some of the other cows can't handle such a special moo and die (+1 moo2) (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..")"
 		elseif rnd <= 99 :
-                        if math.random(1000) == 500:
+                        if math.random(1000) > 998:
                                 remInv(moo, "cow", cowCount/4);
                                 addInv(moo, storeInventory["moo3"], 1);
                                 return "Your cow moos. This cow actually was an alien, so 1/4 of all your cows die because of its mooeing power. But you get a very cool and rare item..."
@@ -941,6 +941,17 @@ local itemUses = {
 	end,
 	['antiPad'] = function(usr,args)
 		return "You play Angry Birds."
+	end,
+
+	['moo3'] = function(usr, args)
+		local prob = math.random(1, 1000000)
+		if prob > 999998:
+			remInv(usr, "moo3", 1)
+			addInv(usr, storeInventory["world"])
+			return "Woosh! A whole world suddenly appears in your inventory! (-1 moo3) (+1 world)"
+		else:
+			return "This item can't be used!"
+		end
 	end,
 }
 

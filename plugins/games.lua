@@ -337,9 +337,9 @@ local itemUses = {
 		if name == nil then
 			return "You play Angry birds."
 		elseif storeInventory[name].instock then
-			local cost = math.floor(storeInventory[name].cost*(math.random()+.3))
+			local cost = math.floor(storeInventory[name].cost*(math.random()+.25))
 			if cost < gameUsers[usr.host].cash then
-				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.85 then
+				if cost > 10000000000 and gameUsers[usr.host].cash > 300000000000 and math.random()>.82 then
 					remInv(usr,"iPad",1)
 					addInv(usr,storeInventory["blackhole"],1)
 					return "The app imploded into a blackhole while browsing, THANKS OBAMA! (-1 iPad, +1 blackhole)"
@@ -562,7 +562,7 @@ local itemUses = {
 				str = "You fry the potato and make french fries"
 			end
 			if rnd%2 == 1 and irc.channels[chan] then
-				str = str..". The potato attacks you (-1 potato)"..changeCash(usr,-10000000)
+				str = str..". The potato attacks you (-1 potato)"..changeCash(usr,-5000000)
 				if irc.channels[chan].users[config.user.nick].access.op then
 					ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
 					return nil
@@ -596,8 +596,8 @@ local itemUses = {
 						addInv(moo,storeInventory["loan"],1)
 						return "You start a cow farm, but it quickly becomes overrun with peasants who start summoning a demonic rift. A great demon appears and allows you to live at a cost (+1 loan)"
 					end
-					local amountLost = math.ceil(rnd/5)
-					local amountgained = (math.floor(math.random(1,10))*4+1)*25000000
+					local amountLost = math.ceil(rnd/6)
+					local amountgained = (math.floor(math.random(1,10))*4+1)*40000000
 					remInv(moo, "cow", amountLost)
 					return "You start a cow farm and make an expensive enchantment table factory (-"..amountLost.." cow"..(amountLost==1 and "" or "s")..") (+$"..amountgained..")"..changeCash(moo, amountgained)
 				end
@@ -704,7 +704,7 @@ local itemUses = {
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
 			local rnd = math.random(100)
-			if rnd < 33 then
+			if rnd < 20 then
 				remInv(usr, "billion", 1)
 				addInv(other,storeInventory["billion"],1)
 				return "You threw your billion at "..other.nick.." and they gladly accept it"
@@ -781,7 +781,7 @@ local itemUses = {
 			addInv(usr, storeInventory["junk"], bad)
 			remInv(usr, "company", 1)
 			return "A clever conman comes by and tricks you into selling your company for the equivalent value in " ..item.. "s. Unfortunately, it turns out all but " ..good.. " of them were fake! (-1 company, +" ..good.. " " ..item..", +" ..bad.. " junk)"
-		elseif rnd <= 95 then
+		elseif rnd <= 93 then
 			remInv(usr, "company", 1)
 			return "Your company goes bankrupt after a freak accident. (-1 company)"
 		else

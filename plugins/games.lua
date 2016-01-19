@@ -137,6 +137,7 @@ end
 local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
 local ratelimit = {}
 local peruserlimit = 1000
+local perusermutelimit = 1100
 local perchannellimit = 2500
 
 --make a timer loop save users every minute, errors go to me
@@ -806,7 +807,10 @@ local function useItem(usr,chan,msg,args)
 	end
 	if usr.host then
 		ratelimit[usr.host] = ratelimit[usr.host] and ratelimit[usr.host] + 1 or 1
-		if ratelimit[usr.host] > peruserlimit then
+		if ratelimit[usr.host] == perusermutelimit then
+			ircSendRawQ("MODE "..chan.." +q :*!*@"..usr.host)
+			return "Error: You have been muted due to excessive spam"
+		elseif ratelimit[usr.host] > peruserlimit then
 			return "Error: You have been spamming ./use too often, please wait an hour"
 		end
 	end

@@ -321,8 +321,9 @@ local function timer(usr,chan,msg,args)
 		for i=2,#args do
 			table.insert(t,args[i])
 		end
-		local pstring = table.concat(t," ")
-		addTimer(ircSendChatQ[chan][pstring],tonumber(args[1]),chan,usr.nick)
+		local pstring, seconds = table.concat(t," "), tonumber(args[1])
+		addTimer(ircSendChatQ[chan][pstring],seconds,chan,usr.nick)
+		return "Timer will go off in "..seconds.." second"..(seconds ~= 1 and "s" or "")
 	else
 		return "Bad timer"
 	end

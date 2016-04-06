@@ -228,6 +228,47 @@ local function chmod(usr,chan,msg,args)
 end
 add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
+local function ignore(usr,chan,msg,args)
+	local channel = nil
+	if args[1]:sub(1,1) == "#" then
+		channel = args[1]
+		table.remove(args, 1)
+	end
+	if not args[1] then
+		return "Usage: '/ignore [<channel>] <user> [<seconds>]'"
+	end
+	local user, seconds, host = args[1], tonumber(args[2]), nil
+	if irc.channels[chan].users[user] then
+		host = irc.channels[chan].users[user].host
+	else
+		host = user
+	end
+	host = host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1")
+	local perm, otherperm = getPerms(usr.host), getPerms(host)
+	if otherperm >= perm then
+		return "You cannot ignore "..args[1]
+	end
+	if channel then
+		if not channelPermissions[channel] then
+			channelPermissions[channel] = {}
+		end
+		if seconds then
+			local oldlevel = channelPermissions[channel][host]
+			addTimer(function() channelPermissions[channel][host] = oldlevel end, seconds, chan, usr.nick)
+		end
+		channelPermissions[channel][host] = -1
+		return "ignored "..host.." in "..channel..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+	else
+		if seconds then
+			local oldlevel = permissions[host]
+			addTimer(function() permissions[host] = oldlevel end, seconds, chan, usr.nick)
+		end
+		permissions[host] = -1
+		return "ignored "..host..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+	end
+end
+add_cmd(ignore,"ignore",40,"Sets a global or channel ignore on a user",true)
+
 --hostmask
 local function getHost(usr,chan,msg,args)
 	if not args[1] then return usr.host end

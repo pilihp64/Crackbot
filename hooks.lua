@@ -4,12 +4,14 @@ local waitingCommands = {}
 _print = _print or print
 print = function(...)
 	_print(...)
-	local arg={...}
+	local arg = {...}
 	local str = table.concat(arg,"\t")
-	local frqq=io.open("log.txt","a")
-	frqq:write(os.date("[%x] [%X] ")..str.."\n")
-	frqq:flush()
-	frqq:close()
+	local frqq = io.open("log.txt","a")
+	if frqq then
+		frqq:write(os.date("[%x] [%X] ")..str.."\n")
+		frqq:flush()
+		frqq:close()
+	end
 end
 
 onSendHooks = onSendHooks or {}

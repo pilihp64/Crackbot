@@ -55,6 +55,78 @@ for k,v in pairs(storeInventory) do
 	table.insert(storeInventorySorted,v)
 end
 table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
+local function copyTable(t)
+	if not t then return end
+	local d = {}
+	for k,v in pairs(t) do
+		d[k]=v
+	end
+	return d
+end
+
+
+couponList = {
+	--Usable Coupons
+		--1 2 3
+	{name="Purchase Discount I",var=0.05,cost=5,useFunc=1,info="Your next purchase is discounted!"},
+	{name="Purchase Discount II",var=0.15,cost=5,useFunc=1,info="Your next purchase is discounted!"},
+	{name="Purchase Discount III",var=0.25,cost=5,useFunc=1,info="Your next purchase is discounted!"},
+		--4 5 6
+	{name="Sell Bonus I",var=0.05,cost=5,useFunc=2,info="Your next sell is increased!"},
+	{name="Sell Bonus II",var=0.15,cost=5,useFunc=2,info="Your next sell is increased!"},
+	{name="Sell Bonus III",var=0.25,cost=5,useFunc=2,info="Your next sell is increased!"},
+		--7 8 9 10
+	{name="Flip Bonus I",var=-0.2,cost=5,useFunc=3,info="Your next flip is changed."},
+	{name="Flip Bonus II",var=-0.1,cost=5,useFunc=3,info="Your next flip is changed."},
+	{name="Flip Bonus III",var=0.1,cost=5,useFunc=3,info="Your next flip is changed."},
+	{name="Flip Bonus IV",var=0.2,cost=5,useFunc=3,info="Your next flip is changed."},
+		--11 12 13
+	{name="Quiz Bonus I",var=0.1,cost=5,useFunc=4,info="Your next quiz will give more reward."},
+	{name="Quiz Bonus II",var=0.2,cost=5,useFunc=4,info="Your next quiz will give more reward."},
+	{name="Quiz Bonus III",var=0.3,cost=5,useFunc=4,info="Your next quiz will give more reward."},
+		--14 15 16 17
+	{name="Give Bonus I",var=10000,cost=5,useFunc=5,info="Being nice to people may help you."},
+	{name="Give Bonus II",var=1000000,cost=5,useFunc=5,info="Being nice to people may help you."},
+	{name="Give Bonus III",var=100000000,cost=5,useFunc=5,info="Being nice to people may help you."},
+	{name="Give Bonus IV",var=10000000000,cost=5,useFunc=5,info="Being nice to people may help you."},
+		--18
+	{name="Whitehole",var=1,cost=5,info="Removes one blackhole on use. - 'Who knew the existence of whiteholes were coupons all along!'"},
+
+	--Useless Coupons
+		--19..27
+	{name="Paper",var=1,cost=5,info="Just a blank piece of paper"},
+	{name="Old Paper",var=1,cost=5,info="Just an old piece of paper"},
+	{name="Wet Paper",var=1,cost=5,info="Just a wet piece of paper"},
+	{name="Burnt Paper",var=1,cost=5,info="Just a burnt piece of paper"},
+	{name="Outdated",var=1,cost=5,info="This was a great coupon, but it expired"},
+	{name="+1 Nothing",var=1,cost=5,info="Wow, it's nothing."},
+	{name="+100 Nothing",var=1,cost=5,info="Wow, it's nothing."},
+	{name="+1,000,000 Nothing",var=1,cost=5,info="Wow, it's nothing."},
+	{name="+1,000,000,000,000 Nothing",var=1,cost=5,info="Wow, it's nothing."},
+
+	--Permanent Effect Coupons
+		--28 29 30 31 32
+	{name="+1 Powder Value",func=function(c,a)return c+a end,cost=5,bonusVal="powder",info="Holding this makes Powders worth more."},
+	{name="+10,000,000 Moo Value",func=function(c,a)return c+(10000000*a) end,cost=5,bonusVal="moo",info="Holding this makes Moos worth more."},
+	{name="Blackhole Attractor",var=0.4,cost=-5,info="You are more likely to get a blackhole."},
+	{name="Void Expanse",func=function(c)return math.abs(c) end,allowstore=true,cost=5,bonusVal="void",info="Voids are now positive value to you."},
+	{name="Bankrupt",func=function(c)return -math.abs(c) end,allowstore=true,bonusVal="billion",info="Billions are now negative value to you."},
+
+	--Event coupons
+		--33 34 35
+	{name="Missing No.",var=1,cost=15,info="&*$@#*@^%@()#$)@(#*$*`!&^@#*&)#@)$()*)("},
+	{name="Cryptic Message",var=0.1,cost=15,info="Moooooo moooo moo mOOOoo"},
+	{name="Bomb",var=1,cost=15,info="Execute './store bombdefuse' or ALL your coupons will explode!!!"},
+
+	--Place new coupons below here for now
+}
+itemValueBonus = {}
+for i,v in ipairs(couponList) do
+	if v.bonusVal then
+		itemValueBonus[v.bonusVal] = itemValueBonus[v.bonusVal] or {}
+		table.insert(itemValueBonus[v.bonusVal],i)
+	end
+end
 
 couponList = {
 	--Usable Coupons
@@ -235,10 +307,10 @@ end
 
 
 local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
-local ratelimit = {}
-local peruserlimit = 1000
-local perusermutelimit = 1100
-local perchannellimit = 2500
+ratelimit = ratelimit or {}
+local peruserlimit = 500
+local perusermutelimit = 600
+local perchannellimit = 1750
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -271,7 +343,7 @@ local function timedSave()
 			end
 		end
 	end
-	if os.date("%M") == "01" or os.date("%M") == "02" then
+	if os.date("%M") == "00" then
 		ratelimit = {}
 	end
 	table.save(gameUsers,"plugins/gameUsers.txt")
@@ -371,7 +443,7 @@ local itemUses = {
 		elseif rnd <= 90 then
 			local t = {}
 			for k,v in pairs(gameUsers[usr.host].inventory) do if v.cost < 100000 and v.cost>0 then table.insert(t,v) end end
-			if #t then
+			if #t>0 then
 				local nom = t[math.random(#t)]
 				remInv(usr, nom.name, 1)
 				return "The junk expanded and ate your ".. nom.name .." (-1 ".. nom.name ..")"
@@ -673,7 +745,7 @@ local itemUses = {
 		end
 	end,
 	--gold
-	["diamond"]=function(usr, args)
+	--[[["diamond"]=function(usr, args)
 		local other = getUserFromNick(args[2])
 		if other and other.nick ~= usr.nick then
 			local rnd = math.random(1,100)
@@ -695,7 +767,7 @@ local itemUses = {
 				end
 			end
 		end
-	end,
+	end,]]
 	["cow"]=function(moo)
 		local cowCount = gameUsers[moo.host].inventory["cow"].amount
 		local rnd = math.random(1,100)
@@ -789,7 +861,7 @@ local itemUses = {
 			return "You gaze upon the lawns of your estate that seem to go on forever..."
 		elseif rnd <= 16 then
 			local amt = math.random(1,5)
-			addInv(usr, storeInventory["house"], 1)
+			addInv(usr, storeInventory["house"], amt)
 			local text = (amt == 1 and "a house" or "some houses")
 			return "You build "..text.." on your estate. (+"..amt.." house"..(amt == 1 and "" or "s")..")"
 		elseif rnd <= 22 then
@@ -841,7 +913,7 @@ local itemUses = {
 				local t = {}
 				for k,v in pairs(gameUsers[other.host].inventory) do table.insert(t,v) end
 				local otheritem = t[math.random(#t)]
-				if otheritem.instock or otheritem.cost<0 or otheritem.cost>=1e14 then
+				if (otheritem.instock or otheritem.cost<0) and otheritem.cost<1e14 then
 					remInv(other, otheritem.name, 1)
 					addInv(usr, otheritem,1)
 					return "You threw your billion at "..other.nick..", they are thankful and give you a " .. otheritem.name .. " in return without thinking."
@@ -955,7 +1027,11 @@ local function useItem(usr,chan,msg,args)
 		return "Error: this command has been temporarily disabled due to spam, please wait an hour"
 	end
 	local item = itemName(args[1])
-	if ( not gameUsers[usr.host].inventory[item] or gameUsers[usr.host].inventory[item].amount<=0 ) and item~="whitehole" then
+	--Cheap coupon use area for now.
+	if item=="whitehole" then
+		return itemUses[item](usr,args,chan)
+	end
+	if not gameUsers[usr.host].inventory[item] or gameUsers[usr.host].inventory[item].amount<=0 then
 		return "You don't have that item!"
 	elseif itemUses[item] and gameUsers[usr.host].inventory[item] then
 		return itemUses[item](usr,args,chan)
@@ -1161,7 +1237,7 @@ local function store(usr,chan,msg,args)
 		if not args[2] then return "Need an item! 'info <item>'" end
 		local item = itemName(args[2])
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
+			if k==item then return "Item: "..k.." ("..v.amount..") Cost: $"..nicenum(v.cost).." Info: "..v.info end
 		end
 		for k,v in pairs(storeInventory) do
 			if k==item then return "Item: "..k.." Cost: $"..nicenum(v.cost).." Info: "..v.info end
@@ -1173,17 +1249,18 @@ local function store(usr,chan,msg,args)
 		local item = itemName(args[2])
 		local amt = math.floor(tonumber(args[3]) or 1)
 		if amt==amt and amt>0 then
-			local v = storeInventory[item]
+			local v = copyTable(storeInventory[item])
 			if v and v.instock then
-				local cost = v.cost*amt
 				--New Coupon discounts!
 				local discount = hasCoup(usr,1,2,3)
-				if discount then cost = cost * (1-couponList[discount]) remCoup(usr,discount,1) end
-				
+				if discount then v.cost = v.cost * (1-couponList[discount].var) remCoup(usr,discount,1) end
+
+				local cost = v.cost*amt
+
 				if gameUsers[usr.host].cash - cost >= 0 then
 					changeCash(usr, -cost)
 					addInv(usr, v, amt, true)
-					return "You bought "..nicenum(amt).." "..v.name
+					return "You bought "..nicenum(amt).." "..v.name.." for $"..cost
 				else
 					return "Not enough money!"
 				end
@@ -1228,7 +1305,7 @@ local function store(usr,chan,msg,args)
 					--New Coupon Bonus
 					local discount = hasCoup(usr,4,5,6)
 					if discount then value = value * (1+couponList[discount]) remCoup(usr,discount,1) end
-				
+
 					if v.cost<0 and gameUsers[usr.host].cash < -value then return "You can't afford that!" end
 					changeCash(usr,value)
 					remInv(usr,item,amt)
@@ -1497,7 +1574,7 @@ local function quiz(usr,chan,msg,args)
 				--Quiz Coupon Answer Bonus
 				local discount = hasCoup(nusr,11,12,13)
 				if discount then earned = earned * (1+couponList[discount]) remCoup(usr,discount,1) end
-				
+
 				local cstr = changeCash(nusr,earned)
 				if nusr.nick==usr.nick then
 					ircSendChatQ(chan,nusr.nick..": Answer is correct, earned "..(earned-bet)..cstr)

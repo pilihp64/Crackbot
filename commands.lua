@@ -190,17 +190,17 @@ add_cmd(echo,"echo",0,"Replies same text, '/echo <text>'",true,{"say"})
 
 --LIST
 local function list(usr,chan,msg,args)
-	local perm = tonumber(args[1]) or getPerms(usr.host)
+	local perm,chanPerm = tonumber(args[1]) or getPerms(usr.host), not tonumber(args[1]) and getPerms(usr.host,chan)
 	local t = {}
 	local cmdcount=0
 	for k,v in pairs(commands) do
-		if perm>=commands[k].level and commands[k].show then
+		if (chanPerm or perm)>=commands[k].level and commands[k].show then
 			cmdcount=cmdcount+1
 			t[cmdcount]=k
 		end
 	end
 	table.sort(t,function(x,y)return x<y end)
-	return "Commands("..perm.."): " .. table.concat(t,", ")
+	return "Commands("..perm..(chanPerm and perm~=chanPerm and ":"..chanPerm or "").."): " .. table.concat(t,", ")
 end
 add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/list [<level>]'",true,{"ls","commands"})
 

@@ -55,7 +55,14 @@ for k,v in pairs(storeInventory) do
 	table.insert(storeInventorySorted,v)
 end
 table.sort(storeInventorySorted,function(a,b) if a.cost<b.cost then return a end end)
-
+local function copyTable(t)
+	if not t then return end
+	local d = {}
+	for k,v in pairs(t) do
+		d[k]=v
+	end
+	return d
+end
 
 couponList = {
 	--Usable Coupons

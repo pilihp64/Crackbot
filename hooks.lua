@@ -337,8 +337,13 @@ local function realchat(usr,channel,msg)
 	end
 
 	local func,err
+
 	if cmd then
-		func,err=makeCMD(cmd,usr,channel,rest)
+		if usr.nick ~= channel and usr.host and usr.host == "turing.jacksonmj.co.uk" and usr.username and (usr.username == "bagels" or usr.username == "jacksonmj3" or usr.username == "Stewie") then
+			cmd = nil
+		else
+			func,err=makeCMD(cmd,usr,channel,rest)
+		end
 	end
 	listen(usr,channel,msg)
 	if func then

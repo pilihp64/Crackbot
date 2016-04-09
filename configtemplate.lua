@@ -5,18 +5,28 @@ permissions = {}
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host,chan)
-	local highest=-99
+	local highest = -1/0
 	for k,v in pairs(permissions) do
-		if host:find(k) then
-			if v>highest then
-				highest=v
+		if host:match("^"..k.."$") then
+			if v < 0 then
+				highest = -1
+				break
+			elseif v > highest then
+				highest = v
 			end
 		end
 	end
-	if chan and channelPermissions[chan] and channelPermissions[chan][host] then
-		return channelPermissions[chan][host] or highest
+	if chan and channelPermissions[chan] then
+		for k,v in pairs(channelPermissions[chan]) do
+			if host:match("^"..k.."$") then
+				if v < 0 then
+					return -1
+				elseif v > highest then
+					highest = v
+				end
+			end
+		end
 	end
-	if permissions[host] then return permissions[host] end
 	if highest < -1 then highest=0 end
 	return highest
 end

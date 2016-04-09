@@ -229,13 +229,17 @@ end
 add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
 
 local function ignore(usr,chan,msg,args)
-	local channel = nil
+	local channel, noescape = nil, false
 	if args[1]:sub(1,1) == "#" then
 		channel = args[1]
 		table.remove(args, 1)
 	end
+	if args[1] == "-noescape" then
+		noescape = true
+		table.remove(args, 1)
+	end
 	if not args[1] then
-		return "Usage: '/ignore [<channel>] <user> [<seconds>]'"
+		return "Usage: '/ignore [<channel>] [-noescape] <user/host> [<seconds>]'"
 	end
 	local user, seconds, host = args[1], tonumber(args[2]), nil
 	if irc.channels[chan].users[user] then
@@ -243,10 +247,14 @@ local function ignore(usr,chan,msg,args)
 	else
 		host = user
 	end
-	host = host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1")
+	if not noescape then
+		host = host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1")
+	end
 	local perm, otherperm = getPerms(usr.host), getPerms(host)
 	if otherperm >= perm then
 		return "You cannot ignore "..args[1]
+	elseif otherperm == -1 then
+		return args[1].." is already ignored"
 	end
 	if channel then
 		if not channelPermissions[channel] then

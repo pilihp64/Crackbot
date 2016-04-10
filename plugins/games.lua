@@ -1541,8 +1541,14 @@ local function ask(usr,chan,msg,args)
 	if chan:sub(1,1)=='#' then return "Can only start question in query." end
 	if not msg or not args[3] then return commands["ask"].helptext end
 	local toChan = args[1]
-	if toChan and toChan:sub(1,1) ~= "#" then
+	if toChan:sub(1,1) ~= "#" then
 		return "Error, you must ask questions to a channel"
+	elseif not irc.channels[toChan] then
+		return "Error, i'm not in that channel"
+	elseif not irc.channels[toChan].users[usr.nick] then
+		return "Error, you must be in "..toChan.." to ask a question there"
+	elseif getPerms(usr.host, toChan) < getCommandPerms("ask", toChan) then
+		return "Error, you don't have permission to ask a question in there"
 	end
 	local qName = toChan.."ask"
 	if activeQuiz[qName] then return "There is already an active question there!" end

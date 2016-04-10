@@ -17,6 +17,7 @@ local function infhook()
 end
 function add_cmd(f, name, lvl, help, shown, aliases)
 	if type(f)~="function" then return end
+	lvl = commandPermissions[name] or lvl
 	allCommands[name]={["name"]=name,["f"]=f,["level"]=lvl,["helptext"]=help,["show"]=shown}
 	commands[name]=allCommands[name]
 	if aliases then
@@ -194,7 +195,7 @@ local function list(usr,chan,msg,args)
 	local t = {}
 	local cmdcount=0
 	for k,v in pairs(commands) do
-		if (chanPerm or perm)>=commands[k].level and commands[k].show then
+		if (chanPerm or perm)>=getCommandPerms(k, chan) and commands[k].show then
 			cmdcount=cmdcount+1
 			t[cmdcount]=k
 		end

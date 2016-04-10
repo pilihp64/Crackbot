@@ -77,8 +77,8 @@ local function mkAliasFunc(t,aArgs)
 			aliasDepth = aliasDepth+1
 			--TODO: Fix coroutine to actually make nested alias loops not block
 			--coroutine.yield(false,0)
-			if getPerms(nusr.host) < t.level then
-				return "No permission for "..t.name --this is never displayed anyway
+			if getPerms(nusr.host) < (t.customLevel and t.level or getCommandPerms(t.cmd, nchan)) then
+				return "Cannot run alias '"..t.name.."': no permission for "..t.cmd --this is never displayed anyway
 			end
 			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
 			local f = makeCMD(t.cmd,nusr,nchan,nmsg,true)
@@ -112,7 +112,7 @@ local function alias(usr,chan,msg,args)
 		end
 		if allCommands[name] then return name.." already exists!" end
 		local userlevel = getPerms(usr.host)
-		if userlevel < commands[cmd].level then return "You can't alias that!" else userlevel = commands[cmd].level end
+		if userlevel < math.max(commands[cmd].level, getCommandPerms(cmd, chan)) then return "You can't alias that!" else userlevel = math.max(commands[cmd].level, getCommandPerms(cmd, chan)) end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if name:find("[\128-\255]") or name:find("[\1-\20]") then return "Ascii aliases only!" end
 		if #name > 30 then return "Alias name too long!" end
@@ -153,7 +153,7 @@ local function alias(usr,chan,msg,args)
 		end
 		for k,v in pairs(aliasList) do
 			if v.shown == nil then v.shown = true end
-			if v.shown ~= hidden then
+			if v.shown ~= hidden and getPerms(usr.host,chan) >= getCommandPerms(v.name,chan) then
 				if v.lock and locked then
 					table.insert(t,v.name.."\15"..(unlocked and v.lock or ""))
 				elseif not v.lock and unlocked then
@@ -210,6 +210,7 @@ local function alias(usr,chan,msg,args)
 		for k,v in pairs(aliasList) do
 			if name==v.name then
 				v.level = level
+				v.customLevel = true
 				commands[name].level = level
 				table.save(aliasList,"plugins/AliasList.txt")
 				commands[name]=nil

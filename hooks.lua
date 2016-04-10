@@ -248,7 +248,7 @@ function makeCMD(cmd,usr,channel,msg,permcheck)
 	if commands[cmd] then
 		--command exists
 		--print("INHOOK "..getPerms(usr.host).." "..tostring(cmd))
-		if permcheck or getPerms(usr.host,channel) >= commands[cmd].level then
+		if permcheck or getPerms(usr.host,channel) >= getCommandPerms(cmd, channel) then
 			--we have permission
 			
 			return function()

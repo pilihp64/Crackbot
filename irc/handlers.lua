@@ -53,6 +53,20 @@ handlers["PART"] = function(o, prefix, channel, reason)
 	o:invoke("OnPart", user, channel, reason)
 end
 
+handlers["KICK"] = function(o, prefix, channel, kicked, reason)
+	if o.track_users then
+		local user = o.channels[channel].users[kicked]
+		if user then
+			if user.nick == o.nick then
+				o.channels[channel] = nil
+			elseif o.channels[channel] then
+				o.channels[channel].users[user.nick] = nil
+			end
+		end
+	end
+	o:invoke("OnKick", channel, kicked, parsePrefix(prefix), reason)
+end
+
 handlers["QUIT"] = function(o, prefix, msg)
 	local user = parsePrefix(prefix)
 	if o.track_users then
@@ -148,10 +162,6 @@ end
 --topic creation info
 handlers["333"] = function(o, prefix, me, channel, nick, time)
 	o:invoke("OnTopicInfo", channel, nick, tonumber(time))
-end
-
-handlers["KICK"] = function(o, prefix, channel, kicked, reason)
-	o:invoke("OnKick", channel, kicked, parsePrefix(prefix), reason)
 end
 
 --RPL_UMODEIS

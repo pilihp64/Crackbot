@@ -3,6 +3,23 @@ permissions = {}
 --example: permissions["Powder/Developer/cracker64"] = 101
 --Owner should be 101
 
+--insert per channel permissions here
+channelPermissions = {
+	["##mychannel"] = {
+		["Powder/Developer/jacob1"] = 50,
+	},
+}
+
+--to override the default permission level of a command, insert it here
+commandPermissions = {
+	["mycommand"] = 10,
+}
+channelCommandPermissions = {
+	["##mychannel"] = {
+		["mycommand"] = 0,
+	},
+}
+
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host,chan)
 	local highest = -1/0
@@ -29,6 +46,15 @@ function getPerms(host,chan)
 	end
 	if highest < -1 then highest=0 end
 	return highest
+end
+
+function getCommandPerms(cmd,chan)
+	local defaultlvl = commands[cmd].level
+	if defaultlvl >= 100 then return defaultlvl end
+	if chan and channelCommandPermissions[chan] then
+		return channelCommandPermissions[chan][cmd] or defaultlvl
+	end
+	return defaultlvl
 end
 
 --This has server specific data

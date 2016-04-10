@@ -208,7 +208,7 @@ add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/li
 --CHMOD, set a user's permission level, is temporary, add to config for permanent.
 local function chmod(usr,chan,msg,args)
 	if not msg then return end
-	local perm = getPerms(usr.host)
+	local perm, chanPerm = getPerms(usr.host), gernPerms(usr.host, chan)
 	local setmax = perm-1
 	local user = getUserFromNick(args[1])
 	if not user then
@@ -246,16 +246,30 @@ local function ignore(usr,chan,msg,args)
 	if irc.channels[chan].users[user] then
 		host = irc.channels[chan].users[user].host
 	else
-		host = user
+		local found = false
+		for k,v in pairs(irc.channels) do
+			if irc.channels[k].users[user] then
+				host = irc.channels[k].users[user].host
+				found = true
+				break
+			end
+		end
+		if not found then
+			host = user
+		end
 	end
 	if not noescape then
 		host = host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1")
 	end
-	local perm, otherperm = getPerms(usr.host), getPerms(host)
-	if otherperm >= perm then
+	local perm, chanPerm, otherPerm = getPerms(usr.host), getPerms(usr.host, channel), getPerms(host, channel)
+	if otherPerm >= perm then
 		return "You cannot ignore "..args[1]
-	elseif otherperm == -1 then
+	elseif otherPerm == -1 then
 		return args[1].." is already ignored"
+	elseif perm < 40 and not channel then
+		return "You cannot ignore people globally"
+	elseif chanPerm < 40 then
+		return "You cannot ignore people in that channel"
 	end
 	if channel then
 		if not channelPermissions[channel] then
@@ -276,7 +290,7 @@ local function ignore(usr,chan,msg,args)
 		return "ignored "..host..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
 	end
 end
-add_cmd(ignore,"ignore",40,"Sets a global or channel ignore on a user",true)
+add_cmd(ignore,"ignore",40,"Sets a global or channel ignore on a user, '/ignore [<channel>] [-noescape] <user/host> [<seconds>]'",true)
 
 --hostmask
 local function getHost(usr,chan,msg,args)

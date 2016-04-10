@@ -22,14 +22,14 @@ channelCommandPermissions = {
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host,chan)
-	local highest = -1/0
+	local perms, chanPerms = -1/0, nil
 	for k,v in pairs(permissions) do
 		if host:match("^"..k.."$") then
 			if v < 0 then
-				highest = -1
+				perms = -1
 				break
-			elseif v > highest then
-				highest = v
+			elseif v > perms then
+				perms = v
 			end
 		end
 	end
@@ -38,14 +38,15 @@ function getPerms(host,chan)
 			if host:match("^"..k.."$") then
 				if v < 0 then
 					return -1
-				elseif v > highest then
-					highest = v
+				elseif v > (chanPerms or -1/0) then
+					chanPerms = math.min(v, 99)
 				end
 			end
 		end
 	end
-	if highest < -1 then highest=0 end
-	return highest
+	if perms < -1 then perms=0 end
+	if chanPerms < -1 then chanPerms=0 end
+	return chanPerms or perms
 end
 
 function getCommandPerms(cmd,chan)

@@ -205,33 +205,9 @@ local function list(usr,chan,msg,args)
 end
 add_cmd(list,"list",0,"Lists commands for the specified level, or your own, '/list [<level>]'",true,{"ls","commands"})
 
---CHMOD, set a user's permission level, is temporary, add to config for permanent.
-local function chmod(usr,chan,msg,args)
-	if not msg then return end
-	local perm, chanPerm = getPerms(usr.host), gernPerms(usr.host, chan)
-	local setmax = perm-1
-	local user = getUserFromNick(args[1])
-	if not user then
-		return "Invalid User"
-	end
-	local host,level = user.host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1"),args[2]
-	if tonumber(level)~=tonumber(level) then
-		return "Bad num"
-	end
-	if tonumber(level) > setmax then
-		return "You can't set that high"
-	end
-	if permissions[host] and permissions[host] >= perm then
-		return "You can't change this user"
-	end
-	permissions[host] = tonumber(level)
-	return "perm['"..host.."'] = "..level
-end
-add_cmd(chmod,"chmod",40,"Changes a hostmask level, '/chmod <name/host> <level>'",true)
-
-local function ignore(usr,chan,msg,args)
+local function changeLevel(usr,chan,msg,args,isignore)
 	local channel, noescape = nil, false
-	if args[1]:sub(1,1) == "#" then
+	if #args > 1 and args[1]:sub(1,1) == "#" then
 		channel = args[1]
 		table.remove(args, 1)
 	end
@@ -239,8 +215,12 @@ local function ignore(usr,chan,msg,args)
 		noescape = true
 		table.remove(args, 1)
 	end
-	if not args[1] then
-		return "Usage: '/ignore [<channel>] [-noescape] <user/host> [<seconds>]'"
+	if not args[1] or (not isignore and not args[2]) then
+		if isignore then
+			return "Usage: '/ignore [<channel>] [-noescape] <user/host> [<seconds>]'"
+		else
+			return "Usage: '/chmod [<channel>] [-noescape] <user/host> <level>'"
+		end
 	end
 	local user, seconds, host = args[1], tonumber(args[2]), nil
 	if irc.channels[chan].users[user] then
@@ -262,33 +242,68 @@ local function ignore(usr,chan,msg,args)
 		host = host:gsub("([%.%-%+%*%%%?%(%)%[%]%^%$])","%%%1")
 	end
 	local perm, chanPerm, otherPerm = getPerms(usr.host), getPerms(usr.host, channel), getPerms(host, channel)
-	if otherPerm >= perm then
-		return "You cannot ignore "..args[1]
-	elseif otherPerm == -1 then
-		return args[1].." is already ignored"
-	elseif perm < 40 and not channel then
-		return "You cannot ignore people globally"
-	elseif chanPerm < 40 then
-		return "You cannot ignore people in that channel"
+	if otherPerm >= perm and not channel then
+		if isignore then
+			return "You cannot ignore "..args[1]
+		else
+			return "You cannot modify the permissions for "..args[1]
+		end
+	elseif perm < getCommandPerms(isignore and "ignore" or "chmod") and not channel then
+		if isignore then
+			return "You cannot ignore people globally"
+		else
+			return "You cannot set permission levels globally"
+		end
+	elseif chanPerm < getCommandPerms(isignore and "ignore" or "chmod", channel) then
+		if isignore then
+			return "You cannot ignore people in that channel"
+		else
+			return "You cannot set permission levels in that channel"
+		end
+	elseif isignore then
+		if otherPerm == -1 then
+			return args[1].." is already ignored"
+		end
+	else
+		if channel and seconds > chanPerm then
+			return "You can't set permissions that high in "..channel
+		elseif not channel and seconds > perm then
+			return "You can't set permissions that high"
+		end
 	end
 	if channel then
 		if not channelPermissions[channel] then
 			channelPermissions[channel] = {}
 		end
-		if seconds then
+		if isignore and seconds then
 			local oldlevel = channelPermissions[channel][host]
 			addTimer(function() channelPermissions[channel][host] = oldlevel end, seconds, chan, usr.nick)
 		end
-		channelPermissions[channel][host] = -1
-		return "ignored "..host.." in "..channel..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+		channelPermissions[channel][host] = isignore and -1 or seconds
+		if isignore then
+			return "ignored "..host.." in "..channel..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+		else
+			return "permissions for "..host.." in "..channel.." changed to "..seconds
+		end
 	else
-		if seconds then
+		if isignore and seconds then
 			local oldlevel = permissions[host]
 			addTimer(function() permissions[host] = oldlevel end, seconds, chan, usr.nick)
 		end
-		permissions[host] = -1
-		return "ignored "..host..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+		permissions[host] = isignore and -1 or seconds
+		if isignore then
+			return "ignored "..host..(seconds and " for "..seconds.." second"..(seconds==1 and "" or "s") or "")
+		else
+			return "permissions for "..host.." changed to "..seconds
+		end
 	end
+end
+local function chmod(usr,chan,msg,args)
+	return changeLevel(usr, chan, msg, args, false)
+end
+add_cmd(chmod,"chmod",40,"Sets permission levels on a user, '/chmod [<channel>] [-noescape] <user/host> <level>'",true)
+local function ignore(usr,chan,msg,args)
+	return changeLevel(usr, chan, msg, args, true)
 end
 add_cmd(ignore,"ignore",40,"Sets a global or channel ignore on a user, '/ignore [<channel>] [-noescape] <user/host> [<seconds>]'",true)
 

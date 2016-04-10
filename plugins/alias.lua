@@ -78,7 +78,7 @@ local function mkAliasFunc(t,aArgs)
 			--TODO: Fix coroutine to actually make nested alias loops not block
 			--coroutine.yield(false,0)
 			if getPerms(nusr.host) < (t.customLevel and t.level or getCommandPerms(t.cmd, nchan)) then
-				return "Cannot run alias '"..t.name.."': no permission for "..t.cmd --this is never displayed anyway
+				return "Cannot run alias '"..t.name.."': no permission for "..t.cmd
 			end
 			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
 			local f = makeCMD(t.cmd,nusr,nchan,nmsg,true)
@@ -153,7 +153,7 @@ local function alias(usr,chan,msg,args)
 		end
 		for k,v in pairs(aliasList) do
 			if v.shown == nil then v.shown = true end
-			if v.shown ~= hidden and getPerms(usr.host,chan) >= getCommandPerms(v.name,chan) then
+			if v.shown ~= hidden and getPerms(usr.host,chan) >= math.max(getCommandPerms(v.name,chan), getCommandPerms(v.cmd,chan)) then
 				if v.lock and locked then
 					table.insert(t,v.name.."\15"..(unlocked and v.lock or ""))
 				elseif not v.lock and unlocked then

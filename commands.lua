@@ -342,7 +342,7 @@ add_cmd(getChan,"chan",0,"The current channel, '/chan'",false)
 
 --LUA full access
 local function lua2(usr,chan,msg,args)
-	local e,err = loadstring(msg)
+	local e,err = loadstring(msg, "..")
 	if e then
 		debug.sethook(infhook,"l")
 		local s,r = pcall(e)

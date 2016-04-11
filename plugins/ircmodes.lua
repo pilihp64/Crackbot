@@ -13,6 +13,12 @@ function setMode(chan,mode,tar)
 	end
 end
 
+local function checkPermissions(host, cmd, chan, message)
+	local chanPerms = getPerms(host, chan)
+	if chanPerms < getCommandPerms(cmd, chan) then
+		error("No permission to "..message.." in "..chan)
+	end
+end
 --MODE
 local function mode(usr,chan,msg,args)
 	if not msg then return "Usage: '/mode [<chan>] <mode> [...]', if no chan given, will use current" end
@@ -30,7 +36,7 @@ local function mode(usr,chan,msg,args)
 		tochan=chan
 		rest = table.concat(args, " ", 2)
 	end
-	
+	checkPermissions(usr.host, "mode", tochan, "set modes")
 	ircSendRawQ("MODE "..tochan.." "..tomode.." "..rest)
 end
 add_cmd(mode,"mode",40,"Set a mode, '/mode [<chan>] <mode> [...]', if no chan given, will use current",true)
@@ -46,6 +52,7 @@ local function op(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "op", chan, "op")
 	setMode(chan,"+o", args[2] or msg)
 end
 add_cmd(op,"op",30,"Op a user, '/op [<chan>] <username>'",true)
@@ -60,6 +67,7 @@ local function deop(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "deop", chan, "deop")
 	setMode(chan,"-o",args[2] or msg)
 end
 add_cmd(deop,"deop",30,"DeOp a user, '/deop [<chan>] <username>'",true)
@@ -75,6 +83,7 @@ local function voice(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "voice", chan, "voice")
 	setMode(chan,"+v", nick)
 end
 add_cmd(voice,"voice",15,"Voice a user, '/voice [<chan>] <username>'",true)
@@ -90,6 +99,7 @@ local function devoice(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "devoice", chan, "devoice")
 	setMode(chan,"-v",args[2] or msg)
 end
 add_cmd(devoice,"devoice",10,"DeVoice a user, '/devoice [<chan>] <username>'",true)
@@ -109,6 +119,7 @@ local function unquiet(usr,chan,msg,args)
 	end
 	host = getUserFromNick(nick)
 	host = host and host.host or nick
+	checkPermissions(usr.host, "unquiet", chan, "unquiet")
 	setMode(chan,"-q",host)
 end
 add_cmd(unquiet,"unquiet",15,"UnQuiet a user, '/unquiet [<chan>] <host/username>'",true,{"unstab"})
@@ -129,6 +140,7 @@ local function quiet(usr,chan,msg,args)
 	end
 	local host = getUserFromNick(nick)
 	host = host and host.host or nick
+	checkPermissions(usr.host, "quiet", chan, "quiet")
 	setMode(chan,"+q",host)
 	if not unbanTimer then
 		unbanTimer = math.random(60,600)
@@ -154,6 +166,7 @@ local function unban(usr,chan,msg,args)
 	end
 	host = getUserFromNick(nick)
 	host = host and host.host or nick
+	checkPermissions(usr.host, "unban", chan, "unban")
 	setMode(chan,"-b",host)
 end
 add_cmd(unban,"unban",20,"Unban a user, '/unban [<chan>] <host/username>'",true)
@@ -175,6 +188,7 @@ local function ban(usr,chan,msg,args)
 	end
 	host = getUserFromNick(nick)
 	host = host and host.host or nick
+	checkPermissions(usr.host, "ban", chan, "ban")
 	setMode(chan,"+b",host)
 	if unbanTimer then
 		addTimer(setMode[chan]["-b"][host],unbanTimer,chan)
@@ -203,6 +217,7 @@ local function kick(usr,chan,msg,args)
 	elseif nick == irc.nick then
 		nick = usr.nick
 	end
+	checkPermissions(usr.host, "kick", chan, "kick")
 	ircSendRawQ("KICK "..chan.." "..nick.." :"..reason)
 end
 add_cmd(kick,"kick",10,"Kick a user, '/kick [<chan>] <username> [<reason>]'",true)
@@ -227,6 +242,7 @@ local function invite(usr,chan,msg,args)
 			chan=args[2]
 		end
 	end
+	checkPermissions(usr.host, "invite", chan, "invite")
 	ircSendRawQ("INVITE "..args[1].." "..chan)
 end
 add_cmd(invite,"invite",50,"Invite someone to the channel, '/invite <user>'",true)
@@ -239,6 +255,7 @@ local function join(usr,chan,msg,args)
 	else
 		chan=args[1]
 	end
+	checkPermissions(usr.host, "join", chan, "use join")
 	ircSendRawQ("JOIN "..chan)
 end
 add_cmd(join,"join",101,"Make bot join a channel, '/join <chan>'",true)
@@ -252,6 +269,7 @@ local function part(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "part", chan, "use part")
 	_G.expectedPart=chan
 	ircSendRawQ("PART "..chan)
 end
@@ -266,6 +284,7 @@ local function cycle(usr,chan,msg,args)
 			chan=args[1]
 		end
 	end
+	checkPermissions(usr.host, "cycle", chan, "use cycle")
 	ircSendRawQ("PART "..chan)
 	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end
@@ -280,6 +299,7 @@ local function remove(usr,chan,msg,args)
 	end
 	local nick = args[1]
 	table.remove(args, 1)
+	checkPermissions(usr.host, "remove", chan, "remove")
 	ircSendRawQ("REMOVE "..chan.." "..nick.." :"..table.concat(args, " "))
 	--ircSendRawQ("JOIN "..chan) --cycle doesn't work, so lets just let the autorejoin fix it
 end

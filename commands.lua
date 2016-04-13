@@ -248,6 +248,12 @@ local function changeLevel(usr,chan,msg,args,isignore)
 		else
 			return "You cannot modify the permissions for "..args[1]
 		end
+	elseif otherPerm >= chanPerm and channel then
+		if isignore then
+			return "You cannot ignore "..args[1].." in "..channel
+		else
+			return "You cannot modify the permissions for "..args[1].." in "..channel
+		end
 	elseif perm < getCommandPerms(isignore and "ignore" or "chmod") and not channel then
 		if isignore then
 			return "You cannot ignore people globally"
@@ -256,9 +262,9 @@ local function changeLevel(usr,chan,msg,args,isignore)
 		end
 	elseif chanPerm < getCommandPerms(isignore and "ignore" or "chmod", channel) then
 		if isignore then
-			return "You cannot ignore people in that channel"
+			return "You cannot ignore people in "..channel
 		else
-			return "You cannot set permission levels in that channel"
+			return "You cannot set permission levels in "..channel
 		end
 	elseif isignore then
 		if otherPerm == -1 then
@@ -267,7 +273,7 @@ local function changeLevel(usr,chan,msg,args,isignore)
 	else
 		if channel and seconds > chanPerm then
 			return "You can't set permissions that high in "..channel
-		elseif not channel and seconds > perm then
+		elseif (not channel and seconds > perm) or seconds > 99 then
 			return "You can't set permissions that high"
 		end
 	end

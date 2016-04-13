@@ -77,7 +77,7 @@ local function mkAliasFunc(t,aArgs)
 			aliasDepth = aliasDepth+1
 			--TODO: Fix coroutine to actually make nested alias loops not block
 			--coroutine.yield(false,0)
-			if getPerms(nusr.host) < (t.customLevel and t.level or getCommandPerms(t.cmd, nchan)) then
+			if getPerms(nusr.host, nchan) < (t.customLevel and t.level or getCommandPerms(t.cmd, nchan)) then
 				return "Cannot run alias '"..t.name.."': no permission for "..t.cmd
 			end
 			--print("INALIAS",t.usrlvl or "0",getPerms(nusr.host),t.suid or "0",tostring(changed),t.cmd)
@@ -111,7 +111,7 @@ local function alias(usr,chan,msg,args)
 			return "You can't alias that!"
 		end
 		if allCommands[name] then return name.." already exists!" end
-		local userlevel = getPerms(usr.host)
+		local userlevel = getPerms(usr.host, chan)
 		if userlevel < math.max(commands[cmd].level, getCommandPerms(cmd, chan)) then return "You can't alias that!" else userlevel = math.max(commands[cmd].level, getCommandPerms(cmd, chan)) end
 		if name:find("[%*:][%c]?%d?%d?,?%d?%d?$") then return "Bad alias name!" end
 		if name:find("[\128-\255]") or name:find("[\1-\20]") then return "Ascii aliases only!" end

@@ -45,7 +45,7 @@ function getPerms(host,chan)
 		end
 	end
 	if perms < -1 then perms=0 end
-	if chanPerms < -1 then chanPerms=0 end
+	if chanPerms and chanPerms < -1 then chanPerms=0 end
 	return chanPerms or perms
 end
 

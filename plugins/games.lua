@@ -1008,7 +1008,7 @@ local function coinToss(usr,bet)
 	local res = math.random()
 	local bonus = hasCoup(usr,7,8,9,10)
 	if bonus then res = res + couponList[bonus].var remCoup(usr,bonus,1) end
-	if res>.5 then
+	if res>.51 then
 		--win
 		local str = changeCash(usr,bet)
 		streak(usr,true)

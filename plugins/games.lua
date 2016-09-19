@@ -244,9 +244,9 @@ end
 
 local antiPadList = {"iPad","blackhole","company","billion","iPad","country"}
 ratelimit = ratelimit or {}
-local peruserlimit = 500
-local perusermutelimit = 600
-local perchannellimit = 1750
+local peruserlimit = 300
+local perusermutelimit = 350
+local perchannellimit = 1000
 
 --make a timer loop save users every minute, errors go to me
 local function timedSave()
@@ -950,8 +950,10 @@ local function useItem(usr,chan,msg,args)
 		return "This command must be run in a channel"
 	end
 	if usr.host then
-		ratelimit[usr.host] = ratelimit[usr.host] and ratelimit[usr.host] + 1 or 1
-		if ratelimit[usr.host] == perusermutelimit then
+		local nearmute = ratelimit[usr.host] and ratelimit[usr.host] > 2*perusermutelimit/3
+		local toadd = math.random(1,100) == 1 and (nearmute and 10 or 50) or 1
+		ratelimit[usr.host] = ratelimit[usr.host] and ratelimit[usr.host] + toadd or toadd
+		if ratelimit[usr.host] == perusermutelimit or ratelimit[usr.host] >= perusermutelimit+100 then
 			ircSendRawQ("MODE "..chan.." +q :*!*@"..usr.host)
 			return "Error: You have been muted due to excessive spam"
 		elseif ratelimit[usr.host] > peruserlimit then

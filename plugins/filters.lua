@@ -142,10 +142,13 @@ function colorstrip(text,qqq,www,ignore)
 	return newstring
 end
 add_filt(colorstrip,"colorstrip",nil,"Strips color from text, '/colorstrip <text>'")
+
 --RAINBOW every letter is new color
+local lastStart = 1
 function rainbow(text)
 	local newtext= ""
-	local rCount=1
+	local rCount = lastStart
+	lastStart = ((lastStart)%(#rainbowOrder))+1
 	newtext = (colorstrip(text,1,1,true)):gsub("([^%s%c])",function(c)
 		c = cchar .. rainbowOrder[rCount] .. c
 		rCount = ((rCount)%(#rainbowOrder))+1
@@ -155,6 +158,13 @@ function rainbow(text)
 	return newtext
 end
 add_filt(rainbow,"rainbow",nil,"Rainbows! '/rainbow <text>'")
+local function spambot(usr,chan,msg,args)
+	if not args[3] then return "Usage: /spambot <chan> <amount> <message>" end
+	for i = 1,args[2] do
+		ircSendChatQ(args[1], rainbow(table.concat(args, " ", 3)))
+	end
+end
+add_cmd(spambot,"spambot",101,"SPAMSPAMSPAM, '/spambot <chan> <amount> <message>'",true)
 --COLOR add color to a line or section of line
 local function color(text,args)
 	local newstring

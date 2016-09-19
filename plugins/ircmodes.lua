@@ -212,7 +212,7 @@ local function kick(usr,chan,msg,args)
 	end
 	local nick = args[2] or msg
 	local user = getUserFromNick(nick)
-	if nick ~= usr.nick and user and user.host and getPerms(user.host) > 30 then
+	if nick ~= usr.nick and user and user.host and getPerms(user.host,chan) > 30 then
 		return "Error: You can't kick other ops"
 	elseif nick == irc.nick then
 		nick = usr.nick

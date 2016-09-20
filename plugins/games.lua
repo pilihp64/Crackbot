@@ -999,7 +999,7 @@ local function give(fromHost,toHost,amt)
 	gameUsers[toHost].cash = gameUsers[toHost].cash+amt
 	return "Gave money"
 end
---50% chance to win double
+--49% chance to win double
 local function coinToss(usr,bet)
 	local mycash = gameUsers[usr.host].cash
 	if bet > mycash then
@@ -1151,7 +1151,7 @@ local function flipCoin(usr,chan,msg,args)
 	if bet < 1 then return "Bet too low" end
 	return coinToss(usr,bet)
 end
-add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 50% chance to win double",true,{"bet"})
+add_cmd(flipCoin,"flip",0,"Flip a coin with a bet, '/flip <bet>', 49% chance to win double",true,{"bet"})
 --DOOR
 local function odor(usr,chan,msg,args)
 	return odoor(usr,args)

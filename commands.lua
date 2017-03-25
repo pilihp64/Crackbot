@@ -181,6 +181,14 @@ local function reload(usr,chan,msg,args)
 end
 add_cmd(reload,"load",100,"Loads file(s), '/load [<file1>] [<files...>]', Only admin can specify file names.",true,{"reload"})
 
+--UPDATE the bot's source, WIP
+local function update(usr,chan,msg)
+	os.execute("git checkout . && git pull")
+	reload()
+	ircSendRawQ(usr.nick.." Updated!")
+end
+add_cmd(update,"update",100,"Updates the bot to the latest Git Version, '/update'",true)
+
 --ECHO
 local function echo(usr,chan,msg)
 	return msg,true

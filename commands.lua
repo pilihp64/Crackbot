@@ -453,3 +453,26 @@ local function seen(usr,chan,msg,args)
 	return msg
 end
 add_cmd(seen,"seen",0,"Display a last seen message '/seen [<chan>] <nick>'",true)
+
+--CALC, Calculator! :D
+local function calc(usr,chan,msg)
+	local diceroll = math.random(1,6)
+	if msg == "" or " " then
+		if diceroll == 1
+			return "It's a blank!"
+		elseif diceroll == 2
+			return "Would you rather I flap this sheet at you instead?"
+		elseif diceroll == 3
+			return "Whee! Bubble!"
+		elseif diceroll == 4 
+			return "MoooOOOooOoo"
+		elseif diceroll == 5 
+			return "Moo!"
+		elseif diceroll == 6
+			return "\001ACTION m00s at "..usr.."\001"
+		end
+	else
+		print(msg)
+	end
+end
+add_cmd(calc,"calc",0,"A calculator! [Occasionally with funny messages!] '/calc <sum>'",true)

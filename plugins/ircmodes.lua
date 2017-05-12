@@ -222,6 +222,11 @@ local function kick(usr,chan,msg,args)
 end
 add_cmd(kick,"kick",10,"Kick a user, '/kick [<chan>] <username> [<reason>]'",true)
 
+local function kickme(usr,chan,msg,args)
+	ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..table.concat(args," "))
+end
+add_cmd(kickme,"kickme",0,"Places a 'kick me' sign on your back'",false)
+
 --KBAN
 local function kickban(usr,chan,msg,args)
 	ban(usr,chan,msg,args)

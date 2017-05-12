@@ -497,9 +497,9 @@ local itemUses = {
 			return "You look inside your nothing and get sucked inside to an alternate universe where you didn't have it (-1 nothing)"
 		elseif rnd < 8 then
 			addInv(usr,storeInventory["nothing"],1)
-			return "You look inside your nothing and find nothing inside (+1 nothing)"
+			return "You look inside your nothing but find nothing inside (+1 nothing)"
 		else
-			return "You can't use nothin'"
+			return "You try to use your nothing. Nothing happens"
 		end
 	end,
 	["doll"]=function(usr,args,chan)
@@ -1563,12 +1563,12 @@ local function ask(usr,chan,msg,args)
 	local rstring,answer,timer = "Question from "..usr.nick..(prize and (" ($"..prize.."): ") or ": ")..args[2+argA],args[3+argA],30
 	local answers= {}
 	for i=3+argA,#args do
-		answers[args[i]]=true
+		answers[args[i]:lower()]=true
 	end
 	activeQuiz[qName] = true
 	--insert answer function into a chat listen hook
 	addListener(qName,function(nusr,nchan,nmsg)
-		if nchan==toChan and answers[nmsg] then
+		if nchan==toChan and answers[nmsg:lower()] then
 			if prize then changeCash(usr,-prize) end
 			ircSendChatQ(toChan,nusr.nick..": "..nmsg.." is correct, congratulations!"..(prize and " Got $"..prize..changeCash(nusr,prize) or ""))
 			remTimer(qName)

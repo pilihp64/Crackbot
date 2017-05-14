@@ -504,7 +504,7 @@ local itemUses = {
 	end,
 	["doll"]=function(usr,args,chan)
 		remInv(usr,"doll",1)
-		if chan == "##powder-bots" then
+		if chan == "#powder-bots" then
 			if string.lower(usr.nick):find("mitch") then
 				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
 				return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"

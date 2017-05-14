@@ -374,10 +374,10 @@ local function realchat(usr,channel,msg)
 		if channel and channel:sub(1,1)=='#' then (irc.channels[channel].users[usr.nick] or {}).lastSaid = {["msg"]=msg, ["time"]=os.time()} end
 	end
 
-	-- relay new Crackbot commits into ##powder-bots
+	-- relay new Crackbot commits into #powder-bots
 	-- maybe could add a relay module sometime
 	if user.nick=="Crackbot" and channel=='##jacob1' and usr.nick == "CrackbotRepo" and usr.host:find("192%.30%.252") then
-		ircSendChatQ("##powder-bots",msg)
+		ircSendChatQ("#powder-bots",msg)
 	end
 end
 local function chat(usr,channel,msg)

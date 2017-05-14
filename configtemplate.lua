@@ -86,7 +86,7 @@ local config = {
 		--"##foo",
 	},
 	--used occasionally to kick people in games.lua
-	primarychannel = "##powder-bots",
+	primarychannel = "#powder-bots",
 	--logs all commands done in pm, and added aliases
 	logchannel = "##foo",
 	

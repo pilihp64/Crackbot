@@ -504,37 +504,22 @@ local itemUses = {
 	end,
 	["doll"]=function(usr,args,chan)
 		remInv(usr,"doll",1)
-		if chan == "#powder-bots" then
-			if string.lower(usr.nick):find("mitch") then
-				ircSendRawQ("KICK "..config.primarychannel.." "..usr.nick)
-				return "You stick a needle in the doll. Your leg starts bleeding and you die (-1 doll)"
-			end
-			local rnd = math.random(1,100)
-			if rnd <= 50 then
-				return "You find out the doll was gay and throw it away (-1 doll)"
-			elseif rnd == 51 then
-				-- TODO: wolfmitchel parted the channel ):
-				ircSendRawQ("KICK "..chan.." wolfmitchell")
-				return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
-			else
-				return "The doll looks so ugly that you burn it (-1 doll)"
-			end
+		local rnd = math.random(1,100)
+		if rnd <= 33 then
+			return "You play with the doll. It tries burning your house down and runs away (-1 doll)"
+		elseif rnd <= 66 then
+			return "You play with the doll. It disintegrates. (-1 doll)"
+		elseif rnd <= 67 then
+			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
 		else
-			local rnd = math.random(1,100)
-			if rnd <= 33 then
-				return "You play with the doll. It tries burning your house down and runs away (-1 doll)"
-			elseif rnd <= 66 then
-				return "You play with the doll. It disintegrates. (-1 doll)"
-			else
-				return "The doll looks so ugly that you burn it (-1 doll)"
-			end
+			return "The doll looks so ugly that you burn it (-1 doll)"
 		end
 	end,
 	["derp"]=function(usr)
 		remInv(usr,"derp",1)
 		local itemList, itemWeight, total = {}, {}, 0
 		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if v.cost >= -1000 and v.instock then
+			if (v.cost >= -1000 and v.instock) or (v.cost >= -5000000 and v.cost < 0) then
 				table.insert(itemList,v)
 				total = total + v.amount
 				table.insert(itemWeight,total)
@@ -551,16 +536,16 @@ local itemUses = {
 			end
 		end
 		if not item then
-			return "jacob1 is a derp"
+			return usr.nick.." is a derp"
 		end
 		rnd = math.random()
 		--return total.." "..rnd.." : "..table.concat(itemWeight," ")
 		if rnd < .5 then
 			addInv(usr,item,1)
-			return "You derp your "..item.name.." and it multiplies! (+1 "..item.name..")"
+			return "You derp your "..item.name.." and it multiplies! (-1 derp) (+1 "..item.name..")"
 		else
 			remInv(usr,item.name,1)
-			return "You derp your "..item.name.." and it explodes! (-1 "..item.name..")"
+			return "You derp your "..item.name.." and it explodes! (-1 derp) (-1 "..item.name..")"
 		end
 	end,
 	["water"]=function(usr)
@@ -644,9 +629,6 @@ local itemUses = {
 		end
 	end,
 	["potato"]=function(usr,args,chan)
-		if usr.nick == "jacob1" then
-			return "You are a potato"..changeCash(usr,1000)
-		end
 		local rnd = math.random(0,99)
 		if rnd < 20 then
 			return "I'm a potato"
@@ -657,7 +639,7 @@ local itemUses = {
 			return "You stare at the potato. You determine it is a potato"
 		elseif rnd < 60 then
 			remInv(usr,"potato",1)
-			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 60000000)
+			return "You find out potatoes that can't talk are very expensive and sell yours for $75000000"..changeCash(usr, 75000000)
 		else
 			remInv(usr,"potato",1)
 			local str
@@ -671,7 +653,7 @@ local itemUses = {
 				str = "You fry the potato and make french fries"
 			end
 			if rnd%2 == 1 and irc.channels[chan] then
-				str = str..". The potato attacks you (-1 potato)"..changeCash(usr,-5000000)
+				str = str..". The potato attacks you (-1 potato) (-$5000000)"..changeCash(usr,-5000000)
 				if irc.channels[chan].users[config.user.nick].access.op then
 					ircSendRawQ("KICK "..chan.." "..usr.nick.." :"..str)
 					return nil
@@ -886,7 +868,7 @@ local itemUses = {
 				if other.nick == config.user.nick then return "You cannot sue the bot!" end
 				local amt = math.random(1, 500000)
 				if math.random() >= .5 then
-					if amt > gameUsers[other.host].cash then amt = gameUsers[other.host].cash end
+					if amt > gameUsers[other.host].cash and gameUsers[other.host].cash > 0 then amt = gameUsers[other.host].cash end
 					changeCash(other, -amt)
 					return "Your company sues "..other.nick.." for $" ..nicenum(amt).. " and wins!" .. changeCash(usr, amt)
 				else
@@ -1124,7 +1106,7 @@ local function giveMon(usr,chan,msg,args)
 		local i = gameUsers[usr.host].inventory[item]
 		if i.name == "antiPad" then return "You can't give that!" end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
-		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
+		if toHost == "Powder/Developer/lykos.jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
 		end
 		remInv(usr,item,amt)

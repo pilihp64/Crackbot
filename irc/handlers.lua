@@ -102,8 +102,10 @@ handlers["NICK"] = function(o, prefix, newnick)
 end
 
 local function needNewNick(o, prefix, target, badnick)
-	local newnick = o.nickGenerator(badnick)
-	o:send("NICK %s", newnick)
+	--local newnick = o.nickGenerator(badnick)
+	--o:send("NICK %s", newnick)
+	o:send("ns ghost %s", badnick)
+	o:send("NICK %s", badnick)
 end
 
 -- ERR_ERRONEUSNICKNAME (Misspelt but remains for historical reasons)

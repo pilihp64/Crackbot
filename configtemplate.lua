@@ -1,24 +1,36 @@
 permissions = {}
 --insert host into permissions here
 --example: permissions["Powder/Developer/cracker64"] = 101
---Owner should be 101
+--Owner should be 101, trusted global ops can be 100
+--Set to -2 to ignore host
+--Remember to escape .'s and other lua pattern special characters with %
 
---insert per channel permissions here
+
+--insert per channel permissions here (channel specific ops)
 channelPermissions = {
-	["##mychannel"] = {
+	--[[["##mychannel"] = {
 		["Powder/Developer/jacob1"] = 50,
 	},
+	--Give everyone a permission level of -1 by default
+	["##quietchannel"] = {
+		["@default"] = -1,
+	},]]
 }
 
 --to override the default permission level of a command, insert it here
 commandPermissions = {
-	["mycommand"] = 10,
+	--["mycommand"] = 10,
 }
+--to override the default permission level of a command only in one channel, insert it here
 channelCommandPermissions = {
-	["##mychannel"] = {
+	--[[["##mychannel"] = {
 		["mycommand"] = 0,
-	},
+	},]]
 }
+
+-- Do not edit these functions. Go to the end of the file to configure the network settings
+
+
 
 --Get perm value for part of a hostmask (usually just host)
 function getPerms(host,chan)
@@ -44,12 +56,17 @@ function getPerms(host,chan)
 			end
 		end
 	end
-	if perms < -1 then perms=0 end
-	if chanPerms and chanPerms < -1 then chanPerms=0 end
+	if perms < -2 then perms=0 end
+	if chanPerms and chanPerms < -2 then chanPerms=0 end
+	if not chanPerms and channelPermissions[chan] and channelPermissions[chan]["@default"] then
+		if perms == 0 then return channelPermissions[chan]["@default"] end
+		return math.max(channelPermissions[chan]["@default"], perms)
+	end
 	return chanPerms or perms
 end
 
 function getCommandPerms(cmd,chan)
+	if not commands[cmd] then return 101 end --if this command doesn't exist, default to 101
 	local defaultlvl = commands[cmd].level
 	if defaultlvl >= 100 then return defaultlvl end
 	if chan and channelCommandPermissions[chan] then
@@ -68,7 +85,7 @@ local config = {
 	},
 	--User info, set these to whatever you need
 	user = {
-		nick = "Crackbot",
+		nick = "FakeCrackbot",
 		username = "Meow",
 		realname = "moo",
 		
@@ -83,19 +100,19 @@ local config = {
 	},
 	--Channels to join on start
 	autojoin = {
-		--"##foo",
+		--"##mychannel",
 	},
-	--used occasionally to kick people in games.lua
-	primarychannel = "#powder-bots",
+	--only used in a small handful of places
+	primarychannel = "##mychannel",
 	--logs all commands done in pm, and added aliases
-	logchannel = "##foo",
-	
+	logchannel = "##logchannel",
+
 	prefix = "%./",
 	suffix = "moo+",
-	
+
 	--turns on terminal input, can be used on linux to input commands directly from a second terminal
-	terminal = "gnome-terminal -x",
-	terminalinput = true
+	--terminal = "gnome-terminal -x",
+	--terminalinput = true
 }
 
 return config

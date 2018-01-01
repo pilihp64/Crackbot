@@ -14,7 +14,7 @@ local function lua(usr,chan,msg,args,luan)
 		return r:sub(1,#r-1)
 	else
 		local sdump=""
-		luan = luan or "lua"
+		luan = luan or "lua5.1"
 		--byte the string so you can't escape
 		for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
 		local rf = io.popen(luan..[=[ -e "dofile('derp.lua') dofile('plugins/sandbox/linuxsandbox.lua') local e,err=load_code(']=]..sdump..[=[',nil,'t',env) if e then local r = {pcall(e)} local s = table.remove(r,1) print(unpack(r)) else print(err) end" 2>&1]=])
@@ -94,7 +94,7 @@ exec('def foo(): '+(']]..sdump..[[').decode('hex')+';\nresp=foo();\nif resp!=Non
 	return r,true
 end
 if not WINDOWS then
-	add_cmd(python,"py",0,"Runs sandy python code, '/py <code>'",true)
+	add_cmd(python,"py",101,"Runs sandy python code, '/py <code>'",true)
 end
 
 --BRAINFUCK
@@ -104,7 +104,7 @@ local function BF(usr,chan,msg)
 	end
 	if not msg then return "No code" end
 	local sdump=""
-	local luan = luan or WINDOWS and "lua5.1" or "lua"
+	local luan = "lua5.1"
 	--byte the string so you can't escape
 	for char in msg:gmatch(".") do sdump = sdump .. "\\"..char:byte() end
 	

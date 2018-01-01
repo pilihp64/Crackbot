@@ -30,7 +30,14 @@ user = config.user
 irc=irc.new(user)
 
 --support multiple networks sometime
-irc:connect(config.network.server,config.network.port,config.network.password)
+local connectioninfo = {
+    host = config.network.server,
+    port = config.network.port,
+    password = config.network.password,
+    secure = config.network.ssl,
+    timeout = config.network.timeout,
+}
+irc:connect(connectioninfo)
 config.network.password = nil
 if config.user.password then
 	irc:sendChat("NickServ", "identify "..config.user.account.." "..config.user.password)

@@ -118,7 +118,7 @@ local function unquiet(usr,chan,msg,args)
 		host = getUserFromNick(args[1])
 	end
 	host = getUserFromNick(nick)
-	host = host and host.host or nick
+	host = host and "*!*@"..host.host or nick
 	checkPermissions(usr.host, "unquiet", chan, "unquiet")
 	setMode(chan,"-q",host)
 end
@@ -139,7 +139,7 @@ local function quiet(usr,chan,msg,args)
 		unbanTimer = tonumber(args[2])
 	end
 	local host = getUserFromNick(nick)
-	host = host and host.host or nick
+	host = host and "*!*@"..host.host or nick
 	checkPermissions(usr.host, "quiet", chan, "quiet")
 	setMode(chan,"+q",host)
 	if not unbanTimer then
@@ -165,7 +165,7 @@ local function unban(usr,chan,msg,args)
 		nick = args[1]
 	end
 	host = getUserFromNick(nick)
-	host = host and host.host or nick
+	host = host and "*!*@"..host.host or nick
 	checkPermissions(usr.host, "unban", chan, "unban")
 	setMode(chan,"-b",host)
 end
@@ -187,7 +187,7 @@ local function ban(usr,chan,msg,args)
 		unbanTimer = tonumber(args[2])
 	end
 	host = getUserFromNick(nick)
-	host = host and host.host or nick
+	host = host and "*!*@"..host.host or nick
 	checkPermissions(usr.host, "ban", chan, "ban")
 	setMode(chan,"+b",host)
 	if unbanTimer then

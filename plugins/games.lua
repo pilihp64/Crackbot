@@ -322,7 +322,7 @@ local itemUses = {
 
 		local userlist = {}
 		for k,v in pairs(irc.channels[chan].users) do
-			if gameUsers[v.host] and gameUsers[v.host].inventory then
+			if rawget(gameUsers, v.host) and gameUsers[v.host].inventory then
 				table.insert(userlist, v)
 			end
 		end

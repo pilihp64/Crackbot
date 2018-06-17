@@ -336,6 +336,11 @@ local function realchat(usr,channel,msg)
 		_,_,cmd,rest,pre = msg:find("^([^%s]+) (.-)%s?("..suffix..")$")
 	end
 
+	--hack for irccloud users
+	if usr.host and user.username and usr.host:find("gateway/web/irccloud.com/x%-%a+") then
+		usr.host = "gateway/web/irccloud.com/"..usr.username
+	end
+
 	local func,err
 
 	if cmd then

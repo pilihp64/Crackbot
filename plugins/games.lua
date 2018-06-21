@@ -597,7 +597,7 @@ local itemUses = {
 		end	
 	end,
 	["moo"]=function(usr, args)
-		local other = getUserFromNick(args[2])
+		local other = getUserFromNick(args[2], true)
 		if other and other.nick ~= usr.nick then
 			if (other.nick == "jacob1" or other.nick == "cracker64") and math.random() < .5 then
 				addInv(usr,storeInventory["moo"],1)
@@ -664,7 +664,7 @@ local itemUses = {
 	end,
 	--gold
 	--[[["diamond"]=function(usr, args)
-		local other = getUserFromNick(args[2])
+		local other = getUserFromNick(args[2], true)
 		if other and other.nick ~= usr.nick then
 			local rnd = math.random(1,100)
 			if rnd < 25 then
@@ -816,7 +816,7 @@ local itemUses = {
 		end
 	end,
 	["billion"] = function(usr,args)
-		local other = getUserFromNick(args[2])
+		local other = getUserFromNick(args[2], true)
 		if other and other.nick ~= usr.nick then
 			local rnd = math.random(100)
 			if rnd < 20 then
@@ -856,7 +856,7 @@ local itemUses = {
 	end,
 	["company"] = function(usr, args)
 		local rnd = math.random(96)
-		local other = getUserFromNick(args[2])
+		local other = getUserFromNick(args[2], true)
 		if other and other.nick ~= usr.nick then
 			if rnd < 20 then
 				remInv(usr, "company", 1)
@@ -1088,7 +1088,7 @@ local function giveMon(usr,chan,msg,args)
 	if string.lower(args[1]) == string.lower(config.user.nick) then
 		return "Please do not give to the bot"
 	end
-	toHost = getUserFromNick(args[1])
+	toHost = getUserFromNick(args[1], true)
 	if not toHost or not toHost.host then
 		return "Invalid user, or not online"
 	end

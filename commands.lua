@@ -29,18 +29,34 @@ function add_cmd(f, name, lvl, help, shown, aliases)
 end
 
 --Helper to return user object from a name
-function getUserFromNick(nick)
+function getUserFromNick(nick, normalize)
 	if not nick then return end
 	nick = nick:lower()
 	for k,v in pairs(irc.channels) do
 		if v and v.users then
 			for k2,v2 in pairs(v.users) do
 				if v2 and v2.nick:lower() == nick then
+					if normalize then
+						return normalizeHost(v2)
+					end
 					return v2
 				end
 			end
 		end
 	end
+end
+
+-- Hack to change irccloud user hosts to something static
+function normalizeHost(usr)
+	if usr and usr.host and usr.host:find("gateway/web/irccloud.com/x%-%a+") then
+		copy = {}
+		for k,v in pairs(usr) do
+			copy[k] = v
+		end
+                copy.host = "gateway/web/irccloud.com/"..copy.username
+		return copy
+        end
+	return usr
 end
 
 --Load all plugins in plugins/ here

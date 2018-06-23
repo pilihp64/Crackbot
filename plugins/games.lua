@@ -29,7 +29,7 @@ storeInventory={
 ["lamp"]=	{name="lamp",	cost=1001,info="A very expensive lamp, great lighting.",amount=1,instock=true},
 ["penguin"]={name="penguin",cost=5000,info="Don't forget to feed it.",amount=1,instock=false},
 ["nothing"]={name="nothing",cost=10000,info="Nothing, how can you even have this.",amount=1,instock=false},
-["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of mitch, do whatever you want to it.",amount=1,instock=true},
+["doll"]=	{name="doll",	cost=15000,info="A voodoo doll of "..config.owner.nick..", do whatever you want to it.",amount=1,instock=true},
 ["derp"]=	{name="derp",	cost=50000,info="One derp, to derp things.",amount=1,instock=true},
 ["water"]=	{name="water",	cost=100000,info="Holy Water, you should feel very blessed now.",amount=1,instock=false},
 ["vroom"]=	{name="vroom",	cost=500000,info="Vroom vroom.",amount=1,instock=true},
@@ -368,7 +368,7 @@ local itemUses = {
 		elseif rnd <= 60 then
 			remInv(usr,"junk",1)
 			addInv(usr,storeInventory["doll"], 1)
-			return "You look at your junk and find it is actually mitch (-1 junk, +1 doll)"
+			return "You notice your junk was actually a creepy voodoo doll (-1 junk, +1 doll)"
 		elseif rnd <= 70 then
 			return "You attempt to dispose of your junk, but are caught and fined $50000 for illegal dumping"..changeCash(usr,-50000)
 		elseif rnd <= 80 then
@@ -400,6 +400,8 @@ local itemUses = {
 		elseif rnd < 30 then
 			remInv(usr,"chips",1)
 			return "You finished the bag of chips (-1 chips)"
+		elseif rnd < 60 then
+			return "You get a paper cut from the bag of chips"
 		else
 			return "You ate a chip"..((rnd%3 == 1) and ". It needs more salt" or "")
 		end
@@ -476,9 +478,6 @@ local itemUses = {
 	end,
 	["penguin"]=function(usr)
 		local rnd = math.random(1,10)
-		if usr.nick:find("iam") then
-			return "Error: You can't use yourself"..changeCash(usr,1)
-		end
 		remInv(usr,"penguin",1)
 		if rnd < 3 then
 			return "Your pet penguin caught a plane back to Antarctica (-1 penguin)"
@@ -503,16 +502,24 @@ local itemUses = {
 		end
 	end,
 	["doll"]=function(usr,args,chan)
-		remInv(usr,"doll",1)
-		local rnd = math.random(1,100)
-		if rnd <= 33 then
+		remInv(usr, "doll", 1)
+		local rnd = math.random(1, 100)
+		if rnd <= 20 then
+			local houseinv = gameUsers[usr.host].inventory["house"]
+			if houseinv then
+				remInv(usr, "house", 1)
+				return "You play with the doll. It burns your house down and runs away (-1 doll) (-1 house)"
+			end
 			return "You play with the doll. It tries burning your house down and runs away (-1 doll)"
-		elseif rnd <= 66 then
+		elseif rnd <= 50 then
 			return "You play with the doll. It disintegrates. (-1 doll)"
-		elseif rnd <= 67 then
-			return "You stick a needle in the doll. wolfmitchell dies (-1 doll)"
-		else
+		elseif rnd <= 51 then
+			return "You stick a needle in the doll. "..config.owner.nick.." dies (-1 doll)"
+		elseif rnd <= 80 then
 			return "The doll looks so ugly that you burn it (-1 doll)"
+		else
+			addInv(usr, storeInventory["doll"], 2)
+			return "The doll invites over a friend (+1 doll)"
 		end
 	end,
 	["derp"]=function(usr)
@@ -549,15 +556,18 @@ local itemUses = {
 		end
 	end,
 	["water"]=function(usr)
-		local rnd = math.random(1,10)
+		local rnd = math.random(1,11)
 		remInv(usr,"water",1)
 		if rnd < 3 then
 			return "You drink the holy water. Nothing happens (-1 water)"
 		elseif rnd < 5 then
 			return "You get paid $1000000 to burn the water by a mysterious man with horns"..changeCash(usr,1000000)
-		else
+		elseif rnd < 11 then
 			local amt = ((rnd-5)^3)*100000+1
 			return "You discover that the holy water cures cancer. You sell it for $"..amt..changeCash(usr,amt)
+		else
+			addInv(usr, storeInventory["cube"], 1)
+			return "The water freezes (+1 cube)"
 		end
 	end,
 	["table"] = function(usr)
@@ -590,7 +600,7 @@ local itemUses = {
 			remInv(usr,"vroom",1)
 			return "You use vroom! A cloud of smoke appears (-1 vroom)"
 		elseif rnd<46 then
-			addInv(usr,storeInventory["credit"],1)
+			addInv(usr, storeInventory["credit"], 1)
 			return "You find out the vroom was stolen, you have to take out a credit card to pay it off ( +1 credit)"
 		else
 			return "Ye ye vroom vroom +$1500000"..changeCash(usr,1500000)
@@ -663,29 +673,86 @@ local itemUses = {
 		end
 	end,
 	--gold
-	--[[["diamond"]=function(usr, args)
+	["diamond"]=function(usr, args)
+		local inprison = gameUsers[usr.host].inventory["diamond"].status
 		local other = getUserFromNick(args[2], true)
 		if other and other.nick ~= usr.nick then
 			local rnd = math.random(1,100)
 			if rnd < 25 then
 				remInv(usr, "diamond", 1)
 				addInv(other, storeInventory["diamond"], 1)
-				return "You give your diamond ring to "..other.nick..". They accept it! You live happily ever after."
-			elseif rnd < 40 then
+				if inprison then
+					return "You smuggle your diamond ring to "..other.nick..". They accept it! You live a life of crime together (-1 diamond)"
+				else
+					return "You give your diamond ring to "..other.nick..". They accept it! You live happily ever after. (-1 diamond)"
+				end
+			else
 				remInv(usr, "diamond", 1)
-				rejectmessage = ""
-				if gameUsers[usr.host].inventory["iPad"] and gameUsers[usr.host].inventory["iPad"].amount > 20 and math.random(1,3) == 1 then
-					if rnd%5 == 0 then
-						return "they don't like Apple fanboys."
-					elseif rnd%6 == 0 then
-						return "they hate angry birds."
+				local rejectmessage = ""
+				if inprison then
+					rejectmessage = "you are in prison"
+				elseif gameUsers[usr.host].inventory["iPad"] and gameUsers[usr.host].inventory["iPad"].amount > 20 and math.random(1,3) == 1 then
+					rejectmessage = "they don't like Apple fanboys."
+				elseif gameUsers[usr.host].inventory["doll"] and gameUsers[usr.host].inventory["doll"].amount > 2 and math.random(1,3) == 1 then
+					rejectmessage = "you have too many creepy voodoo dolls"
+				elseif gameUsers[usr.host].inventory["cow"] and gameUsers[usr.host].inventory["cow"].amount > 20 and math.random(1,5) == 1 then
+					if rnd%2 == 0 then
+						rejectmessage = "they are allergic to cows."
+					else
+						rejectmessage = "they don't like farmers."
 					end
 				elseif gameUsers[usr.host].inventory["company"] and gameUsers[usr.host].inventory["company"].amount > 5 and math.random(1,12) == 1 then
-					return "they hate businessmen."
+					rejectmessage = "they hate businessmen."
+				else
+					local rejectmessages = {"your feet smell", "you aren't rich enough", "you've only been dating for 15 minutes", "you didn't go to Jared", "you don't perform well in bed", "'we're just friends, ok?"}
+					rejectmessage = rejectmessages[math.random(1, #rejectmessages)]
 				end
+				return "You give your diamond ring to "..other.nick..". They reject you because "..rejectmessage.." (-1 diamond)"
 			end
 		end
-	end,]]
+		local rnd = math.random(1,100)
+		if rnd < 20 then
+			remInv(usr, "diamond", 1)
+			return "Someone pays you extra for your ultra-rare diamond (+$15,000,000) (-1 diamond)"..changeCash(usr, 15000000)
+		elseif rnd < 30 then
+			remInv(usr, "diamond", 1)
+			return "You try to sell your diamond but find out it was fake. (+$10,000) (-1 diamond)"..changeCash(usr, 10000)
+		elseif rnd <  45 then
+			local room = inprison and "the warden's room" or "a bank"
+			addInv(usr, storeInventory["diamond"], 1)
+			return "You break into "..room.." and steal another diamond from their vault. (+1 diamond)"
+		elseif rnd < 55 then
+			local room = inprison and "the warden's room" or "a bank"
+			remInv(usr, "diamond", 1)
+			if gameUsers[usr.host].inventory["diamond"] then
+				gameUsers[usr.host].inventory["diamond"].status = true
+			end
+			return "You break into "..room.." to steal another diamond, but get caught and are sentenced to 15 years in prison and a $500,000 fine. (-1 diamond)"..changeCash(usr, 500000)
+		elseif rnd < 65 then
+			local amount = math.random(1,20)*1000000
+			if inprison then
+				remInv(usr, "diamond", 1)
+				gameUsers[usr.host].inventory["diamond"].status = nil
+				return "You bribe a guard and break out of prison by hiding in a potato delivery truck (-$"..amount..") (-1 diamond)"..changeCash(usr, -amount)
+			else
+				remInv(usr, "diamond", 1)
+				return "The FBI comes and seizes your diamond, because it was stolen. They give you $"..amount.." in damages"..changeCash(usr, amount)
+			end
+		elseif rnd < 85 then
+			local item = inprison and "iPad" or "cow"
+			remInv(usr, "diamond", 1)
+			addInv(usr, storeInventory[item], 1)
+			return "You acquire a diamond-plated "..item.." (-1 diamond) (+1 "..item..")"
+		elseif rnd < 92 then
+			remInv(usr, "diamond", 1)
+			return "You accidentally flush your diamond down the toilet (-1 diamond)"
+		else
+			remInv(usr, "diamond", 1)
+			local powders = math.random(75, 125)
+			addInv(usr, storeInventory["powder"], powders)
+			return "Your diamond disintegrates (-1 diamond) (+"..powders.." powder)"
+		end
+	end,
 	["cow"]=function(moo)
 		local cowCount = gameUsers[moo.host].inventory["cow"].amount
 		local rnd = math.random(1,100)
@@ -1189,25 +1256,35 @@ local function store(usr,chan,msg,args)
 		return "Item not found"
 	end
 	if command=="inventory" then
+		local searchuser = usr
+		local namepart = "You have"
+		if args[2] then
+			searchuser = getUserFromNick(args[2], true)
+			if not searchuser then
+				return "Could not find user"
+			end
+			namepart = args[2].." has"
+		end
+	
 		local invnames = {}
-		for k,v in pairs(gameUsers[usr.host].inventory) do
+		for k,v in pairs(gameUsers[searchuser.host].inventory) do
 			invnames[v.name] = true
 		end
 		local t = {}
 		for k,v in pairs(storeInventorySorted) do
 			if invnames[v.name] then
-				table.insert(t, v.name.."("..gameUsers[usr.host].inventory[v.name].amount..")")
+				table.insert(t, v.name.."("..gameUsers[searchuser.host].inventory[v.name].amount..")")
 			end
 		end
-		for k,v in pairs(gameUsers[usr.host].inventory) do
+		for k,v in pairs(gameUsers[searchuser.host].inventory) do
 			if not storeInventory[k] then
 				table.insert(t, v.name.."("..v.amount..")")
 			end
 		end
 		if #t > 0 then
-			return "You have: "..table.concat(t,", ")
+			return namepart..": "..table.concat(t,", ")
 		else
-			return "You have no items ):"
+			return namepart.." no items ):"
 		end
 	end
 	if command=="sell" then
@@ -1244,9 +1321,17 @@ local function store(usr,chan,msg,args)
 	end
 	if command=="sellall" then
 		local sellList, rstring, totalSold = {}, "", 0
-		--Only sellall INSTOCK positive items
-		for k,v in pairs(gameUsers[usr.host].inventory) do
-			if v.instock and v.cost >= 0 then table.insert(sellList,v) end
+		if args[2] then
+			if gameUsers[usr.host].inventory[args[2]] then
+				table.insert(sellList, gameUsers[usr.host].inventory[args[2]])
+			else
+				return "You don't have that!"
+			end
+		else
+			--Only sellall INSTOCK positive items
+			for k,v in pairs(gameUsers[usr.host].inventory) do
+				if v.instock and v.cost >= 0 then table.insert(sellList,v) end
+			end
 		end
 		if #sellList == 0 then return "You don't have any items to 'sellall'" end
 		for i,v in ipairs(sellList) do

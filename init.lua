@@ -29,24 +29,65 @@ shutdown = false
 user = config.user
 irc=irc.new(user)
 
+for k,v in pairs(arg) do
+	if v == "--verbose" then
+		local function onSend(msg)
+			print("--> " .. msg)
+		end
+		local function onRecv(msg)
+			print("<-- " .. msg)
+		end
+
+		pcall(irc.unhook, irc, "OnSend", "onSend")
+		irc:hook("OnSend","onSend", onSend)
+		pcall(irc.unhook, irc, "OnRaw", "onRecv")
+		irc:hook("OnRaw","onRecv", onRecv)
+	end
+end
+
+--autojoin after registration
+local function autojoin()
+	if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
+	local hasPrimary = false
+	local hasLog = false
+	for k,v in pairs(config.autojoin) do
+		irc:join(v)
+		if v == config.primarychannel then
+			hasPrimary = true
+		end
+		if v == config.logchannel then
+			hasLog = true
+		end
+	end
+	--join extra config channels if they for some reason aren't in the autojoin
+	if config.primarychannel and not hasPrimary then
+		irc:join(config.primarychannel)
+	end
+	if config.logchannel and not hasLog then
+		irc:join(config.logchannel)
+	end
+	irc:sendChat(config.primarychannel, "moo" * #config.autojoin)
+	pcall(irc.unhook, irc, "OnRegistered", "autojoin")
+end
+irc:hook("OnRegistered", "autojoin", autojoin)
+
+
 --support multiple networks sometime
 local connectioninfo = {
     host = config.network.server,
     port = config.network.port,
-    password = config.network.password,
+    serverPassword = config.network.password,
     secure = config.network.ssl,
     timeout = config.network.timeout,
+	sasl = config.network.sasl,
+	
+	account = config.user.account,
+	password = config.user.password
 }
 irc:connect(connectioninfo)
+config.user.password = nil
 config.network.password = nil
-if config.user.password then
-	irc:sendChat("NickServ", "identify "..config.user.account.." "..config.user.password)
-	config.user.password = nil
-	print("Connected, sleeping for 7 seconds")
-	sleep(7)
-else
-	print("Connected")
-end
+print("Connected!")
 
 local connected=false
 if not WINDOWS then
@@ -62,18 +103,6 @@ end
 
 dofile("hooks.lua")
 dofile("commands.lua")
-if #config.autojoin <= 0 then print("No autojoin channels set in config.lua!") end
-for k,v in pairs(config.autojoin) do
-	irc:join(v)
-end
---join extra config channels if they for some reason aren't in the autojoin
-if config.primarychannel then
-	irc:join(config.primarychannel)
-end
-if config.logchannel then
-	irc:join(config.logchannel)
-end
-irc:sendChat(config.primarychannel, "moo"*#config.autojoin)
 
 local function consoleThink()
 	if not connected then return end

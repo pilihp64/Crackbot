@@ -79,11 +79,12 @@ end
 local config = {
 	--Network to connect to, change to whatever network you use
 	network = {
-		server = "irc.freenode.net",
+		server = "irc.libera.chat",
 		port = 6697,
 		--password = "",
 		ssl = true,
 		timeout = 30,
+		sasl = true
 	},
 	--User info, set these to whatever you need
 	user = {

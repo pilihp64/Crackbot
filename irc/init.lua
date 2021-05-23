@@ -1,4 +1,6 @@
 local socket = require "socket"
+dofile("irc/base64.lua")
+local to_base64 = to_base64
 
 local error = error
 local setmetatable = setmetatable
@@ -10,6 +12,9 @@ local require = require
 local tonumber = tonumber
 local type = type
 local pcall = pcall
+local table_insert = table.insert
+local table_concat = table.concat
+local print = print
 
 module "irc"
 
@@ -74,20 +79,18 @@ function meta:invoke(name, ...)
 	end
 end
 
-function meta_preconnect:connect(_host, _port, _password)
-	local host, port, password, secure, timeout
+function meta_preconnect:connect(connectionInfo)
 
-	if type(_host) == "table" then
-		host = _host.host
-		port = _host.port
-		timeout = _host.timeout
-		password = _host.password
-		secure = _host.secure
-	else
-		host = _host
-		port = _port
-		password = _password
-	end
+	local host = connectionInfo.host
+	local port = connectionInfo.port
+	local timeout = connectionInfo.timeout
+	local serverPassword = connectionInfo.serverPassword
+	local secure = connectionInfo.secure
+	local sasl = connectionInfo.sasl
+	local account = connectionInfo.account
+	local password = connectionInfo.password
+	if password and not account then error("Got nickserv password, but not account") end
+	if sasl and not password then error("Sasl requsted, but no password given") end
 
 	host = host or error("host name required to connect", 2)
 	port = port or 6667
@@ -120,19 +123,27 @@ function meta_preconnect:connect(_host, _port, _password)
 	self.socket = s
 	setmetatable(self, meta)
 
-	self:send("CAP REQ multi-prefix")
+	self:send("CAP REQ :multi-prefix" .. (sasl and " sasl" or ""))
 
-	self:invoke("PreRegister", self)
-	self:send("CAP END")
+	if sasl then
+		local saslParts = {}
+		table_insert(saslParts, account)
+		table_insert(saslParts, account)
+		table_insert(saslParts, password)
+		self.saslToken = to_base64(table_concat(saslParts, "\0"))
+	else
+		self:send("CAP END")
+	end
 
-	if password then
-		self:send("PASS %s", password)
+	if serverPassword then
+		self:send("PASS %s", serverPassword)
 	end
 
 	self:send("NICK %s", self.nick)
-	self:send("USER %s 0 * :%s", self.username, self.realname)
+	self:send("USER %s 0 * :%s", self.nick, self.realname)
 
 	self.channels = {}
+	self.caps = {}
 
 	s:settimeout(0)
 
@@ -140,6 +151,17 @@ function meta_preconnect:connect(_host, _port, _password)
 		self:think()
 		socket.select(nil, nil, 0.1) -- Sleep so that we don't eat CPU
 	until self.authed
+	
+	if not sasl and password then
+		self:sendChat("NickServ", "identify " .. account .. " " .. password)
+		print("Waiting 7 seconds for NickServ identification")
+		socket.sleep(7)
+	end
+	if self.needsRegain then
+		self:sendChat("NickServ", "ghost " .. self.needsRegain)
+		self:send("NICK %s", self.needsRegain)
+	end
+	self:invoke("OnRegistered")
 end
 
 function meta:disconnect(message)

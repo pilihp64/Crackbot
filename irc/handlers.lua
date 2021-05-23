@@ -101,11 +101,21 @@ handlers["NICK"] = function(o, prefix, newnick)
 	end
 end
 
+local numTries = 0
 local function needNewNick(o, prefix, target, badnick)
-	--local newnick = o.nickGenerator(badnick)
-	--o:send("NICK %s", newnick)
-	o:send("ns ghost %s", badnick)
-	o:send("NICK %s", badnick)
+	numTries = numTries + 1
+	if numTries > 3 then
+		o:invoke("OnDisconnect", "Cannot claim nickname, exiting", true)
+		o:shutdown()
+		error("Cannot claim nickname, exiting", 3)
+	end
+	if not o.needsRegain then
+		o:send("NICK %s", o.nickGenerator(badnick))
+		o.needsRegain = badnick -- mark ns regain to be used later on, once we are registered and identified
+	else
+		-- Keep attempting nick, we've already ghosted it so it should become available
+		o:send("NICK %s", badnick)
+	end
 end
 
 -- ERR_ERRONEUSNICKNAME (Misspelt but remains for historical reasons)
@@ -207,3 +217,51 @@ handlers["ERROR"] = function(o, prefix, message)
 	o:shutdown()
 	error(message, 3)
 end
+
+handlers["CAP"] = function(o, prefix, star, capType, ...)
+	local args = {...}
+	local numArgs = #args
+	if capType == "ACK" then
+		for cap in args[numArgs]:gmatch("(%S+)") do
+			if cap:sub(1,1) == "-" then
+				o.caps[cap:sub(2)] = nil
+			else
+				o.caps[cap] = true
+			end
+			if cap == "sasl" then
+				o:send("AUTHENTICATE PLAIN")
+			end
+		end
+	elseif capType == "NAK" then
+		for cap in args[numArgs]:gmatch("(%S+)") do
+			o.caps[cap] = nil
+			if cap == "sasl" then
+				o:invoke("OnDisconnect", "SASL not supported, but was requested. Aborting.", true)
+				o:shutdown()
+				error("SASL not supported, but was requested. Aborting.", 3)
+			end
+		end
+	end
+end
+
+handlers["AUTHENTICATE"] = function(o, prefix, plus)
+	if plus == "+" then
+		o:send("AUTHENTICATE " + o.saslToken)
+		o.saslToken = nil
+	end
+end
+
+handlers["903"] = function(o, ...)
+	o:send("CAP END")
+end
+
+local function saslFailed(o, ...)
+	o:invoke("OnDisconnect", "SASL connection failed. Aborting.", true)
+	o:shutdown()
+	error("SASL connection failed. Aborting.", 3)
+end
+handlers["902"] = saslFailed
+handlers["904"] = saslFailed
+handlers["905"] = saslFailed
+handlers["906"] = saslFailed
+handlers["908"] = saslFailed

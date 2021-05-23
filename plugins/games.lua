@@ -216,7 +216,7 @@ local function changeCash(usr,amt)
 end
 
 --add item to inventory, creating if not exists
-local function addInv(usr,item,amt,store)
+function addInv(usr,item,amt,store)
 	gameUsers[usr.host].inventory = gameUsers[usr.host].inventory or {}
 	local inv = gameUsers[usr.host].inventory
 	local InvItem = inv[item.name]
@@ -1173,7 +1173,7 @@ local function giveMon(usr,chan,msg,args)
 		local i = gameUsers[usr.host].inventory[item]
 		if i.name == "antiPad" then return "You can't give that!" end
 		if gameUsers[usr.host].inventory["blackhole"] then return "The force of your blackhole prevents you from giving!." end
-		if toHost == "Powder/Developer/lykos.jacob1" and i.cost < 2000000 then
+		if toHost == "Powder/Developer/jacob1" and i.cost < 2000000 then
 			return "Please do not give crap to jacob1"
 		end
 		remInv(usr,item,amt)
@@ -1334,6 +1334,9 @@ local function store(usr,chan,msg,args)
 			end
 		end
 		if #sellList == 0 then return "You don't have any items to 'sellall'" end
+		for i,v in ipairs(sellList) do
+			if v.cost < 0 and gameUsers[usr.host].cash < -v.cost*v.amount then return "You can't afford that!" end
+		end
 		for i,v in ipairs(sellList) do
 			changeCash(usr,v.cost*v.amount)
 			rstring = rstring..nicenum(v.amount).." "..v.name..", "
@@ -1516,6 +1519,109 @@ q= function() --Count the color of words, or what the word says.
 end,
 isPossible= function(s) --this question only accepts number and color answers
 	if tonumber(s) or allColors[s] then return true end
+	return false
+end})
+
+local food = {
+{["emoji"]="🍇", ["name"]="grape", fruit=true},
+{["emoji"]="🍈", ["name"]="melon", fruit=true},
+{["emoji"]="🍉", ["name"]="watermelon", fruit=true},
+{["emoji"]="🍋", ["name"]="lemon", fruit=true},
+{["emoji"]="🍌", ["name"]="banana", fruit=true},
+{["emoji"]="🍍", ["name"]="pineapple", fruit=true},
+{["emoji"]="🍎", ["name"]="apple", fruit=true},
+{["emoji"]="🍏", ["name"]="apple", fruit=true},
+{["emoji"]="🍐", ["name"]="pear", fruit=true},
+{["emoji"]="🍑", ["name"]="peach", fruit=true},
+{["emoji"]="🍒", ["name"]="cherry", fruit=true},
+{["emoji"]="🍓", ["name"]="strawberry", fruit=true},
+{["emoji"]="🥝", ["name"]="kiwi", fruit=true},
+{["emoji"]="🍅", ["name"]="tomato", fruit=true},
+{["emoji"]="🥥", ["name"]="coconut", fruit=true},
+
+{["emoji"]="🥑", ["name"]="avocado", vegetable=true},
+{["emoji"]="🍆", ["name"]="eggplant", vegetable=true},
+{["emoji"]="🥔", ["name"]="potato", vegetable=true},
+{["emoji"]="🥕", ["name"]="carrot", vegetable=true},
+{["emoji"]="🌽", ["name"]="corn", vegetable=true},
+--{["emoji"]="🌶", ["name"]="pepper", vegetable=true},
+{["emoji"]="🥒", ["name"]="cucumber", vegetable=true},
+{["emoji"]="🥦", ["name"]="broccoli", vegetable=true},
+{["emoji"]="🍄", ["name"]="mushroom", vegetable=true},
+--{["emoji"]="🥜", ["name"]="peanut", vegetable=true},
+
+}
+
+table.insert(questions,{
+q=function()
+	local timeout,multiplier=25, .75
+	local temp = math.random(1, 2)
+	local typ = temp == 1 and "fruit" or "vegetable"
+	local questiontype = math.random(1, 100)
+
+	if questiontype <= 50 then
+		local question = ""
+		local answer = 0
+		for i=1, math.random(8, 15) do
+			local emoji = food[math.random(1, #food)]
+			question = question..emoji.emoji
+			answer = answer + (emoji[typ] == true and 1 or 0)
+		end
+
+		return "Count the number of "..typ.."s in "..question, tostring(answer), timeout, multiplier
+	else
+		local possible = {}
+		local seen = {}
+		local question = ""
+
+		while true do
+			local valid = false
+			for i = 1, math.random(4, 7) do
+				local pick = food[math.random(1, #food)]
+				table.insert(possible, pick)
+				seen[pick.name] = 0
+				if pick[typ] then
+					valid = true
+				end
+			end
+			if valid then
+				break
+			else
+				possible = {}
+				seen = {}
+			end
+		end
+
+		local maxseen = possible[1]
+		local tie = false
+		for i = 1, math.random(8, 15) do
+			local pick = possible[math.random(1, #possible)]
+			local questiontemp = question..pick.emoji
+			question = questiontemp
+			if pick[typ] then
+				seen[pick.name] = seen[pick.name] + 1
+			end
+			if seen[pick.name] > seen[maxseen.name] then
+				maxseen = pick
+				tie = false
+			elseif seen[pick.name] == seen[maxseen.name] then
+				tie = true
+				maxseen = math.random(1, 2) == 1 and pick or maxseen
+			end
+		end
+		if tie then
+			local insertpos = math.random(1, #question/4)*4
+			question = question:sub(1, insertpos)..maxseen.emoji..question:sub(insertpos+1, #question)
+		end
+		return "Which "..typ.." is most common in "..question.."?", maxseen.name, timeout, multiplier
+	end
+
+end,
+isPossible=function(s)
+	if tonumber(s) then return true end
+	for k,v in pairs(food) do
+		if s == v.name then return true end
+	end
 	return false
 end})
 
